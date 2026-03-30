@@ -9,6 +9,7 @@ import LogisticaAdmin from './pages/dashboard/LogisticaAdmin';
 import MensajeroDashboard from './pages/dashboard/MensajeroDashboard';
 import VerificacionMatriz from './pages/dashboard/VerificacionMatriz';
 import PortalPaciente from './pages/portal/PortalPaciente';
+import Sucursales from './pages/Sucursales';
 import { useAuth } from './context/AuthContext';
 import './App.css';
 
@@ -44,20 +45,12 @@ function App() {
 
         {/* Rutas Privadas (Protegidas, requieren sesión) */}
         <Route path="/" element={
-          <PrivateRoute>
-            <DashboardLayout>
-              <div style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-                <span className="material-symbols-rounded" style={{ fontSize: '64px', color: 'var(--co-primary)' }}>
-                  dashboard
-                </span>
-                <h1 style={{ color: 'var(--co-primary)', marginTop: '1rem', fontSize: '2.5rem' }}>Bienvenido: {user?.name}</h1>
-                <p style={{ color: 'var(--co-text-muted)', marginTop: '1rem', fontSize: '1.2rem', maxWidth: '600px', margin: '1rem auto' }}>
-                  Has ingresado con el rol de <strong>{user?.role}</strong>. Navega usando la barra superior.
-                </p>
-              </div>
-            </DashboardLayout>
-          </PrivateRoute>
-        } />
+           <PrivateRoute>
+             <DashboardLayout>
+               <Sucursales />
+             </DashboardLayout>
+           </PrivateRoute>
+         } />
 
         {/* Core: Captura de Resultados */}
         <Route path="/captura" element={<PrivateRoute><DashboardLayout><Captura /></DashboardLayout></PrivateRoute>} />

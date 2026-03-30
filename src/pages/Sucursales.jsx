@@ -4,7 +4,7 @@ const Sucursales = () => {
     return (
         <div>
             <h1>Sucursales</h1>
-            <button>Agregar Sucursal</button>
+            <button>Iniciar Nuevo Despacho</button>
             <ul>
                 <li>Nombre: Sucursal 1, Dirección: Calle 1, Estado Bio-logístico: Activo</li>
                 <li>Nombre: Sucursal 2, Dirección: Calle 2, Estado Bio-logístico: Inactivo</li>
