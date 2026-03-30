@@ -1,0 +1,129 @@
+﻿.container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--co-primary);
+  margin-bottom: 0.5rem;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.kpiCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid #E2E8F0;
+  text-align: center;
+}
+
+.kpiTitle {
+  font-size: 0.8rem;
+  color: var(--co-text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.kpiValue {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--co-primary);
+}
+
+/* Filtros */
+.filterBar {
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  box-shadow: var(--shadow-xs);
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.filterGroup label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--co-text-muted);
+  margin-bottom: 4px;
+}
+
+.selectInput {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+}
+
+/* Tabla Maestra */
+.tableContainer {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.masterTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.masterTable th {
+  background: #F8FAFC;
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--co-primary);
+}
+
+.masterTable td {
+  padding: 1rem;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 0.9rem;
+}
+
+.alertTag {
+  background: #FEF3C7;
+  color: #D97706;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.critCol {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.obsBtn {
+  background: #F1F5F9;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}

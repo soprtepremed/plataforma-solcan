@@ -1,0 +1,100 @@
+﻿.loginContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--co-bg);
+  padding: 1rem;
+}
+
+.loginCard {
+  background: white;
+  padding: 2.5rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+}
+
+.title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--co-primary);
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: var(--co-text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  line-height: 1.4;
+}
+
+/* Selector de Sucursal */
+.branchSelect {
+  width: 100%;
+  padding: 1rem;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  outline: none;
+  cursor: pointer;
+  background-color: #F8FAFC;
+  transition: border-color 0.2s;
+}
+
+.branchSelect:focus {
+  border-color: var(--co-secondary);
+}
+
+.roleGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.roleBtn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1.25rem;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  background: white;
+  color: var(--co-primary);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.roleBtn:hover:not(:disabled) {
+  background: #F8FAFC;
+  border-color: var(--co-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.roleBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.roleIcon {
+  font-size: 24px;
+  color: var(--co-secondary);
+}
+
+.versionText {
+  display: block;
+  margin-top: 2rem;
+  font-size: 0.75rem;
+  color: #CBD5E0;
+  letter-spacing: 1px;
+}

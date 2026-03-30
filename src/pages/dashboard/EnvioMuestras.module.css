@@ -1,0 +1,174 @@
+.container {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.card {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid #E2E8F0;
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--co-primary);
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: var(--co-text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--co-text-main);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 2px solid #F1F5F9;
+  padding-bottom: 8px;
+}
+
+/* Grilla de Materiales */
+.materialGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.counterItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--co-text-muted);
+}
+
+.counterControls {
+  display: flex;
+  align-items: center;
+  background: #F8FAFC;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  padding: 4px;
+}
+
+.countBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  background: white;
+  color: var(--co-primary);
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+}
+
+.countBtn:hover {
+  background: var(--co-primary);
+  color: white;
+}
+
+.countValue {
+  flex: 1;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+/* Temperaturas */
+.tempRow {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.inputGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inputField {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1.5px solid #E2E8F0;
+  font-family: inherit;
+  font-size: 1rem;
+  outline: none;
+}
+
+.inputField:focus {
+  border-color: var(--co-secondary);
+}
+
+/* Evidencia */
+.photoArea {
+  margin-bottom: 2rem;
+}
+
+.fileInput {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  border: 2px dashed #CBD5E0;
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.alertInput .inputField {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2;
+}
+
+.alertText {
+  color: #ef4444;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* Botón enviar */
+.submitBtn {
+  width: 100%;
+  padding: 1.25rem;
+  background: var(--co-accent);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: #09b8b7;
+  transform: translateY(-2px);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

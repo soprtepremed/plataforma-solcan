@@ -1,0 +1,127 @@
+﻿.container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--co-primary);
+}
+
+.searchArea {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
+  border-radius: 10px;
+  border: 1.5px solid #E2E8F0;
+  background: white;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+  border-color: var(--co-secondary);
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--co-text-muted);
+}
+
+/* Tabla */
+.tableCard {
+  background: white;
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  border: 1px solid #EDEDED;
+}
+
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th {
+  background: #F8FAFC;
+  padding: 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--co-text-muted);
+  border-bottom: 1px solid #EDF2F7;
+}
+
+.table td {
+  padding: 1rem;
+  border-bottom: 1px solid #EDF2F7;
+  font-size: 0.95rem;
+}
+
+.table tr:hover {
+  background: #F1F5F9;
+}
+
+/* Badges */
+.codeBadge {
+  background: #EBF8FF;
+  color: #2B6CB0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+/* Botones Acción */
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.2s;
+}
+
+.viewBtn { background: #E2E8F0; color: #4A5568; }
+.deleteBtn { background: #FFF5F5; color: #C53030; }
+
+.actionBtn:hover { transform: scale(1.05); opacity: 0.8; }
+
+/* Empty state */
+.empty {
+  padding: 4rem;
+  text-align: center;
+  color: var(--co-text-muted);
+}
