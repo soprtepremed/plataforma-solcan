@@ -12,7 +12,7 @@ export function AuthProvider({ children }) {
   });
   const navigate = useNavigate();
 
-  const login = async (username, pin) => {
+  const login = async (username, pin, isMatrixAccess = false, selectedBranch = "", selectedRole = "") => {
     try {
       const { data, error } = await supabase
         .from('empleados')
@@ -28,8 +28,8 @@ export function AuthProvider({ children }) {
       const userData = {
         id: data.id,
         name: data.nombre,
-        role: data.role,
-        branch: data.sucursal,
+        role: selectedRole || data.role,
+        branch: isMatrixAccess ? "Tuxtla Gutierrez" : (selectedBranch || data.sucursal),
         username: data.username
       };
 

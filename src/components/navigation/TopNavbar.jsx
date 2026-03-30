@@ -14,8 +14,8 @@ export default function TopNavbar() {
     // Si no hay usuario, retorna nada
     if (!user) return [];
     
-    // Todos ven el inicio
-    const commonOpts = [{ label: 'Dashboards', path: '/' }];
+    // Todos ven el inicio (Base vacía por ahora)
+    const commonOpts = [];
     
     if (user.role === 'admin') {
       return [
@@ -77,12 +77,24 @@ export default function TopNavbar() {
         {/* Área de Usuario a la Derecha */}
         <div className={styles.userArea}>
           {/* Nombre Usuario Corto y Sucursal */}
-          <span style={{ fontSize: '0.80rem', fontWeight: 600, marginRight: '10px' }} className={styles.stripeLinks}>
-            Hola, {user?.name.split(' ')[0]} 
-            <span style={{ color: 'var(--co-accent)', marginLeft: '8px', paddingLeft: '8px', borderLeft: '1.5px solid #E2E8F0' }}>
-              📍 {user?.branch}
+          <div className={styles.userProfileWrapper}>
+            <span style={{ fontSize: '0.80rem', fontWeight: 600, marginRight: '10px' }} className={styles.stripeLinks}>
+              Hola, {user?.name.split(' ')[0]} 
+              <span style={{ color: 'var(--co-accent)', marginLeft: '8px', paddingLeft: '8px', borderLeft: '1.5px solid #E2E8F0' }}>
+                📍 {user?.branch}
+              </span>
             </span>
-          </span>
+            <div className={styles.avatarCircle} onClick={() => document.getElementById('avatar-upload').click()}>
+              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+              <input 
+                type="file" 
+                id="avatar-upload" 
+                hidden 
+                accept="image/*" 
+                onChange={(e) => alert('Funcionalidad de carga de imagen en desarrollo. Pronto podrás ver tu foto aquí.')}
+              />
+            </div>
+          </div>
           <span className={`material-symbols-rounded ${styles.iconBtn}`}>
             search
           </span>

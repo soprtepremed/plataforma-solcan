@@ -2,54 +2,76 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import styles from "./VerificacionMatriz.module.css";
 
-const MATERIAL_KEYS = ["dorado", "rojo", "celeste", "petri", "laminilla", "suero", "papel"];
+const MATERIAL_KEYS = [
+  { key: "dorado", label: "Tubo Dorado", icon: "water_drop" },
+  { key: "rojo", label: "Tubo Rojo", icon: "water_drop" },
+  { key: "lila", label: "Tubo Lila", icon: "water_drop" },
+  { key: "petri", label: "Cajas Petri", icon: "biotech" },
+  { key: "laminilla", label: "Laminillas", icon: "layers" },
+  { key: "suero", label: "Suero Separado", icon: "colorize" },
+  { key: "orina", label: "Tubo con Orina", icon: "opacity" },
+];
 
 const playAlarm = () => {
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-
-  oscillator.type = "sine";
-  oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-
-  gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
-  oscillator.start();
-  
-  return { oscillator, audioContext };
+  const triggerBeep = (freq, start, duration) => {
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(freq, audioContext.currentTime + start);
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    gain.gain.setValueAtTime(0.1, audioContext.currentTime + start);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + start + duration);
+    osc.start(audioContext.currentTime + start);
+    osc.stop(audioContext.currentTime + start + duration);
+    return osc;
+  };
+  triggerBeep(1200, 0, 0.1);
+  triggerBeep(1200, 0.2, 0.1);
+  triggerBeep(1200, 0.4, 0.1);
+  return { oscillator: { stop: () => {} }, audioContext };
 };
 
 export default function VerificacionMatriz() {
   const [envios, setEnvios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alarmActive, setAlarmActive] = useState(false);
-  const alarmRef = useRef(null);
+  const [filter, setFilter] = useState("En Tránsito");
+  const [activeReceptionId, setActiveReceptionId] = useState(null);
 
-  const fetchTransito = async () => {
+  const fetchEnvios = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("logistica_envios")
-      .select("*")
-      .eq("status", "En Tránsito")
-      .order("created_at", { ascending: true });
+    let query = supabase.from("logistica_envios").select("*");
+    if (filter !== "Todos") query = query.eq("status", filter);
+    const { data, error } = await query.order("created_at", { ascending: false });
 
     if (!error) {
-      // Inicializar estado editable por cada envio
       const mapped = data.map(env => ({
         ...env,
         rec_values: {
-          dorado: env.s_dorado,
-          rojo: env.s_rojo,
-          celeste: env.s_celeste,
-          petri: env.s_petri,
-          laminilla: env.s_laminilla,
-          suero: env.s_suero,
-          papel: env.s_papel
+          dorado: env.status === 'Recibido' ? (env.r_dorado || 0) : (env.s_dorado || 0),
+          rojo: env.status === 'Recibido' ? (env.r_rojo || 0) : (env.s_rojo || 0),
+          lila: env.status === 'Recibido' ? (env.r_celeste || 0) : (env.s_celeste || 0),
+          petri: env.status === 'Recibido' ? (env.r_petri || 0) : (env.s_petri || 0),
+          laminilla: env.status === 'Recibido' ? (env.r_laminilla || 0) : (env.s_laminilla || 0),
+          suero: env.status === 'Recibido' ? (env.r_suero || 0) : (env.s_suero || 0),
+          orina: env.status === 'Recibido' ? (env.r_papel || 0) : (env.s_papel || 0)
         },
-        t_rec: { amb: 25, ref: 4 },
-        obs: "",
-        showVerify: false
+        verified: {
+          dorado: env.status === 'Recibido',
+          rojo: env.status === 'Recibido',
+          lila: env.status === 'Recibido',
+          petri: env.status === 'Recibido',
+          laminilla: env.status === 'Recibido',
+          suero: env.status === 'Recibido',
+          orina: env.status === 'Recibido'
+        },
+        t_rec: { 
+          amb: env.status === 'Recibido' ? (env.temp_entra_amb || 24) : 25, 
+          ref: env.status === 'Recibido' ? (env.temp_entra_ref || 4) : 4 
+        },
+        obs: env.status === 'Recibido' ? (env.observaciones_recepcion || "") : "",
       }));
       setEnvios(mapped);
     }
@@ -57,198 +79,171 @@ export default function VerificacionMatriz() {
   };
 
   useEffect(() => {
-    fetchTransito();
-
-    // SUSCRIPCIÓN TIEMPO REAL (Recepción Matriz)
-    const channel = supabase
-      .channel('recepcion-matriz')
-      .on('postgres_changes', 
-        { event: 'UPDATE', schema: 'public', table: 'logistica_envios' }, 
-        (payload) => {
-          // Si una hielera cambia a "En Tránsito", mostrarla en Matriz
-          if (payload.new.status === 'En Tránsito') {
-            console.log("Hielera en camino a Matriz:", payload.new);
-            fetchTransito();
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+    fetchEnvios();
+    const channel = supabase.channel('cambios-logistica').on('postgres_changes', { event: '*', schema: 'public', table: 'logistica_envios' }, () => {
+      fetchEnvios();
+    }).subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [filter]);
 
   const handleUpdateRec = (envId, key, val) => {
-    setEnvios(prev => prev.map(e => e.id === envId ? {
-      ...e,
-      rec_values: { ...e.rec_values, [key]: parseInt(val) || 0 }
+    setEnvios(prev => prev.map(e => e.id === envId ? { 
+      ...e, 
+      rec_values: { ...e.rec_values, [key]: parseInt(val) || 0 } 
     } : e));
   };
 
-  const startAlarm = () => {
-    if (!alarmActive) {
-      const { oscillator, audioContext } = playAlarm();
-      alarmRef.current = { oscillator, audioContext };
-      setAlarmActive(true);
-    }
+  const toggleVerify = (envId, key) => {
+    setEnvios(prev => prev.map(e => e.id === envId ? {
+      ...e,
+      verified: { ...e.verified, [key]: !e.verified[key] }
+    } : e));
   };
 
-  const stopAlarm = () => {
-    if (alarmRef.current) {
-      alarmRef.current.oscillator.stop();
-      alarmRef.current.audioContext.close();
-      alarmRef.current = null;
-    }
-    setAlarmActive(false);
-  };
+  const startAlarm = () => setAlarmActive(true);
+  const stopAlarm = () => setAlarmActive(false);
 
-  const checkAlerts = (tempAmb, tempRef) => {
-    const ambAlert = tempAmb > 29 || tempAmb < 20;
-    const refAlert = tempRef > 7 || tempRef < 2;
-    return ambAlert || refAlert;
-  };
+  useEffect(() => {
+    let interval;
+    if (alarmActive) {
+      const ps = () => { playAlarm(); };
+      ps();
+      interval = setInterval(ps, 1200);
+    }
+    return () => { if (interval) clearInterval(interval); };
+  }, [alarmActive]);
 
   const handleFinalizar = async (envio) => {
-    const isCrisis = checkAlerts(envio.t_rec.amb, envio.t_rec.ref);
-    
-    if (isCrisis) {
-      startAlarm();
-      alert("¡ALERTA!: Temperaturas fuera de rango. Alarma sonora activada.");
-    }
+    const isCrisis = envio.t_rec.amb > 29 || envio.t_rec.amb < 20 || envio.t_rec.ref > 7 || envio.t_rec.ref < 2;
+    if (isCrisis) { startAlarm(); alert("¡ALERTA TÉRMICA DETECTADA!"); }
 
-    const { error } = await supabase
-      .from("logistica_envios")
-      .update({
-        status: "Recibido",
-        r_dorado: envio.rec_values.dorado,
-        r_rojo: envio.rec_values.rojo,
-        r_celeste: envio.rec_values.celeste,
-        r_petri: envio.rec_values.petri,
-        r_laminilla: envio.rec_values.laminilla,
-        r_suero: envio.rec_values.suero,
-        r_papel: envio.rec_values.papel,
-        temp_entra_amb: parseFloat(envio.t_rec.amb),
-        temp_entra_ref: parseFloat(envio.t_rec.ref),
-        hora_recepcion: new Date().toISOString(),
-        observaciones_recepcion: envio.obs,
-        recibido_por: "Laboratorio Matriz"
-      })
-      .eq("id", envio.id);
+    const { error } = await supabase.from("logistica_envios").update({
+      status: "Recibido",
+      r_dorado: envio.rec_values.dorado,
+      r_rojo: envio.rec_values.rojo,
+      r_celeste: envio.rec_values.lila,
+      r_petri: envio.rec_values.petri,
+      r_laminilla: envio.rec_values.laminilla,
+      r_suero: envio.rec_values.suero,
+      r_papel: envio.rec_values.orina,
+      temp_entra_amb: parseFloat(envio.t_rec.amb),
+      temp_entra_ref: parseFloat(envio.t_rec.ref),
+      hora_recepcion: new Date().toISOString(),
+      observaciones_recepcion: envio.obs,
+      recibido_por: "Laboratorio Matriz"
+    }).eq("id", envio.id);
 
-    if (error) {
-      alert("Error: " + error.message);
-    } else {
-      setEnvios(prev => prev.filter(e => e.id !== envio.id));
-      if (!isCrisis) alert("Recepción guardada correctamente.");
-    }
+    if (error) alert("Error: " + error.message);
+    else { setActiveReceptionId(null); if (filter !== 'Todos') setEnvios(prev => prev.filter(e => e.id !== envio.id)); }
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.titleArea}>
-        <h1 className={styles.title}>Recepción en Laboratorio Matriz</h1>
-        <button onClick={fetchTransito} className={styles.iconBtn}>
-          <span className="material-symbols-rounded">refresh</span>
+        <div>
+          <h1 className={styles.title}>Panel de Control Matriz</h1>
+          <p className={styles.subtitle}>Supervisión global de la cadena de custodia</p>
+        </div>
+        <button onClick={fetchEnvios} className={styles.premiumRefreshBtn}>
+          <span className={`material-symbols-rounded ${loading ? 'spin' : ''}`}>sync</span> Actualizar
         </button>
       </div>
 
-      {alarmActive && (
-        <div className={styles.alarmBanner}>
-          <div className={styles.alarmInfo}>
-            <span className="material-symbols-rounded" style={{ fontSize: '40px' }}>warning</span>
-            <div>
-              <strong>¡ALARMA DE BIO-SEGURIDAD ACTIVA!</strong>
-              <p>Muestras en riesgo térmico. Verifica la hielera de inmediato.</p>
-            </div>
-          </div>
-          <button onClick={stopAlarm} className={styles.alarmBtn}>DETENER ALARMA</button>
-        </div>
-      )}
+      <div className={styles.filterBar}>
+        {["Todos", "En Tránsito", "Recibido"].map(f => (
+          <button key={f} className={`${styles.filterBtn} ${filter === f ? styles.activeFilter : ''}`} onClick={() => setFilter(f)}>{f}</button>
+        ))}
+      </div>
 
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '4rem' }}>Buscando envíos en tránsito...</div>
-      ) : envios.length > 0 ? (
+      {loading && envios.length === 0 ? (
+        <div className={styles.emptyState}><span className="material-symbols-rounded spin">sync</span></div>
+      ) : (
         <div className={styles.grid}>
-          {envios.map(envio => (
-            <div key={envio.id} className={styles.card}>
-              <div className={styles.cardHeader}>
-                <div>
-                  <h4 style={{ margin: 0 }}>Desde: {envio.sucursal}</h4>
-                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                    Sale: {new Date(envio.hora_sale).toLocaleTimeString()} • <strong>{envio.mensajero_id}</strong>
-                  </span>
+          {envios.map(envio => {
+            const isRecibido = envio.status === 'Recibido';
+            const isActive = activeReceptionId === envio.id;
+
+            return (
+              <div key={envio.id} className={`${styles.card} ${isRecibido ? styles.cardReadOnly : ''}`}>
+                <div className={styles.cardHeader}>
+                  <h4>{envio.sucursal}</h4>
+                  <span className={`${styles.statusBadge} ${styles['status_' + envio.status.replace(/ /g, '_')]}`}>{envio.status}</span>
                 </div>
-                {new Date(envio.hora_sale).getDate() < new Date().getDate() && (
-                   <span className="material-symbols-rounded" style={{ color: '#ef4444' }} title="Muestra del día anterior">history</span>
+
+                {!isActive && !isRecibido ? (
+                  <div className={styles.transitSummary}>
+                    <p>Muestras en camino • Chofer: <strong>{envio.mensajero_id}</strong></p>
+                    <button className={styles.startBtn} onClick={() => setActiveReceptionId(envio.id)}>📦 Iniciar Recepción Física</button>
+                  </div>
+                ) : (
+                  <>
+                    <div className={styles.evidenceSection}>
+                       {envio.img_url && envio.img_url.split('|').map((url, i) => (
+                         <img key={i} src={url} className={styles.miniThumb} onClick={() => window.open(url, '_blank')} />
+                       ))}
+                    </div>
+
+                    <div className={styles.auditChecklist}>
+                        <div className={styles.checklistGridHeader}>
+                           <span>Material</span>
+                           <span>Enviado</span>
+                           <span>Recibido</span>
+                           <span>¿Corrobora?</span>
+                        </div>
+                        {MATERIAL_KEYS.map(item => {
+                          const sent = envio[`s_${item.key === 'lila' ? 'celeste' : item.key === 'orina' ? 'papel' : item.key}`] || 0;
+                          const rec = envio.rec_values[item.key];
+                          const isVerified = envio.verified[item.key];
+                          
+                          return (
+                            <div key={item.key} className={`${styles.auditRow} ${isVerified ? styles.vRowSuccess : ''}`}>
+                              <span className={styles.vLabel}>{item.label}</span>
+                              <span className={styles.vSent}>{sent}</span>
+                              {isRecibido ? <span className={styles.vConfirmed}>{rec}</span> : 
+                               <input type="number" className={styles.vInput} value={rec} onChange={(e) => handleUpdateRec(envio.id, item.key, e.target.value)} />}
+                              
+                              <div className={styles.vVerifyAction}>
+                                 {isRecibido ? (
+                                    <span className="material-symbols-rounded" style={{color: '#10B981'}}>verified</span>
+                                 ) : (
+                                    <input type="checkbox" checked={isVerified} onChange={() => toggleVerify(envio.id, item.key)} />
+                                 )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                    </div>
+
+                    <div className={styles.tempBox}>
+                        <div className={styles.tempItem}>
+                           <label>Ambiente Arribo</label>
+                           {isRecibido ? <span>{envio.t_rec.amb}°C</span> : <input type="number" step="0.1" value={envio.t_rec.amb} onChange={(e) => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, amb: e.target.value}} : ev))} />}
+                        </div>
+                        <div className={styles.tempItem}>
+                           <label>Refri Arribo</label>
+                           {isRecibido ? <span>{envio.t_rec.ref}°C</span> : <input type="number" step="0.1" value={envio.t_rec.ref} onChange={(e) => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, ref: e.target.value}} : ev))} />}
+                        </div>
+                    </div>
+
+                    {!isRecibido && (
+                      <>
+                        <textarea 
+                          placeholder="Si algo no coincide, escribe aquí tus comentarios de discrepancia..." 
+                          className={styles.observationBox}
+                          value={envio.obs}
+                          onChange={(e) => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, obs: e.target.value} : ev))}
+                        />
+                        <div style={{display:'flex', gap:'10px', marginTop:'20px'}}>
+                          <button className={styles.cancelBtn} onClick={() => setActiveReceptionId(null)}>Cancelar</button>
+                          <button className={styles.saveBtn} onClick={() => handleFinalizar(envio)}>Finalizar Recepción</button>
+                        </div>
+                      </>
+                    )}
+                  </>
                 )}
               </div>
-
-              {envio.img_url && <img src={envio.img_url} className={styles.originalPhoto} alt="Evidencia Origen" />}
-
-              <table className={styles.checklistTable}>
-                <thead>
-                  <tr>
-                    <th>Ítem</th>
-                    <th>Enviado</th>
-                    <th>Recibido</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {MATERIAL_KEYS.map(key => {
-                    const sent = envio[`s_${key}`];
-                    const rec = envio.rec_values[key];
-                    const isMissing = rec < sent;
-                    return (
-                      <tr key={key} className={isMissing ? styles.missingRow : ''}>
-                        <td style={{ fontWeight: 600 }}>{key.toUpperCase()}</td>
-                        <td>{sent}</td>
-                        <td>
-                          <input 
-                            type="number" 
-                            className={styles.inputQty} 
-                            value={rec}
-                            onChange={(e) => handleUpdateRec(envio.id, key, e.target.value)}
-                          />
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-
-              <div className={styles.tempBox}>
-                <div className={styles.tempItem}>
-                  <label>T. Amb Arribo</label>
-                  <input type="number" step="0.1" className={styles.tempInput} value={envio.t_rec.amb} onChange={(e) => {
-                    setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, amb: e.target.value}} : ev))
-                  }} />
-                </div>
-                <div className={styles.tempItem}>
-                  <label>T. Ref Arribo</label>
-                  <input type="number" step="0.1" className={styles.tempInput} value={envio.t_rec.ref} onChange={(e) => {
-                    setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, ref: e.target.value}} : ev))
-                  }} />
-                </div>
-              </div>
-
-              <textarea 
-                placeholder="Observaciones de recepción (ej: Tubo roto, faltante...)" 
-                className={styles.observationBox}
-                value={envio.obs}
-                onChange={(e) => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, obs: e.target.value} : ev))}
-              />
-
-              <button className={styles.saveBtn} onClick={() => handleFinalizar(envio)} style={{ marginTop: '1.5rem' }}>
-                Confirmar y Cerrar Recepción
-              </button>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div style={{ textAlign: 'center', padding: '6rem', color: '#64748b' }}>
-          <span className="material-symbols-rounded" style={{ fontSize: '48px' }}>check_circle</span>
-          <p>No hay envíos en tránsito hacia Matriz.</p>
+            )
+          })}
         </div>
       )}
     </div>

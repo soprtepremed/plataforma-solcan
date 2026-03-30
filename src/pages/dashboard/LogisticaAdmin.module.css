@@ -1,4 +1,4 @@
-﻿.container {
+.container {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
@@ -127,3 +127,35 @@
   cursor: pointer;
   font-size: 0.8rem;
 }
+
+.premiumRefreshBtn {
+  background: var(--co-gradient);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(11, 206, 205, 0.3);
+  margin-left: auto;
+}
+
+.premiumRefreshBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(11, 206, 205, 0.5);
+  filter: brightness(1.1);
+}
+
+.premiumRefreshBtn:active {
+  transform: translateY(0);
+}
+
+:global(.spin) {
+  display: inline-block;
+  animation: spin 2s linear infinite;
+}
+

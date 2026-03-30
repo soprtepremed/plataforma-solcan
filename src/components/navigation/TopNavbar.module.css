@@ -110,6 +110,38 @@
   color: var(--co-text-main);
 }
 
+.userProfileWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 15px;
+  border-right: 1.5px solid #E2E8F0;
+  margin-right: 5px;
+}
+
+.avatarCircle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--co-gradient);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(11, 206, 205, 0.3);
+  user-select: none;
+}
+
+.avatarCircle:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(11, 206, 205, 0.5);
+  filter: brightness(1.1);
+}
+
 .iconBtn {
   cursor: pointer;
   display: flex;

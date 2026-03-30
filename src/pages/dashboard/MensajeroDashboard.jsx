@@ -3,11 +3,11 @@ import { supabase } from "../../lib/supabaseClient";
 import styles from "./MensajeroDashboard.module.css";
 
 const MESSENGERS = [
-  { id: "M1", name: "Mensajero 1" },
-  { id: "M2", name: "Mensajero 2" },
-  { id: "M3", name: "Mensajero 3" },
-  { id: "M4", name: "Mensajero 4" },
-  { id: "M5", name: "Mensajero 5" },
+  { id: "M1", name: "Mensajero 1", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" },
+  { id: "M2", name: "Mensajero 2", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aner" },
+  { id: "M3", name: "Mensajero 3", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Milo" },
+  { id: "M4", name: "Mensajero 4", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sasha" },
+  { id: "M5", name: "Mensajero 5", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Riley" },
 ];
 
 export default function MensajeroDashboard() {
@@ -30,20 +30,17 @@ export default function MensajeroDashboard() {
   useEffect(() => {
     fetchPendientes();
 
-    // SUSCRIPCIÓN TIEMPO REAL (Fase 8 Cierre - Mensajería)
     const channel = supabase
       .channel('recolecciones-nuevas')
       .on('postgres_changes', 
         { event: 'INSERT', schema: 'public', table: 'logistica_envios' }, 
         (payload) => {
-          console.log("Nuevo envío listo para recoger:", payload);
-          fetchPendientes(); // Recargar lista completa
+          fetchPendientes();
         }
       )
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'logistica_envios' },
         (payload) => {
-          // Si otro mensajero ya la tomó, quitarla de la lista
           if (payload.new.status !== 'Pendiente') {
             fetchPendientes();
           }
@@ -78,6 +75,8 @@ export default function MensajeroDashboard() {
     }
   };
 
+  const selectedMessenger = MESSENGERS.find(m => m.id === activeId);
+
   return (
     <div className={styles.container}>
       <div className={styles.selectorCard}>
@@ -89,8 +88,11 @@ export default function MensajeroDashboard() {
               className={`${styles.idBtn} ${activeId === m.id ? styles.activeId : ''}`}
               onClick={() => setActiveId(m.id)}
             >
-              <span className="material-symbols-rounded">person_pin</span>
-              {m.name}
+              <div className={styles.avatarWrapper}>
+                <img src={m.avatar} alt={m.name} className={styles.avatarImg} />
+                {activeId === m.id && <span className={styles.activeDot}></span>}
+              </div>
+              <span className={styles.messengerName}>{m.name}</span>
             </button>
           ))}
         </div>
@@ -100,39 +102,77 @@ export default function MensajeroDashboard() {
         <h3 className={styles.listTitle}>
           <span className="material-symbols-rounded">pending_actions</span>
           Hieleras Pendientes por Recolección
+          {selectedMessenger && <small className={styles.activeTag}>Operando como: {selectedMessenger.name}</small>}
         </h3>
 
         {loading ? (
-          <div className={styles.empty}>Cargando solicitudes...</div>
+          <div className={styles.loadingPulse}>Cargando solicitudes...</div>
         ) : pendientes.length > 0 ? (
-          pendientes.map(envio => (
-            <div key={envio.id} className={styles.envioCard}>
-              <div className={styles.envioInfo}>
-                <h4>Sucursal: {envio.sucursal}</h4>
-                <div className={styles.envioMeta}>
-                  <span className={`${styles.badge} ${styles.pendBadge}`}>Pendiente</span>
-                  <span style={{ marginLeft: '12px' }}>
-                    Registrado: {new Date(envio.created_at).toLocaleTimeString()}
-                  </span>
+          pendientes.map(envio => {
+            const photos = envio.img_url ? envio.img_url.split('|') : [];
+            return (
+              <div key={envio.id} className={styles.envioCard}>
+                <div className={styles.envioInfo}>
+                  <div className={styles.headerRow}>
+                    <span className="material-symbols-rounded" style={{ color: '#0BCECD', fontSize: '28px' }}>location_on</span>
+                    <div>
+                      <h4>Sucursal: {envio.sucursal}</h4>
+                      <p className={styles.timestamp}>
+                        <span className="material-symbols-rounded">schedule</span>
+                        Listo hace: {new Date(envio.created_at).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className={styles.envioMeta}>
+                    <span className={`${styles.badge} ${styles.pendBadge}`}>
+                      <span className="material-symbols-rounded">check_circle</span>
+                      LISTO PARA RECOLECCIÓN
+                    </span>
+                  </div>
+
+                  <div className={styles.samplesSummary}>
+                     {envio.s_dorado > 0 && <span className={styles.sampleTag}><strong>{envio.s_dorado}</strong> Dorados</span>}
+                     {envio.s_rojo > 0 && <span className={styles.sampleTag}><strong>{envio.s_rojo}</strong> Rojos</span>}
+                     {envio.s_lila > 0 && <span className={styles.sampleTag}><strong>{envio.s_lila}</strong> Lilas</span>}
+                     {envio.s_suero > 0 && <span className={styles.sampleTag}><strong>{envio.s_suero}</strong> Sueros</span>}
+                  </div>
+
+                  {photos.length > 0 && (
+                    <div className={styles.galleryWrapper}>
+                      <span className={styles.galleryLabel}>Evidencias de Origen:</span>
+                      <div className={styles.miniGallery}>
+                        {photos.map((url, i) => (
+                          <div key={i} className={styles.miniThumb} onClick={() => window.open(url, '_blank')}>
+                            <img src={url} alt={`Evidencia ${i+1}`} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className={styles.actionArea}>
+                  <button 
+                    className={styles.acceptBtn}
+                    onClick={() => handleRecolectar(envio.id)}
+                  >
+                    <span className="material-symbols-rounded">local_shipping</span>
+                    Confirmar Recolección
+                  </button>
                 </div>
               </div>
-              
-              <button 
-                className={styles.acceptBtn}
-                onClick={() => handleRecolectar(envio.id)}
-              >
-                <span className="material-symbols-rounded">check_circle</span>
-                Aceptar Recolección
-              </button>
-            </div>
-          ))
+            );
+          })
         ) : (
           <div className={styles.empty}>
-            <span className="material-symbols-rounded" style={{ fontSize: '48px', marginBottom: '10px' }}>task_alt</span>
-            <p>No hay hieleras pendientes por recoger en este momento.</p>
+            <span className="material-symbols-rounded" style={{ fontSize: '64px', marginBottom: '15px' }}>task_alt</span>
+            <h3>Rutas al día</h3>
+            <p>No hay hieleras pendientes en este sector.</p>
           </div>
         )}
       </div>
     </div>
   );
 }
+

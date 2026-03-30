@@ -1,0 +1,154 @@
+.homeContainer {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.welcomeHeader {
+  margin-bottom: 3rem;
+  text-align: left;
+}
+
+.welcomeHeader h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--co-primary);
+  margin-bottom: 0.5rem;
+}
+
+.welcomeHeader p {
+  color: var(--co-text-muted);
+  font-size: 1.1rem;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.actionCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: inherit;
+}
+
+.actionCard:hover {
+  transform: translateY(-5px);
+  border-color: var(--co-accent);
+  box-shadow: var(--shadow-lg);
+}
+
+.cardIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  background: var(--co-gradient);
+}
+
+.cardContent h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--co-primary);
+  margin-bottom: 0.25rem;
+}
+
+.cardContent p {
+  font-size: 0.9rem;
+  color: var(--co-text-muted);
+  line-height: 1.4;
+}
+
+.cardArrow {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--co-accent);
+  opacity: 0.8;
+  transition: gap 0.2s;
+}
+
+.actionCard:hover .cardArrow {
+  gap: 8px;
+  opacity: 1;
+}
+
+/* Soporte Footer */
+.supportFooter {
+  margin-top: 4rem;
+  padding: 2rem;
+  background: rgba(11, 206, 205, 0.05);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--co-accent);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.supportInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.supportInfo span {
+  font-size: 32px;
+  color: var(--co-accent);
+}
+
+.supportMsg h4 {
+  margin: 0;
+  color: var(--co-primary);
+}
+
+.supportMsg p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--co-text-muted);
+}
+
+.supportBtn {
+  background: white;
+  border: 1.5px solid var(--co-accent);
+  color: var(--co-accent);
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.supportBtn:hover {
+  background: var(--co-accent);
+  color: white;
+}
+
+@media (max-width: 640px) {
+  .homeContainer { padding: 1.5rem; }
+  .welcomeHeader h1 { font-size: 1.8rem; }
+  .supportFooter { flex-direction: column; gap: 1.5rem; text-align: center; }
+  .supportInfo { flex-direction: column; }
+}

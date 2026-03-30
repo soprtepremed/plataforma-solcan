@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import styles from "./LogisticaAdmin.module.css";
 
@@ -74,19 +74,30 @@ export default function LogisticaAdmin() {
             {branches.map(b => <option key={b} value={b}>{b}</option>)}
           </select>
         </div>
-        <button onClick={fetchData} className={styles.obsBtn}>Refrescar Auditoría</button>
+        <button onClick={fetchData} className={styles.premiumRefreshBtn}>
+          <span className={`material-symbols-rounded ${loading ? 'spin' : ''}`}>sync</span>
+          {loading ? "Actualizando..." : "Actualizar Auditoría"}
+        </button>
       </div>
 
       <div className={styles.tableContainer}>
         <table className={styles.masterTable}>
           <thead>
             <tr>
-              <th>Fecha/Hora</th>
-              <th>Sede Origen</th>
-              <th>Estado</th>
+              <th>Fecha</th>
+              <th>Sucursal</th>
               <th>Mensajero</th>
-              <th>Temp. Matriz (A/R)</th>
-              <th>Alertas/Obs</th>
+              <th>Dorado</th>
+              <th>Rojo</th>
+              <th>Lila</th>
+              <th>Petri</th>
+              <th>Lamin.</th>
+              <th>Suero</th>
+              <th>Orina</th>
+              <th>T. Salida (A/R)</th>
+              <th>T. Entrada (A/R)</th>
+              <th>Recibió</th>
+              <th>Hora Rec</th>
             </tr>
           </thead>
           <tbody>
@@ -98,39 +109,38 @@ export default function LogisticaAdmin() {
                 <tr key={envio.id}>
                   <td>
                     <strong>{new Date(envio.created_at).toLocaleDateString()}</strong>
-                    <div style={{fontSize: '0.75rem'}}>{new Date(envio.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
                   </td>
                   <td>{envio.sucursal}</td>
                   <td>
-                    <span style={{fontWeight: 700, color: envio.status === 'Recibido' ? '#059669' : '#2563EB'}}>
-                      {envio.status}
+                    <span style={{fontWeight: 700, color: '#2563EB'}}>
+                      {envio.mensajero_id || '---'}
                     </span>
                   </td>
-                  <td>{envio.mensajero_id || '---'}</td>
+                  <td style={{textAlign: 'center'}}>{envio.s_dorado}</td>
+                  <td style={{textAlign: 'center'}}>{envio.s_rojo}</td>
+                  <td style={{textAlign: 'center'}}>{envio.s_celeste}</td>
+                  <td style={{textAlign: 'center'}}>{envio.s_petri}</td>
+                  <td style={{textAlign: 'center'}}>{envio.s_laminilla}</td>
+                  <td style={{textAlign: 'center'}}>{envio.s_suero}</td>
+                  <td style={{textAlign: 'center'}}>{envio.s_papel}</td>
                   <td>
-                    {envio.temp_entra_amb ? (
-                      <span className={envio.temp_entra_amb > 29 ? styles.critCol : ''}>
-                        {envio.temp_entra_amb}° / {envio.temp_entra_ref}°
-                      </span>
-                    ) : '---'}
+                    {envio.temp_sale_amb}° / {envio.temp_sale_ref}°
                   </td>
                   <td>
-                    <div style={{display: 'flex', gap: '5px', flexDirection: 'column'}}>
-                      {isThermalIncident && (
-                        <span className={styles.alertTag}>
-                           <span className="material-symbols-rounded" style={{fontSize: '14px'}}>warning</span>
-                           Falla Térmica
-                        </span>
-                      )}
-                      {envio.observaciones_recepcion && (
-                        <button className={styles.obsBtn} title={envio.observaciones_recepcion}>
-                          Ver Observación
-                        </button>
-                      )}
-                      {!isThermalIncident && !envio.observaciones_recepcion && envio.status === 'Recibido' && (
-                        <span style={{color: '#059669', fontSize: '0.75rem'}}>Sin incidencias</span>
-                      )}
-                    </div>
+                    {envio.temp_entra_amb ? (
+                      <span className={isThermalIncident ? styles.critCol : ''}>
+                        {envio.temp_entra_amb}° / {envio.temp_entra_ref}°
+                      </span>
+                    ) : (
+                      <span style={{color: '#94A3B8'}}>---</span>
+                    )}
+                  </td>
+                  <td>{envio.recibido_por || '---'}</td>
+                  <td>
+                    {envio.hora_recepcion 
+                      ? new Date(envio.hora_recepcion).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+                      : '---'
+                    }
                   </td>
                 </tr>
               )

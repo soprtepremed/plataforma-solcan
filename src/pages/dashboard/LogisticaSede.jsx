@@ -38,8 +38,10 @@ export default function LogisticaSede() {
           fetchEnvios(); // Recargar datos
 
           // Notificación Sonora si Matriz envía feedback
-          if (payload.new.status === 'Recibido' && payload.new.observaciones_recepcion) {
+          // Notificación Sonora inmediata al recibir en Matriz
+          if (payload.new.status === 'Recibido' && payload.old.status !== 'Recibido') {
             playNotificationBeep();
+            // Aquí se podría añadir un setAlert(true) para un toast visual
           }
         }
       )
@@ -65,7 +67,7 @@ export default function LogisticaSede() {
         </div>
         <button className={styles.newBtn} onClick={() => navigate('/logistica/envio')}>
           <span className="material-symbols-rounded">add_circle</span>
-          Nuevo Despacho
+          Nuevo Envío
         </button>
       </header>
 

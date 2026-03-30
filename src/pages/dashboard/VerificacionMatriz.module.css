@@ -1,167 +1,294 @@
-﻿.container {
+.container {
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
 }
 
 .titleArea {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
 }
 
 .title {
-  font-size: 1.8rem;
+  font-size: 2.2rem;
   font-weight: 800;
   color: var(--co-primary);
+  letter-spacing: -0.5px;
+  line-height: 1;
 }
 
-/* Alarma Persistente */
-.alarmBanner {
-  background: #ef4444;
-  color: white;
-  padding: 1.5rem;
-  border-radius: 16px;
-  margin-bottom: 2rem;
+.subtitle {
+  color: var(--co-text-muted);
+  font-size: 1rem;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.filterBar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
-}
-
-.alarmInfo {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.alarmBtn {
+  gap: 1rem;
+  margin-bottom: 2.5rem;
   background: white;
-  color: #ef4444;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
+  padding: 8px;
+  border-radius: 20px;
+  width: fit-content;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  border: 1px solid #F1F5F9;
 }
 
-/* Grilla de Envios */
+.filterBtn {
+  padding: 10px 20px;
+  border-radius: 14px;
+  border: none;
+  background: transparent;
+  color: var(--co-text-muted);
+  font-weight: 800;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+}
+
+.activeFilter {
+  background: var(--co-accent);
+  color: white;
+  box-shadow: 0 4px 10px rgba(11, 206, 205, 0.3);
+}
+
+.premiumRefreshBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: white;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 16px;
+  color: var(--co-primary);
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.premiumRefreshBtn:hover {
+  background: #F8FAFC;
+  border-color: var(--co-accent);
+  color: var(--co-accent);
+}
+
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 2rem;
 }
 
 .card {
   background: white;
-  border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-md);
-  border: 1px solid #E2E8F0;
-  display: flex;
-  flex-direction: column;
+  border-radius: 30px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+  border: 1.5px solid #F1F5F9;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.cardReadOnly {
+  background: #FDFDFD;
+  border-color: #E2E8F0;
 }
 
 .cardHeader {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #F1F5F9;
-  padding-bottom: 1rem;
+  align-items: flex-start;
+  margin-bottom: 2rem;
 }
 
-.originalPhoto {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 12px;
-  margin-bottom: 1rem;
-}
-
-/* Checklist Table */
-.checklistTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1.5rem;
-}
-
-.checklistTable th {
-  text-align: left;
-  font-size: 0.75rem;
+.statusBadge {
+  padding: 4px 12px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 900;
   text-transform: uppercase;
+}
+
+.status_En_Tránsito { background: #DBEAFE; color: #1E40AF; }
+.status_Recibido { background: #DCFCE7; color: #166534; }
+
+/* Audit Checklist Table */
+.auditChecklist {
+  background: #F8FAFC;
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.checklistGridHeader {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  padding: 0 10px 10px;
+  font-size: 0.7rem;
+  font-weight: 900;
   color: var(--co-text-muted);
-  padding: 8px;
+  text-transform: uppercase;
 }
 
-.checklistTable td {
-  padding: 8px;
-  border-bottom: 1px solid #F8FAFC;
+.auditRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  align-items: center;
+  padding: 12px 10px;
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  border: 1px solid #E2E8F0;
+  transition: all 0.3s;
 }
 
-.inputQty {
-  width: 60px;
+.vRowSuccess {
+  background: #ECFDF5;
+  border-color: #10B981;
+}
+
+.vLabel { font-weight: 700; color: var(--co-primary); font-size: 0.9rem; }
+.vSent { font-weight: 800; color: #64748B; text-align: center; }
+.vConfirmed { font-weight: 800; color: #10B981; text-align: center; }
+
+.vInput {
+  width: 50px;
   padding: 6px;
   border: 1.5px solid #E2E8F0;
-  border-radius: 6px;
+  border-radius: 8px;
+  text-align: center;
+  font-family: inherit;
+  font-weight: 800;
+  margin: 0 auto;
+}
+
+.vVerifyAction {
+  display: flex;
+  justify-content: center;
+}
+
+.vVerifyAction input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #10B981;
+}
+
+/* Transit Summary */
+.transitSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem;
+  background: #F1F5F9;
+  border-radius: 20px;
   text-align: center;
 }
 
-.missingRow {
-  background: #FFF7ED;
+.startBtn {
+  background: var(--co-accent);
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 15px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(11, 206, 205, 0.2);
 }
 
-.observationBox {
-  width: 100%;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1.5px solid #FED7AA;
-  margin-top: 10px;
-  font-family: inherit;
-  font-size: 0.85rem;
-}
-
-/* Recepcion Temps */
+/* Temp Box */
 .tempBox {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 1.5rem;
+  gap: 15px;
+  margin-bottom: 2rem;
 }
 
-.tempItem label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--co-text-muted);
-  margin-bottom: 4px;
+.tempItem {
+  background: #F8FAFC;
+  padding: 12px;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
-.tempInput {
+.tempItem label { font-size: 0.7rem; font-weight: 800; color: #64748B; text-transform: uppercase; }
+.tempItem input { border: 1.5px solid #E2E8F0; border-radius: 10px; padding: 6px; font-weight: 800; outline: none; }
+.tempItem span { font-weight: 800; color: var(--co-primary); font-size: 1.1rem; }
+
+.observationBox {
   width: 100%;
-  padding: 8px;
-  border-radius: 8px;
+  min-height: 80px;
+  padding: 1rem;
+  border-radius: 16px;
   border: 1.5px solid #E2E8F0;
+  background: #F8FAFC;
+  font-family: inherit;
+  margin-bottom: 1.5rem;
+  outline: none;
 }
 
 .saveBtn {
-  width: 100%;
-  padding: 1rem;
-  background: var(--co-primary);
+  flex: 1;
+  background: #10B981;
   color: white;
   border: none;
-  border-radius: 12px;
-  font-weight: 700;
+  padding: 1rem;
+  border-radius: 16px;
+  font-weight: 800;
   cursor: pointer;
-  transition: background 0.2s;
 }
 
-.saveBtn:hover {
-  background: #002d5a;
+.cancelBtn {
+  background: #EF444422;
+  color: #EF4444;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 16px;
+  font-weight: 800;
+  cursor: pointer;
 }
+
+.evidenceSection {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.miniThumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.emptyState {
+  text-align: center;
+  padding: 5rem;
+  color: #94A3B8;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spin { animation: spin 2s linear infinite; }
