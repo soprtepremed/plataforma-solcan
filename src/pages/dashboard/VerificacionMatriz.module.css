@@ -292,3 +292,41 @@
   to { transform: rotate(360deg); }
 }
 .spin { animation: spin 2s linear infinite; }
+
+.backBtn {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1.5px solid #E2E8F0;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 800;
+  color: var(--co-primary);
+  cursor: pointer;
+  margin-bottom: 25px;
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  width: fit-content;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 10;
+}
+
+.backBtn:hover {
+  background: #F8FAFC;
+  border-color: var(--co-secondary);
+  color: var(--co-secondary);
+  transform: translateX(-6px);
+  box-shadow: var(--shadow-md);
+}
+
+.backBtn span {
+  font-size: 1.3rem;
+  transition: transform 0.3s ease;
+}
+
+.backBtn:hover span {
+  transform: translateX(-2px);
+}

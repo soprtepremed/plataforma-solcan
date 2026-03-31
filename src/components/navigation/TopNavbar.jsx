@@ -11,40 +11,40 @@ export default function TopNavbar() {
 
   // Lógica Dinámica de Roles (Fase 3)
   const getMenuOptions = () => {
-    // Si no hay usuario, retorna nada
     if (!user) return [];
-    
-    // Todos ven el inicio (Base vacía por ahora)
-    const commonOpts = [];
     
     if (user.role === 'admin') {
       return [
-        ...commonOpts,
-        { label: 'Subir Resultados', path: '/captura' },
-        { label: 'Historial de Pacientes', path: '/resultados' },
-        { label: 'Recepción Matriz', path: '/logistica/recepcion' },
-        { label: 'Auditoría Logística', path: '/logistica/admin' },
-        { label: 'Almacén', path: '/almacen' }
+        { label: 'Auditoría Global', path: '/logistica/admin' },
+        { label: 'Bitácora FO-DO-017', path: '/logistica/bitacora' },
+        { label: 'Recepción Lab', path: '/logistica/recepcion' },
+        { label: 'Captura PDF', path: '/captura' },
+        { label: 'Historial', path: '/resultados' }
       ];
     } else if (user.role === 'captura') {
       return [
-        ...commonOpts,
         { label: 'Subir Resultados', path: '/captura' },
+        { label: 'Historial', path: '/resultados' }
+      ];
+    } else if (user.role === 'quimico') {
+      return [
+        { label: 'Recepción Matriz', path: '/logistica/recepcion' },
+        { label: 'Bitácora FO-DO-017', path: '/logistica/bitacora' },
         { label: 'Historial', path: '/resultados' }
       ];
     } else if (user.role === 'recepcion') {
       return [
-        ...commonOpts,
-        { label: 'Logística de Sucursal', path: '/logistica/sede' },
+        { label: 'Preparar Envío', path: '/logistica/envio' },
+        { label: 'Mi Bitácora', path: '/logistica/bitacora' },
+        { label: 'Estado Sede', path: '/logistica/sede' },
         { label: 'Pacientes', path: '/pacientes' }
       ];
     } else if (user.role === 'mensajero') {
       return [
-        ...commonOpts,
-        { label: 'Transporte de Muestras', path: '/logistica/transporte' }
+        { label: 'Ruta de Transporte', path: '/logistica/transporte' }
       ];
     }
-    return commonOpts;
+    return [];
   };
 
   const menuOptions = getMenuOptions();

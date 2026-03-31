@@ -1,41 +1,62 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
+import { useAuth } from "../../context/AuthContext";
 import styles from "./EnvioMuestras.module.css";
 
 const MATERIAL_TYPES = [
-  { key: "dorado", label: "Tubo Dorado", icon: "water_drop", color: "#FFD700" },
-  { key: "rojo", label: "Tubo Rojo", icon: "water_drop", color: "#FF0000" },
-  { key: "lila", label: "Tubo Lila", icon: "water_drop", color: "#DA70D6" },
-  { key: "petri", label: "Cajas Petri", icon: "biotech", color: "#00CED1" },
-  { key: "laminilla", label: "Laminillas", icon: "layers", color: "#D3D3D3" },
-  { key: "suero", label: "Suero Separado", icon: "colorize", color: "#F4A460" },
-  { key: "orina", label: "Tubo con Orina", icon: "opacity", color: "#facc15" }
+  { key: "rojo", label: "Tubo Rojo (Suero)", icon: "water_drop", color: "#FF0000" },
+  { key: "dorado", label: "Tubo Dorado (Suero)", icon: "water_drop", color: "#FFD700" },
+  { key: "lila", label: "Tubo Lila (Plasma)", icon: "water_drop", color: "#DA70D6" },
+  { key: "celeste", label: "Tubo Celeste (Plasma)", icon: "water_drop", color: "#00CED1" },
+  { key: "verde", label: "Tubo Verde (Plasma)", icon: "water_drop", color: "#22C55E" },
+  { key: "orina", label: "Tubo Orina", icon: "opacity", color: "#facc15" },
+  { key: "orina_24h", label: "Orina 24 Horas", icon: "hourglass_empty", color: "#EAB308" },
+  { key: "medio_transporte", label: "Medio de Transporte", icon: "move_to_inbox", color: "#6366F1" },
+  { key: "hisopo", label: "Tubo Vidrio/Hisopo", icon: "biotech", color: "#94A3B8" },
+  { key: "laminilla_he", label: "Laminilla HE", icon: "layers", color: "#D3D3D3" },
+  { key: "laminilla_mi", label: "Laminilla MI", icon: "layers_clear", color: "#CBD5E1" },
+  { key: "heces", label: "Muestra de Heces", icon: "medication", color: "#8B4513" }
+];
+
+const FORMATOS_TYPES = [
+  { key: "f_do_001", label: "FO-DO-001" },
+  { key: "f_da_001", label: "FO-DA-001" },
+  { key: "f_qc_020", label: "FO-QC-020" },
+  { key: "f_rm_004", label: "FO-RM-004" }
 ];
 
 export default function EnvioMuestras() {
-  const [sucursal] = useState("El Paso Limon");
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [sucursal] = useState(user?.branch || "Oficina Central");
   const [observaciones, setObservaciones] = useState("");
+  const [otrosCant, setOtrosCant] = useState("");
+  const [otrosAnalisis, setOtrosAnalisis] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sentSuccess, setSentSuccess] = useState(false); // Estado para el Modal de Exito
+  const [sentSuccess, setSentSuccess] = useState(false);
   const [tempAmb, setTempAmb] = useState(24.5);
   const [tempRef, setTempRef] = useState(4.2);
   const [photos, setPhotos] = useState([]);
   const [isAmbAlert, setIsAmbAlert] = useState(false);
   const [isRefAlert, setIsRefAlert] = useState(false);
 
-  // Inventario de hielera
+  // Inventario FO-DO-017
   const [tubos, setTubos] = useState({
-    dorado: 0,
-    rojo: 0,
-    lila: 0,
-    petri: 0,
-    laminilla: 0,
-    suero: 0,
-    orina: 0
+    rojo: 0, dorado: 0, lila: 0, celeste: 0, verde: 0,
+    orina: 0, orina_24h: 0, medio_transporte: 0, hisopo: 0, laminilla_he: 0, laminilla_mi: 0, heces: 0
+  });
+
+  const [formatos, setFormatos] = useState({
+    f_do_001: false, f_da_001: false, f_qc_020: false, f_rm_004: false
   });
 
   const adjustQty = (key, delta) => {
     setTubos(prev => ({ ...prev, [key]: Math.max(0, prev[key] + delta) }));
+  };
+
+  const toggleFormato = (key) => {
+    setFormatos(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
   const handlePhotoChange = (e) => {
@@ -101,13 +122,24 @@ export default function EnvioMuestras() {
       const { error } = await supabase.from("logistica_envios").insert([{
         sucursal,
         status: "Pendiente",
-        s_dorado: tubos.dorado,
         s_rojo: tubos.rojo,
-        s_celeste: tubos.lila,
-        s_petri: tubos.petri,
-        s_laminilla: tubos.laminilla,
-        s_suero: tubos.suero,
+        s_dorado: tubos.dorado,
+        s_lila: tubos.lila,
+        s_celeste: tubos.celeste,
+        s_verde: tubos.verde,
+        s_medio_transporte: tubos.medio_transporte,
+        s_hisopo: tubos.hisopo,
+        s_laminilla_he: tubos.laminilla_he,
+        s_laminilla_mi: tubos.laminilla_mi,
+        s_heces: tubos.heces,
+        s_orina_24h: tubos.orina_24h,
         s_papel: tubos.orina,
+        s_otros_cant: otrosCant,
+        s_otros_analisis: otrosAnalisis,
+        f_do_001: formatos.f_do_001,
+        f_da_001: formatos.f_da_001,
+        f_qc_020: formatos.f_qc_020,
+        f_rm_004: formatos.f_rm_004,
         temp_sale_amb: parseFloat(tempAmb),
         temp_sale_ref: parseFloat(tempRef),
         img_url: photoPath,
@@ -115,10 +147,7 @@ export default function EnvioMuestras() {
         hora_sale: new Date().toISOString()
       }]);
       if (error) throw error;
-      
-      // Mostrar Modal de Exito
       setSentSuccess(true);
-      
     } catch (err) {
       alert("❌ Error: " + err.message);
     } finally {
@@ -129,21 +158,27 @@ export default function EnvioMuestras() {
   const resetForm = () => {
     setSentSuccess(false);
     setPhotos([]);
-    setTubos({ dorado: 0, rojo: 0, lila: 0, petri: 0, laminilla: 0, suero: 0, orina: 0 });
+    setTubos({
+      rojo: 0, dorado: 0, lila: 0, celeste: 0, verde: 0,
+      orina: 0, orina_24h: 0, medio_transporte: 0, hisopo: 0, laminilla_he: 0, laminilla_mi: 0, heces: 0
+    });
+    setFormatos({ f_do_001: false, f_da_001: false, f_qc_020: false, f_rm_004: false });
     setObservaciones("");
+    setOtrosCant("");
+    setOtrosAnalisis("");
   };
 
   return (
     <div className={styles.container}>
+      <button onClick={() => navigate(-1)} className={styles.backBtn}>
+        <span className="material-symbols-rounded">arrow_back</span>
+        Volver
+      </button>
+
       <div className={styles.card}>
-        <h1 className={styles.title}>Preparación de Envío</h1>
+        <h1 className={styles.title}>Preparación de Envío (FO-DO-017)</h1>
         <p className={styles.subtitle}>Sucursal: <strong>{sucursal}</strong> • Registro de cadena de custodia</p>
 
-        {/* Temperaturas */}
-        <h2 className={styles.sectionTitle}>
-          <span className="material-symbols-rounded">thermostat</span>
-          Monitoreo de Bioseguridad
-        </h2>
         <div className={styles.tempGrid}>
           <div className={`${styles.tempBox} ${isAmbAlert ? styles.alert : ''}`}>
             <label>T. Ambiente (°C)</label>
@@ -157,11 +192,7 @@ export default function EnvioMuestras() {
           </div>
         </div>
 
-        {/* Inventario */}
-        <h2 className={styles.sectionTitle}>
-          <span className="material-symbols-rounded">inventory_2</span>
-          Contenido de la Hielera
-        </h2>
+        <h2 className={styles.sectionTitle}><span className="material-symbols-rounded">inventory_2</span> Muestras a Enviar</h2>
         <div className={styles.premiumCounterList}>
           {MATERIAL_TYPES.map(item => (
             <div key={item.key} className={styles.counterRow}>
@@ -176,21 +207,47 @@ export default function EnvioMuestras() {
               </div>
             </div>
           ))}
+
+          {/* Otros (Cant / Analisis) */}
+          <div className={styles.counterRow} style={{borderTop: '1px solid #eee', paddingTop: '1rem', marginTop: '1rem'}}>
+             <div className={styles.itemIcon} style={{ background: '#475569' }}>
+                <span className="material-symbols-rounded">add_circle</span>
+             </div>
+             <div style={{flex: 1, display: 'flex', gap: '10px'}}>
+                <input 
+                  type="text" 
+                  placeholder="Otros (Cant.)" 
+                  className={styles.miniInput} 
+                  value={otrosCant} 
+                  onChange={(e) => setOtrosCant(e.target.value)} 
+                />
+                <input 
+                  type="text" 
+                  placeholder="Otros (Análisis)" 
+                  className={styles.miniInput} 
+                  value={otrosAnalisis} 
+                  onChange={(e) => setOtrosAnalisis(e.target.value)} 
+                />
+             </div>
+          </div>
         </div>
 
-        {/* Fotos */}
-        <h2 className={styles.sectionTitle}>
-          <span className="material-symbols-rounded">add_a_photo</span>
-          Evidencia de Salida
-        </h2>
-        <div className={styles.captureArea}>
+        <h2 className={styles.sectionTitle}><span className="material-symbols-rounded">description</span> Formatos Adjuntos</h2>
+        <div className={styles.formatosGrid}>
+          {FORMATOS_TYPES.map(form => (
+            <label key={form.key} className={styles.formatoItem}>
+               <input type="checkbox" checked={formatos[form.key]} onChange={() => toggleFormato(form.key)} />
+               <span>{form.label}</span>
+            </label>
+          ))}
+        </div>
+
+        <div className={styles.captureArea} style={{marginTop: '2rem'}}>
           <input type="file" accept="image/*" multiple onChange={handlePhotoChange} id="file-up" style={{ display: 'none' }} />
           <label htmlFor="file-up" className={styles.cameraTrigger}>
             <span className="material-symbols-rounded" style={{ fontSize: '48px' }}>photo_camera</span>
-            <span>Añadir Fotos de la Hielera</span>
-            <small>(Múltiples vistas permitidas)</small>
+            <span>Añadir Evidencia de Hielera</span>
           </label>
-
           <div className={styles.photoGallery}>
             {photos.map((file, idx) => (
               <div key={idx} className={styles.photoThumb}>
@@ -201,38 +258,19 @@ export default function EnvioMuestras() {
           </div>
         </div>
 
-        <h2 className={styles.sectionTitle}>
-          <span className="material-symbols-rounded">notes</span>
-          Notas Adicionales
-        </h2>
-        <textarea 
-          className={styles.inputField}
-          placeholder="¿Alguna observación sobre el embalaje o las muestras?"
-          value={observaciones}
-          onChange={(e) => setObservaciones(e.target.value)}
-        />
-
-        <button 
-          className={styles.submitBtn} 
-          onClick={handleSend}
-          disabled={loading || isAmbAlert || isRefAlert}
-        >
-          {loading ? 'Procesando Envío...' : '🚀 Finalizar y Generar Solicitud'}
+        <textarea className={styles.inputField} placeholder="¿Alguna incidencia o reporte?" value={observaciones} onChange={(e) => setObservaciones(e.target.value)} />
+        <button className={styles.submitBtn} onClick={handleSend} disabled={loading || isAmbAlert || isRefAlert}>
+          {loading ? 'Sincronizando...' : '🚀 Finalizar Solicitud FO-DO-017'}
         </button>
       </div>
 
-      {/* Modal de Exito Premium */}
       {sentSuccess && (
         <div className={styles.successOverlay}>
           <div className={styles.successCard}>
-             <div className={styles.successIcon}>
-               <span className="material-symbols-rounded">task_alt</span>
-             </div>
+             <div className={styles.successIcon}><span className="material-symbols-rounded">task_alt</span></div>
              <h2>¡Envío Registrado!</h2>
-             <p>Los datos y fotos han sido guardados con éxito. El mensajero ya puede ver esta hielera en su ruta.</p>
-             <button onClick={resetForm} className={styles.successBtn}>
-               Generar Nuevo Envío
-             </button>
+             <p>Se ha generado el folio digital para transporte. El chofer ya puede ver esta hielera.</p>
+             <button onClick={resetForm} className={styles.successBtn}>Generar Nuevo Envío</button>
           </div>
         </div>
       )}

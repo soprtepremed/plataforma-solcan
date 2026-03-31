@@ -7,26 +7,20 @@ export default function Login() {
   const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [pin, setPin] = useState("");
-  const [selectedBranch, setSelectedBranch] = useState("El Paso Limon");
-  const [selectedRole, setSelectedRole] = useState("recepcion");
-  const [isMatrixAccess, setIsMatrixAccess] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const branches = [
-    "El Paso Limon",
-    "Chiapa de Corzo",
-    "Arenal Club Campestre",
-    "San Cristobal",
-    "Tapachula"
-  ];
-
-  const roles = [
-    { id: 'recepcion', label: 'Recepción' },
-    { id: 'mensajero', label: 'Mensajero / Chofer' },
-    { id: 'captura', label: 'Captura / Resultados' },
-    { id: 'admin', label: 'Administrador' }
-  ];
+  // Cargar datos recordados al montar el componente
+  useEffect(() => {
+    const savedPin = localStorage.getItem('solcan_remember_pin');
+    const savedUser = localStorage.getItem('solcan_remember_user');
+    if (savedPin && savedUser) {
+      setPin(savedPin);
+      setUsername(savedUser);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -37,8 +31,18 @@ export default function Login() {
     setErrorMsg("");
     setLoading(true);
 
-    const result = await login(username, pin, isMatrixAccess, selectedBranch, selectedRole);
-    if (!result.success) {
+    const result = await login(username, pin);
+    
+    if (result.success) {
+      // Si el login es exitoso y marcaron "Recordar", guardamos en local storage
+      if (rememberMe) {
+        localStorage.setItem('solcan_remember_pin', pin);
+        localStorage.setItem('solcan_remember_user', username);
+      } else {
+        localStorage.removeItem('solcan_remember_pin');
+        localStorage.removeItem('solcan_remember_user');
+      }
+    } else {
       setErrorMsg("Credenciales incorrectas. Verifica tu usuario y PIN.");
       setLoading(false);
     }
@@ -52,66 +56,18 @@ export default function Login() {
         </div>
         <h1 className={styles.title}>Plataforma Solcan</h1>
         <p className={styles.subtitle}>
-          Ingresa con tu usuario asignado y PIN.
+          Ingresa con tu usuario asignado y PIN de seguridad.
         </p>
 
         {errorMsg && (
-          <div style={{ background: '#fee2e2', color: '#991b1b', padding: '10px', borderRadius: '6px', marginBottom: '15px', fontSize: '0.9rem', textAlign: 'center' }}>
+          <div className={styles.errorBanner}>
             {errorMsg}
           </div>
         )}
 
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        <form onSubmit={handleLogin} className={styles.loginForm}>
           
-          {/* Toggle de Matriz */}
-          <div className={styles.matrixToggleContainer}>
-            <span className={styles.matrixLabel}>Acceso a Funciones de Matriz</span>
-            <label className={styles.switch}>
-              <input 
-                type="checkbox" 
-                checked={isMatrixAccess}
-                onChange={(e) => setIsMatrixAccess(e.target.checked)}
-              />
-              <span className={styles.slider}></span>
-            </label>
-          </div>
-
-          {isMatrixAccess ? (
-            <div className={styles.matrixBadge}>
-              <span className="material-symbols-rounded">corporate_fare</span>
-              Ubicación: Tuxtla Gutierrez (Matriz)
-            </div>
-          ) : (
-            <div style={{ textAlign: 'left' }}>
-              <label className={styles.inputLabel}>SUCURSAL DE ACCESO</label>
-              <select 
-                className={styles.branchSelect}
-                value={selectedBranch}
-                onChange={(e) => setSelectedBranch(e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box' }}
-              >
-                {branches.map(b => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <div style={{ textAlign: 'left' }}>
-            <label className={styles.inputLabel}>ROL / FUNCIÓN</label>
-            <select 
-              className={styles.branchSelect}
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              style={{ width: '100%', boxSizing: 'border-box' }}
-            >
-              {roles.map(r => (
-                <option key={r.id} value={r.id}>{r.label}</option>
-              ))}
-            </select>
-          </div>
-
-          <div style={{ textAlign: 'left' }}>
+          <div className={styles.formGroup}>
             <label className={styles.inputLabel}>USUARIO</label>
             <input 
               type="text" 
@@ -120,19 +76,35 @@ export default function Login() {
               placeholder="Ej. maria, admin..." 
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
             />
           </div>
 
-          <div style={{ textAlign: 'left' }}>
-            <label className={styles.inputLabel}>PIN (4 DÍGITOS)</label>
+          <div className={styles.formGroup}>
+            <label className={styles.inputLabel}>PIN DE SEGURIDAD</label>
             <input 
               type="password" 
+              inputMode="numeric"
+              pattern="[0-9]*"
               className={styles.branchSelect} 
               style={{ width: '100%', boxSizing: 'border-box' }}
               placeholder="••••" 
               value={pin}
-              onChange={(e) => setPin(e.target.value)}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+              autoComplete="current-password"
             />
+          </div>
+
+          <div className={styles.rememberRow}>
+            <label className={styles.checkboxContainer}>
+              <input 
+                type="checkbox" 
+                checked={rememberMe} 
+                onChange={(e) => setRememberMe(e.target.checked)} 
+              />
+              <span className={styles.checkmark}></span>
+              Recordar mi PIN en esta tablet
+            </label>
           </div>
 
           <button 
@@ -141,11 +113,11 @@ export default function Login() {
             style={{ width: '100%', marginTop: '10px', justifyContent: 'center', backgroundColor: 'var(--co-primary)', color: 'white', border: 'none' }}
             disabled={loading}
           >
-            {loading ? 'Verificando...' : 'Iniciar Sesión'}
+            {loading ? 'Verificando...' : 'Entrar al Sistema'}
           </button>
         </form>
 
-        <span className={styles.versionText} style={{ marginTop: '20px', display: 'block' }}>Solcan Lab v1.5 • Multi-Sucursal</span>
+        <span className={styles.versionText} style={{ marginTop: '20px', display: 'block' }}>Solcan Lab v2.1 • Bioseguridad Digital</span>
       </div>
     </div>
   );

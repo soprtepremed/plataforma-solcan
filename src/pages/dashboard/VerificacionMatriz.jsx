@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import styles from "./VerificacionMatriz.module.css";
 
@@ -6,6 +7,8 @@ const MATERIAL_KEYS = [
   { key: "dorado", label: "Tubo Dorado", icon: "water_drop" },
   { key: "rojo", label: "Tubo Rojo", icon: "water_drop" },
   { key: "lila", label: "Tubo Lila", icon: "water_drop" },
+  { key: "celeste", label: "Tubo Celeste", icon: "water_drop" },
+  { key: "verde", label: "Tubo Verde", icon: "water_drop" },
   { key: "petri", label: "Cajas Petri", icon: "biotech" },
   { key: "laminilla", label: "Laminillas", icon: "layers" },
   { key: "suero", label: "Suero Separado", icon: "colorize" },
@@ -52,7 +55,9 @@ export default function VerificacionMatriz() {
         rec_values: {
           dorado: env.status === 'Recibido' ? (env.r_dorado || 0) : (env.s_dorado || 0),
           rojo: env.status === 'Recibido' ? (env.r_rojo || 0) : (env.s_rojo || 0),
-          lila: env.status === 'Recibido' ? (env.r_celeste || 0) : (env.s_celeste || 0),
+          lila: env.status === 'Recibido' ? (env.r_lila || 0) : (env.s_lila || 0),
+          celeste: env.status === 'Recibido' ? (env.r_celeste || 0) : (env.s_celeste || 0),
+          verde: env.status === 'Recibido' ? (env.r_verde || 0) : (env.s_verde || 0),
           petri: env.status === 'Recibido' ? (env.r_petri || 0) : (env.s_petri || 0),
           laminilla: env.status === 'Recibido' ? (env.r_laminilla || 0) : (env.s_laminilla || 0),
           suero: env.status === 'Recibido' ? (env.r_suero || 0) : (env.s_suero || 0),
@@ -62,6 +67,8 @@ export default function VerificacionMatriz() {
           dorado: env.status === 'Recibido',
           rojo: env.status === 'Recibido',
           lila: env.status === 'Recibido',
+          celeste: env.status === 'Recibido',
+          verde: env.status === 'Recibido',
           petri: env.status === 'Recibido',
           laminilla: env.status === 'Recibido',
           suero: env.status === 'Recibido',
@@ -121,7 +128,9 @@ export default function VerificacionMatriz() {
       status: "Recibido",
       r_dorado: envio.rec_values.dorado,
       r_rojo: envio.rec_values.rojo,
-      r_celeste: envio.rec_values.lila,
+      r_lila: envio.rec_values.lila,
+      r_celeste: envio.rec_values.celeste,
+      r_verde: envio.rec_values.verde,
       r_petri: envio.rec_values.petri,
       r_laminilla: envio.rec_values.laminilla,
       r_suero: envio.rec_values.suero,
@@ -139,7 +148,12 @@ export default function VerificacionMatriz() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.titleArea}>
+      <button onClick={() => navigate(-1)} className={styles.backBtn}>
+        <span className="material-symbols-rounded">arrow_back</span>
+        Volver
+      </button>
+
+      <div className={styles.pageHeader}>
         <div>
           <h1 className={styles.title}>Panel de Control Matriz</h1>
           <p className={styles.subtitle}>Supervisión global de la cadena de custodia</p>

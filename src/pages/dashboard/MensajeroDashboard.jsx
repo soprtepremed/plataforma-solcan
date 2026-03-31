@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import styles from "./MensajeroDashboard.module.css";
 
@@ -79,6 +80,11 @@ export default function MensajeroDashboard() {
 
   return (
     <div className={styles.container}>
+      <button onClick={() => navigate(-1)} className={styles.backBtn}>
+        <span className="material-symbols-rounded">arrow_back</span>
+        Volver
+      </button>
+
       <div className={styles.selectorCard}>
         <h2 className={styles.title}>¿Quién está recolectando hoy?</h2>
         <div className={styles.idGrid}>
