@@ -232,7 +232,7 @@ export default function LogisticaBitacora() {
                       row.sucursal === 'Plaza Cedros' ? 'PC' : row.sucursal}
                    </strong>
                 </td>
-                <td>{row.hora_recoleccion ? new Date(row.hora_recoleccion).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '---'}</td>
+                <td>{row.hora_recoleccion ? new Date(row.hora_recoleccion).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false}) : '---'}</td>
                 
                 {/* Sanguineas */}
                 <td className={styles.cellQty}>{renderQty(row.s_rojo)}</td>

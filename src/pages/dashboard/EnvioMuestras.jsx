@@ -182,13 +182,21 @@ export default function EnvioMuestras() {
 
         <div className={styles.tempGrid}>
           <div className={`${styles.tempBox} ${isAmbAlert ? styles.alert : ''}`}>
-            <label>T. Ambiente (°C)</label>
-            <input type="number" step="0.1" value={tempAmb} onChange={(e) => setTempAmb(parseFloat(e.target.value))} />
+            <label><span className="material-symbols-rounded">device_thermostat</span> T. Ambiente (°C)</label>
+            <div className={styles.stepperContainer}>
+              <button className={styles.stepperBtn} onClick={() => setTempAmb(prev => parseFloat((prev - 0.5).toFixed(1)))}>-</button>
+              <input type="number" step="0.1" value={tempAmb} onChange={(e) => setTempAmb(parseFloat(e.target.value))} />
+              <button className={styles.stepperBtn} onClick={() => setTempAmb(prev => parseFloat((prev + 0.5).toFixed(1)))}>+</button>
+            </div>
             {isAmbAlert && <small>⚠️ Fuera de rango</small>}
           </div>
           <div className={`${styles.tempBox} ${isRefAlert ? styles.alert : ''}`}>
-            <label>T. Refrigerada (°C)</label>
-            <input type="number" step="0.1" value={tempRef} onChange={(e) => setTempRef(parseFloat(e.target.value))} />
+            <label><span className="material-symbols-rounded">ac_unit</span> T. Refrigerada (°C)</label>
+            <div className={styles.stepperContainer}>
+              <button className={styles.stepperBtn} onClick={() => setTempRef(prev => parseFloat((prev - 0.5).toFixed(1)))}>-</button>
+              <input type="number" step="0.1" value={tempRef} onChange={(e) => setTempRef(parseFloat(e.target.value))} />
+              <button className={styles.stepperBtn} onClick={() => setTempRef(prev => parseFloat((prev + 0.5).toFixed(1)))}>+</button>
+            </div>
             {isRefAlert && <small>⚠️ Crítico: Verificar Gel</small>}
           </div>
         </div>

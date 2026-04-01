@@ -127,7 +127,7 @@ export default function MensajeroDashboard() {
                       <h4>Sucursal: {envio.sucursal}</h4>
                       <p className={styles.timestamp}>
                         <span className="material-symbols-rounded">schedule</span>
-                        Listo hace: {new Date(envio.created_at).toLocaleTimeString()}
+                        Listo hace: {new Date(envio.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
                       </p>
                     </div>
                   </div>

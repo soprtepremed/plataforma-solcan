@@ -267,7 +267,7 @@ export default function VerificacionMatriz() {
                 {isRecibido && !expandedIds.includes(envio.id) && (
                   <div className={styles.collapsedSummary} onClick={() => toggleExpand(envio.id)}>
                     <div className={styles.summaryInfo}>
-                      <span>📅 {new Date(envio.hora_recepcion || envio.created_at).toLocaleDateString()} <span style={{marginLeft:'5px', color:'var(--co-accent)'}}>🕒 {new Date(envio.hora_recepcion || envio.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></span>
+                      <span>📅 {new Date(envio.hora_recepcion || envio.created_at).toLocaleDateString()} <span style={{marginLeft:'5px', color:'var(--co-accent)'}}>🕒 {new Date(envio.hora_recepcion || envio.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span></span>
                       <span>👤 {envio.recibido_por || 'Sistema'}</span>
                     </div>
                   </div>
@@ -282,6 +282,14 @@ export default function VerificacionMatriz() {
                         <p>🚛 <strong>Esperando Recolección</strong> • Sucursal solicitó transporte</p>
                         <div className={styles.waitingNotice}>📍 No se puede recibir en Matriz hasta que un chofer lo recolecte.</div>
                       </>
+                    ) : envio[`a_${areaRecibe}_user`] ? (
+                      <div className={styles.areaAlreadyDone}>
+                        <span className="material-symbols-rounded">verified_user</span>
+                        <div>
+                          <p><strong>{AREAS_SOLCAN.find(a => a.key === areaRecibe)?.label} Procesado</strong></p>
+                          <small>Firmado por: {envio[`a_${areaRecibe}_user`]} a las {envio[`a_${areaRecibe}_time`]}h</small>
+                        </div>
+                      </div>
                     ) : (
                       <>
                         <p>🚚 Muestras en camino • Chofer: <strong>{envio.mensajero_id}</strong></p>
@@ -337,12 +345,24 @@ export default function VerificacionMatriz() {
 
                     <div className={styles.tempBox}>
                         <div className={`${styles.tempItem} ${(!isNaN(parseFloat(envio.t_rec.amb)) && (parseFloat(envio.t_rec.amb) < 20 || parseFloat(envio.t_rec.amb) > 29)) ? styles.tempDanger : ''}`}>
-                           <label>Ambiente Arribo</label>
-                           {isRecibido ? <span>{envio.t_rec.amb}°C</span> : <input type="number" step="0.1" value={envio.t_rec.amb} onChange={(e) => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, amb: e.target.value}} : ev))} />}
+                           <label><span className="material-symbols-rounded">device_thermostat</span> Ambiente Arribo (°C)</label>
+                           {isRecibido ? <span>{envio.t_rec.amb}°C</span> : (
+                             <div className={styles.stepperContainer}>
+                               <button className={styles.stepperBtn} onClick={() => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, amb: parseFloat((parseFloat(ev.t_rec.amb) - 0.5).toFixed(1))}} : ev))}>-</button>
+                               <input type="number" step="0.1" value={envio.t_rec.amb} onChange={(e) => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, amb: e.target.value}} : ev))} />
+                               <button className={styles.stepperBtn} onClick={() => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, amb: parseFloat((parseFloat(ev.t_rec.amb) + 0.5).toFixed(1))}} : ev))}>+</button>
+                             </div>
+                           )}
                         </div>
                         <div className={`${styles.tempItem} ${(!isNaN(parseFloat(envio.t_rec.ref)) && (parseFloat(envio.t_rec.ref) < 2 || parseFloat(envio.t_rec.ref) > 7)) ? styles.tempDanger : ''}`}>
-                           <label>Refri Arribo</label>
-                           {isRecibido ? <span>{envio.t_rec.ref}°C</span> : <input type="number" step="0.1" value={envio.t_rec.ref} onChange={(e) => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, ref: e.target.value}} : ev))} />}
+                           <label><span className="material-symbols-rounded">ac_unit</span> Refri Arribo (°C)</label>
+                           {isRecibido ? <span>{envio.t_rec.ref}°C</span> : (
+                             <div className={styles.stepperContainer}>
+                               <button className={styles.stepperBtn} onClick={() => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, ref: parseFloat((parseFloat(ev.t_rec.ref) - 0.5).toFixed(1))}} : ev))}>-</button>
+                               <input type="number" step="0.1" value={envio.t_rec.ref} onChange={(e) => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, ref: e.target.value}} : ev))} />
+                               <button className={styles.stepperBtn} onClick={() => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, ref: parseFloat((parseFloat(ev.t_rec.ref) + 0.5).toFixed(1))}} : ev))}>+</button>
+                             </div>
+                           )}
                         </div>
                     </div>
 
