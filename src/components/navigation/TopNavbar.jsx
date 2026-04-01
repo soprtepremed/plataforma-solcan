@@ -78,7 +78,7 @@ export default function TopNavbar() {
           {/* Nombre Usuario Corto y Sucursal */}
           <div className={styles.userProfileWrapper}>
             <span style={{ fontSize: '0.80rem', fontWeight: 600, marginRight: '10px' }} className={styles.stripeLinks}>
-              Hola, {user?.name.split(' ')[0]} 
+              Hola, {user?.name?.startsWith('Q.F.B.') ? user.name : user?.name?.split(' ')[0]} 
               <span style={{ color: 'var(--co-accent)', marginLeft: '8px', paddingLeft: '8px', borderLeft: '1.5px solid #E2E8F0' }}>
                 📍 {user?.branch}
               </span>
