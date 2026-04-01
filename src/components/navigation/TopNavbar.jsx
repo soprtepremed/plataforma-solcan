@@ -36,8 +36,7 @@ export default function TopNavbar() {
       return [
         { label: 'Preparar Envío', path: '/logistica/envio' },
         { label: 'Mi Bitácora', path: '/logistica/bitacora' },
-        { label: 'Estado Sede', path: '/logistica/sede' },
-        { label: 'Pacientes', path: '/pacientes' }
+        { label: 'Estado Sede', path: '/logistica/sede' }
       ];
     } else if (user.role === 'mensajero') {
       return [

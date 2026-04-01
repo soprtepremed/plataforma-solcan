@@ -47,16 +47,17 @@ export default function EnvioMuestras() {
     orina: 0, orina_24h: 0, medio_transporte: 0, hisopo: 0, laminilla_he: 0, laminilla_mi: 0, heces: 0
   });
 
+  // Inventario FO-DO-017 (Cantidades de formatos físicos)
   const [formatos, setFormatos] = useState({
-    f_do_001: false, f_da_001: false, f_qc_020: false, f_rm_004: false
+    f_do_001: 0, f_da_001: 0, f_qc_020: 0, f_rm_004: 0
   });
 
   const adjustQty = (key, delta) => {
     setTubos(prev => ({ ...prev, [key]: Math.max(0, prev[key] + delta) }));
   };
 
-  const toggleFormato = (key) => {
-    setFormatos(prev => ({ ...prev, [key]: !prev[key] }));
+  const adjustFormat = (key, delta) => {
+    setFormatos(prev => ({ ...prev, [key]: Math.max(0, prev[key] + delta) }));
   };
 
   const handlePhotoChange = (e) => {
@@ -233,13 +234,17 @@ export default function EnvioMuestras() {
         </div>
 
         <h2 className={styles.sectionTitle}><span className="material-symbols-rounded">description</span> Formatos Adjuntos</h2>
-        <div className={styles.formatosGrid}>
-          {FORMATOS_TYPES.map(form => (
-            <label key={form.key} className={styles.formatoItem}>
-               <input type="checkbox" checked={formatos[form.key]} onChange={() => toggleFormato(form.key)} />
-               <span>{form.label}</span>
-            </label>
-          ))}
+        <div className={styles.formatsGrid}>
+            {FORMATOS_TYPES.map(f => (
+              <div key={f.key} className={styles.formatItem}>
+                <label>{f.label}</label>
+                <div className={styles.counter}>
+                  <button type="button" onClick={() => adjustFormat(f.key, -1)}>-</button>
+                  <span>{formatos[f.key]}</span>
+                  <button type="button" onClick={() => adjustFormat(f.key, 1)}>+</button>
+                </div>
+              </div>
+            ))}
         </div>
 
         <div className={styles.captureArea} style={{marginTop: '2rem'}}>

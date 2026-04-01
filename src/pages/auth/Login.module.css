@@ -3,11 +3,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--co-bg);
+  background-color: #0F172A; /* Fondo base oscuro para que la imagen luzca */
   padding: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.backgroundGraphics {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('../../assets/login-bg.png');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.5;
+  filter: saturate(0.8) brightness(0.6);
+  z-index: 1;
 }
 
 .loginCard {
+  position: relative;
+  z-index: 2;
   background: white;
   padding: 2.5rem;
   border-radius: var(--radius-lg);

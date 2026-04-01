@@ -15,6 +15,34 @@
   margin-bottom: 0.5rem;
 }
 
+.tabContainer {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.tabBtn {
+  background: #F1F5F9;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 800;
+  color: #64748B;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.tabBtn span { font-size: 20px; }
+
+.tabActive {
+  background: var(--co-accent);
+  color: white;
+  box-shadow: 0 4px 12px rgba(11, 206, 205, 0.2);
+}
+
 .summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -72,6 +100,8 @@
   padding: 8px;
   border-radius: 8px;
   border: 1px solid #CBD5E1;
+  font-family: inherit;
+  font-weight: 600;
 }
 
 /* Tabla Maestra */
@@ -102,60 +132,141 @@
   font-size: 0.9rem;
 }
 
-.alertTag {
-  background: #FEF3C7;
-  color: #D97706;
-  padding: 4px 8px;
-  border-radius: 6px;
+/* Gestión de Usuarios */
+.userGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.userCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+  border: 1.5px solid #F1F5F9;
+  transition: all 0.3s;
+}
+
+.userHeader {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.userAvatar {
+  width: 48px;
+  height: 48px;
+  background: var(--co-gradient);
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+
+.userInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.userEditName {
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--co-primary);
+  width: 100%;
+  padding: 4px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.userEditName:focus {
+  background: #F1F5F9;
+  outline: 2px solid var(--co-accent);
+}
+
+.userRoleTag {
   font-size: 0.7rem;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  text-transform: uppercase;
+  color: #94A3B8;
+  letter-spacing: 0.5px;
 }
 
-.critCol {
-  color: #ef4444;
+.userSection {
+  margin-top: 1.2rem;
+}
+
+.userSection label {
+  display: block;
+  font-size: 0.7rem;
   font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  margin-bottom: 8px;
 }
 
-.obsBtn {
-  background: #F1F5F9;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.8rem;
+.userEditBranch {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #E2E8F0;
+  font-family: inherit;
+  font-weight: 600;
 }
 
-.premiumRefreshBtn {
-  background: var(--co-gradient);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-weight: 700;
+.areaCheckgrid {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+.areaBadge {
+  padding: 6px 12px;
+  background: #F1F5F9;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748B;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(11, 206, 205, 0.3);
-  margin-left: auto;
+  transition: all 0.2s;
 }
 
-.premiumRefreshBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(11, 206, 205, 0.5);
-  filter: brightness(1.1);
+.areaActive {
+  background: var(--co-accent);
+  color: white;
+  box-shadow: 0 4px 10px rgba(11, 206, 205, 0.2);
 }
 
-.premiumRefreshBtn:active {
-  transform: translateY(0);
+/* Utils */
+.miniStatsArea {
+  display: flex;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #64748B;
 }
+
+.critCol { color: #ef4444; font-weight: 700; }
+
+.statusBadge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.status_En_Tránsito { background: #DBEAFE; color: #1E40AF; }
+.status_Recibido { background: #D1FAE5; color: #065F46; }
+.status_Pendiente { background: #FEF3C7; color: #92400E; }
 
 :global(.spin) {
   display: inline-block;
   animation: spin 2s linear infinite;
 }
-

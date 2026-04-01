@@ -417,6 +417,75 @@
   box-shadow: 0 20px 45px rgba(11, 206, 205, 0.5);
 }
 
+/* Formatos Adjuntos - Estilo con Contador */
+.formatsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  margin-bottom: 2rem;
+}
+
+.formatItem {
+  background: #F1F5F9;
+  padding: 1rem;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.formatItem:hover {
+  background: white;
+  border-color: var(--co-accent);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+.formatItem label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--co-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: white;
+  padding: 5px 15px;
+  border-radius: 15px;
+  border: 1.5px solid #E2E8F0;
+  box-shadow: var(--shadow-sm);
+}
+
+.counter button {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--co-accent);
+  cursor: pointer;
+  padding: 0 5px;
+  transition: transform 0.2s;
+}
+
+.counter button:hover {
+  transform: scale(1.2);
+}
+
+.counter span {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--co-primary);
+  min-width: 25px;
+  text-align: center;
+}
+
 .backBtn {
   display: flex !important;
   align-items: center;
