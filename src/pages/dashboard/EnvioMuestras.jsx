@@ -275,7 +275,10 @@ export default function EnvioMuestras() {
              <div className={styles.successIcon}><span className="material-symbols-rounded">task_alt</span></div>
              <h2>¡Envío Registrado!</h2>
              <p>Se ha generado el folio digital para transporte. El chofer ya puede ver esta hielera.</p>
-             <button onClick={resetForm} className={styles.successBtn}>Generar Nuevo Envío</button>
+             <div className={styles.successActions}>
+                <button onClick={resetForm} className={styles.successBtn}>Generar Nuevo Envío</button>
+                <button onClick={() => navigate('/logistica/recepcion')} className={styles.secondaryBtn}>Ir al Dashboard</button>
+             </div>
           </div>
         </div>
       )}

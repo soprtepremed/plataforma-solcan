@@ -14,6 +14,8 @@ export default function MensajeroDashboard() {
   const [activeId, setActiveId] = useState(null);
   const [pendientes, setPendientes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const navigate = useNavigate();
 
   const fetchPendientes = async () => {
     setLoading(true);
@@ -72,6 +74,7 @@ export default function MensajeroDashboard() {
       alert("Error: " + error.message);
     } else {
       setPendientes(prev => prev.filter(e => e.id !== envioId));
+      setShowSuccess(true);
     }
   };
 
@@ -177,6 +180,17 @@ export default function MensajeroDashboard() {
           </div>
         )}
       </div>
+
+      {showSuccess && (
+        <div className={styles.successOverlay}>
+          <div className={styles.successCard}>
+             <div className={styles.successIcon}><span className="material-symbols-rounded">local_shipping</span></div>
+             <h2>¡Recolección Exitosa!</h2>
+             <p>El envío ha sido marcado "En Tránsito". Ya puedes dirigirte al laboratorio matriz.</p>
+             <button onClick={() => setShowSuccess(false)} className={styles.successBtn}>Aceptar</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

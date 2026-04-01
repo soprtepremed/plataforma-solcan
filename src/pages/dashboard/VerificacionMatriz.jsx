@@ -43,6 +43,7 @@ export default function VerificacionMatriz() {
   const [envios, setEnvios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alarmActive, setAlarmActive] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [filter, setFilter] = useState("Pendiente"); // Cambiamos default para ver lo nuevo primero
   const [activeReceptionId, setActiveReceptionId] = useState(null);
   const [expandedIds, setExpandedIds] = useState([]);
@@ -193,7 +194,11 @@ export default function VerificacionMatriz() {
     }).eq("id", envio.id);
 
     if (error) alert("Error: " + error.message);
-    else { setActiveReceptionId(null); if (filter !== 'Todos') setEnvios(prev => prev.filter(e => e.id !== envio.id)); }
+    else { 
+      setActiveReceptionId(null); 
+      if (filter !== 'Todos') setEnvios(prev => prev.filter(e => e.id !== envio.id));
+      setShowSuccess(true);
+    }
   };
 
   const handleFinalizarGlobal = async (envio) => {
@@ -210,6 +215,7 @@ export default function VerificacionMatriz() {
       setActiveReceptionId(null); 
       setEnvios(prev => prev.filter(e => e.id !== envio.id));
       setExpandedIds(prev => prev.filter(id => id !== envio.id));
+      setShowSuccess(true);
     }
   };
 
@@ -385,6 +391,17 @@ export default function VerificacionMatriz() {
               </div>
             )
           })}
+        </div>
+      )}
+
+      {showSuccess && (
+        <div className={styles.successOverlay}>
+          <div className={styles.successCard}>
+             <div className={styles.successIcon}><span className="material-symbols-rounded">verified_user</span></div>
+             <h2>¡Recepción Técnica Exitosa!</h2>
+             <p>Se ha registrado tu firma de cadena de custodia correctamente.</p>
+             <button onClick={() => setShowSuccess(false)} className={styles.successBtn}>Aceptar</button>
+          </div>
         </div>
       )}
     </div>
