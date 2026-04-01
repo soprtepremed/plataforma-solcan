@@ -8,7 +8,7 @@ const supabase = createClient(supabaseUrl, anonKey);
 
 async function verify() {
   console.log('🚀 Probando conexión con Supabase (Modo ESM)...');
-  
+
   try {
     // 1. Probar listar buckets (requiere que el bucket sea público o políticas de lectura)
     const { data: buckets, error: storageError } = await supabase.storage.listBuckets();
@@ -16,7 +16,7 @@ async function verify() {
       console.error('❌ Error de Storage:', storageError.message);
     } else {
       console.log('✅ Conexión Storage exitosa. Buckets:', buckets.map(b => b.name));
-    }
+    } 1 no
 
     // 2. Probar acceso a la tabla
     const { data, error: dbError } = await supabase

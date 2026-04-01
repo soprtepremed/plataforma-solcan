@@ -17,9 +17,9 @@ export function AuthProvider({ children }) {
       const { data, error } = await supabase
         .from('empleados')
         .select('*')
-        .eq('username', username)
+        .or(`username.eq."${username}",nombre.eq."${username}"`)
         .eq('pin', pin)
-        .single();
+        .maybeSingle();
 
       if (error || !data) {
         throw new Error("Usuario o PIN incorrectos");

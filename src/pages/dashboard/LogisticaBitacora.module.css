@@ -229,7 +229,46 @@
   justify-content: space-between;
   align-items: center;
   gap: 15px;
-  margin-bottom: 5px;
+  margin-bottom: 20px;
+  background: white;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  box-shadow: var(--shadow-sm);
+}
+
+.leftActions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.dateSelector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #F8FAFC;
+  padding: 8px 15px;
+  border-radius: 10px;
+  border: 1.5px solid #E2E8F0;
+}
+
+.dateSelector label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--co-primary);
+  text-transform: uppercase;
+}
+
+.dateInput {
+  border: none;
+  background: transparent;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  color: var(--co-secondary);
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
 }
 
 .printBtn {
@@ -470,6 +509,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   z-index: 10;
+  margin-bottom: 0;
 }
 
 .backBtn:hover {

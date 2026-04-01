@@ -18,24 +18,46 @@ export default function LogisticaBitacora() {
   const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [drivers, setDrivers] = useState([]);
+  const [selectedDriver, setSelectedDriver] = useState("Todos");
   const { user } = useAuth();
 
   const fetchLogs = async () => {
     setLoading(true);
-    let query = supabase.from("logistica_envios").select("*");
+    const startOfDay = `${selectedDate}T00:00:00Z`;
+    const endOfDay = `${selectedDate}T23:59:59Z`;
+
+    let query = supabase
+      .from("logistica_envios")
+      .select("*")
+      .gte("created_at", startOfDay)
+      .lte("created_at", endOfDay);
     
-    // Admin y Químico (Matriz) ven todo. Recepción de sucursal solo ve lo suyo.
     if (user && user.role !== 'admin' && user.role !== 'quimico') {
       query = query.eq("sucursal", user.branch);
     }
 
-    const { data: logs, error } = await query
-      .order("created_at", { ascending: false })
-      .limit(50);
-    
+    if (selectedDriver !== "Todos") {
+      query = query.eq("mensajero_id", selectedDriver);
+    }
+
+    const { data: logs, error } = await query.order("created_at", { ascending: true });
     if (!error) setData(logs);
     setLoading(false);
   };
+
+  const fetchDrivers = async () => {
+    const { data, error } = await supabase
+      .from("empleados")
+      .select("id, nombre")
+      .eq("role", "mensajero");
+    if (!error) setDrivers(data);
+  };
+
+  useEffect(() => {
+    fetchDrivers();
+  }, []);
 
   useEffect(() => {
     fetchLogs();
@@ -43,23 +65,8 @@ export default function LogisticaBitacora() {
       fetchLogs();
     }).subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, []);
+  }, [selectedDate, selectedDriver]);
 
-  const signArea = async (envId, areaKey) => {
-    // Si ya está firmado, no hacemos nada (o podrías permitir cambio)
-    const initials = user?.email?.split('@')[0]?.substring(0, 3)?.toUpperCase() || "SOL";
-    const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    
-    const { error } = await supabase
-      .from("logistica_envios")
-      .update({
-        [`a_${areaKey}_user`]: initials,
-        [`a_${areaKey}_time`]: time
-      })
-      .eq("id", envId);
-
-    if (!error) fetchLogs();
-  };
 
   const renderQty = (val) => {
     if (val === 0 || val === "0" || val === null || val === undefined || val === "") {
@@ -75,10 +82,35 @@ export default function LogisticaBitacora() {
   return (
     <div className={styles.container}>
       <div className={styles.actionHeader}>
-        <button onClick={() => navigate(-1)} className={styles.backBtn}>
-          <span className="material-symbols-rounded">arrow_back</span>
-          Volver
-        </button>
+        <div className={styles.leftActions}>
+          <button onClick={() => navigate(-1)} className={styles.backBtn}>
+            <span className="material-symbols-rounded">arrow_back</span>
+            Volver
+          </button>
+          
+          <div className={styles.dateSelector}>
+            <label>FECHA:</label>
+            <input 
+              type="date" 
+              value={selectedDate} 
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className={styles.dateInput}
+            />
+          </div>
+
+          <div className={styles.dateSelector}>
+            <label>CHOFER:</label>
+            <select 
+              value={selectedDriver} 
+              onChange={(e) => setSelectedDriver(e.target.value)}
+              className={styles.dateInput}
+            >
+              <option value="Todos">TODOS LOS CHOFERES</option>
+              {drivers.map(d => <option key={d.id} value={d.id}>{d.nombre}</option>)}
+            </select>
+          </div>
+        </div>
+
         <button onClick={handlePrint} className={styles.printBtn}>
           <span className="material-symbols-rounded">print</span>
           Imprimir FO-DO-017
@@ -101,10 +133,14 @@ export default function LogisticaBitacora() {
         </div>
       </header>
 
-       <div className={styles.transportBar}>
+        <div className={styles.transportBar}>
           <div className={styles.transportLabel}>RESPONSABLE DE TRANSPORTE:</div>
-          <div className={styles.transportValue}>Alberth Ventura Coutiño</div>
-       </div>
+          <div className={styles.transportValue}>
+            {selectedDriver === "Todos" 
+              ? "CONTROL GENERAL DE LABORATORIO" 
+              : (drivers.find(d => d.id === selectedDriver)?.nombre || "ALBERTH VENTURA COUTIÑO")}
+          </div>
+        </div>
 
       <div className={styles.tableWrapper}>
         <table className={styles.bitacoraTable}>
@@ -118,8 +154,6 @@ export default function LogisticaBitacora() {
                <th colSpan="9" className={styles.darkHeader}>MUESTRAS VARIAS</th>
                <th colSpan="4" className={styles.darkHeader}>FORMATOS</th>
                <th colSpan={AREAS.length * 2} className={styles.darkHeader}>AREA</th>
-               <th rowSpan="4" style={{minWidth: '100px'}}>Observaciones Sucursal</th>
-               <th rowSpan="4" style={{minWidth: '100px'}}>Observaciones Laboratorio</th>
             </tr>
 
             {/* FILA 2: Nivel secundario */}
@@ -183,7 +217,7 @@ export default function LogisticaBitacora() {
           </thead>
           <tbody>
             {data.length === 0 && !loading && (
-              <tr><td colSpan="37" className={styles.emptyState}>No hay registros para este periodo.</td></tr>
+              <tr><td colSpan="35" className={styles.emptyState}>No hay registros para este periodo.</td></tr>
             )}
             {data.map(row => (
               <tr key={row.id}>
@@ -226,21 +260,17 @@ export default function LogisticaBitacora() {
                 <td className={styles.cellQty}>{renderQty(row.f_qc_020)}</td>
                 <td className={styles.cellQty}>{renderQty(row.f_rm_004)}</td>
 
-                {/* AREAS (INTERACTIVA) */}
+                {/* AREAS (SOLO LECTURA) */}
                 {AREAS.map(a => (
                   <React.Fragment key={a.key}>
-                    <td className={styles.areaCell} onClick={() => signArea(row.id, a.key)}>
+                    <td className={styles.areaCell}>
                       {row[`a_${a.key}_user`] || ""}
                     </td>
-                    <td className={styles.areaCell} onClick={() => signArea(row.id, a.key)}>
+                    <td className={styles.areaCell}>
                       {row[`a_${a.key}_time`] || ""}
                     </td>
                   </React.Fragment>
                 ))}
-
-                {/* OBSERVACIONES */}
-                <td className={styles.cellObs} style={{fontSize: '0.75rem'}}>{row.observaciones_sucursal || ""}</td>
-                <td className={styles.cellObs} style={{fontSize: '0.75rem'}}>{row.observaciones_recepcion || ""}</td>
               </tr>
             ))}
           </tbody>
