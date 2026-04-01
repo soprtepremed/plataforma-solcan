@@ -4,11 +4,10 @@ import { supabase } from "../../lib/supabaseClient";
 import styles from "./MensajeroDashboard.module.css";
 
 const MESSENGERS = [
-  { id: "M1", name: "Mensajero 1", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" },
-  { id: "M2", name: "Mensajero 2", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aner" },
-  { id: "M3", name: "Mensajero 3", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Milo" },
-  { id: "M4", name: "Mensajero 4", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sasha" },
-  { id: "M5", name: "Mensajero 5", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Riley" },
+  { id: "ALBERT", name: "Albert", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Albert" },
+  { id: "EDWARD", name: "Edward", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Edward" },
+  { id: "ALEJANDRO", name: "Alejandro", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alejandro" },
+  { id: "BULMARO", name: "Bulmaro", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Bulmaro" },
 ];
 
 export default function MensajeroDashboard() {

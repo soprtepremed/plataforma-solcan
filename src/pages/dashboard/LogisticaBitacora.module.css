@@ -24,6 +24,28 @@
   gap: 1rem;
 }
 
+.logoImg {
+  width: 100px;
+  height: auto;
+  border-radius: 12px;
+}
+
+.brandName {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--co-primary);
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.tagline {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: var(--co-accent);
+  margin: 0;
+  text-transform: uppercase;
+}
+
 .titleArea {
   text-align: center;
   flex: 1;
@@ -35,9 +57,23 @@
   color: var(--co-primary);
   text-transform: uppercase;
   margin: 0;
-  border: 2px solid #000;
-  padding: 10px 30px;
+  border: 1px solid #000;
+  padding: 10px 20px;
   border-radius: 50px;
+  display: inline-block;
+}
+
+@media (max-width: 900px) {
+  .headerDoc {
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+  .titleArea h1 {
+    font-size: 0.9rem;
+    padding: 10px 15px;
+    line-height: 1.4;
+  }
 }
 
 .docCode {
@@ -68,7 +104,7 @@
 }
 
 .bitacoraTable thead th {
-  background: #F1F5F9;
+  background: white;
   color: #000;
   border: 1px solid #000; /* Bordes negros tipo formato impreso */
   padding: 4px 2px;
@@ -78,14 +114,15 @@
 }
 
 .groupHeader {
-  background: #0F172A !important;
-  color: white !important;
+  background: white !important;
+  color: black !important;
   font-size: 0.65rem;
+  border: 1px solid #000 !important;
 }
 
 .areaGroupTh {
-  background: #334155 !important;
-  color: white !important;
+  background: #F1F5F9 !important;
+  color: black !important;
   font-size: 0.6rem;
 }
 
@@ -95,7 +132,8 @@
 
 .subTh {
   font-size: 0.55rem;
-  background: #E2E8F0 !important;
+  background: white !important;
+  color: black !important;
 }
 
 .bitacoraTable td {
@@ -111,7 +149,36 @@
 }
 
 /* Colores de Celdas */
-.cellQty { background: #FFFFFF; font-size: 0.8rem; }
+.cellQty { 
+  background: #FFFFFF; 
+  font-size: 0.8rem; 
+  position: relative;
+  padding: 0 !important; /* Para que la diagonal llegue a las esquinas */
+  height: 30px;
+}
+
+.diagonalWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.diagonalLine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Usamos SVG para garantizar una línea diagonal perfectamente recta y nítida */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' preserveAspectRatio='none'%3E%3Cline x1='0' y1='100%25' x2='100%25' y2='0' stroke='black' stroke-width='1'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  pointer-events: none;
+}
+
 .cellFormat { font-size: 0.7rem; font-weight: 900; color: #1E40AF; }
 
 /* Área de Firma Interna */
@@ -155,6 +222,211 @@
   text-align: center;
   font-weight: 700;
   color: #94A3B8;
+}
+
+.actionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 5px;
+}
+
+.printBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--co-accent);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: var(--shadow-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.9rem;
+}
+
+.printBtn:hover {
+  background: #09b4b3;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Barra de Responsable */
+.transportBar {
+  display: flex;
+  border: 2px solid #000;
+  margin-bottom: 10px;
+  background: white;
+  font-family: 'Inter', sans-serif;
+}
+
+.transportLabel {
+  background: white;
+  padding: 8px 15px;
+  font-weight: 800;
+  font-size: 0.75rem;
+  border-right: 2px solid #000;
+  text-transform: uppercase;
+  min-width: 250px;
+}
+
+.transportValue {
+  padding: 8px 20px;
+  flex: 1;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+}
+
+/* .groupHeader redundant definition removed */
+
+.darkHeader {
+  background-color: #ffffff !important; /* Ahora es blanca */
+  color: #000000 !important;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid #000 !important;
+  white-space: nowrap; /* Quitamos el !important para poder sobreescribir */
+  padding: 8px 15px !important;
+}
+
+.areaLabelHeader {
+  composes: darkHeader;
+  white-space: normal !important;
+  font-size: 0.5rem !important;
+  padding: 4px !important;
+  line-height: 1.1;
+  text-align: center;
+  min-width: 70px;
+}
+
+/* Clase de Rotación Global */
+.verticalTh {
+  writing-mode: vertical-rl !important;
+  transform: rotate(180deg) !important;
+  white-space: nowrap !important;
+  padding: 2px !important;
+  vertical-align: middle !important;
+  text-align: center !important;
+  height: 120px !important;
+  font-size: 0.55rem !important;
+  line-height: 1 !important;
+  min-width: 20px !important;
+  border: 1px solid #000 !important;
+}
+
+.instructionTh {
+  font-size: 0.55rem !important;
+  background: white !important;
+  font-weight: bold !important;
+  text-transform: none !important;
+  padding: 2px !important;
+  color: black !important;
+}
+
+.verticalCell {
+  writing-mode: vertical-rl !important;
+  transform: rotate(180deg) !important;
+  white-space: nowrap !important;
+  font-size: 0.55rem !important;
+  padding: 5px 2px !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+.cellAnalisis {
+  width: 80px !important;
+  min-width: 80px !important;
+  font-size: 0.55rem !important;
+  text-align: left !important;
+  padding: 2px 4px !important;
+}
+
+.cellFecha {
+  width: 90px !important;
+  min-width: 90px !important;
+  font-size: 0.55rem !important;
+  text-align: center !important;
+}
+
+@media print {
+  @page {
+    size: letter landscape;
+    margin: 3mm;
+  }
+  
+  body, html {
+    background: white !important;
+    overflow: visible !important;
+  }
+
+  .container {
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    width: 275mm !important;
+  }
+
+  .actionHeader,
+  .refreshBtn,
+  .backBtn,
+  .printBtn,
+  nav,
+  [class*="Navbar"],
+  [class*="topStripe"],
+  footer {
+    display: none !important;
+  }
+
+  .headerDoc {
+    border: 1px solid #000 !important;
+    padding: 10px !important;
+    margin-bottom: 5px !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    display: flex !important;
+  }
+
+  .tableWrapper {
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  .bitacoraTable {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 6.5pt !important;
+    table-layout: auto !important;
+  }
+
+  .bitacoraTable th, 
+  .bitacoraTable td {
+    border: 1px solid #000 !important;
+    padding: 1.5px !important;
+    color: black !important;
+    word-break: break-word !important;
+  }
+
+  .groupHeader {
+    background: #f1f5f9 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .subTh, .areaCell, .verticalTh {
+    font-size: 6pt !important;
+  }
 }
 
 .refreshBtn {

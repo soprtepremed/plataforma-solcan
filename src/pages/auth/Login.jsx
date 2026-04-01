@@ -50,6 +50,9 @@ export default function Login() {
 
   return (
     <div className={styles.loginContainer}>
+      {/* Mantenemos el fondo decorativo 3D solicitado */}
+      <div className={styles.backgroundGraphics}></div>
+
       <div className={styles.loginCard}>
         <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
           <Logo size="lg" />

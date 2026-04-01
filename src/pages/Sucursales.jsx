@@ -19,12 +19,6 @@ const Sucursales = () => {
                 icon: 'local_shipping',
                 path: '/logistica/sede'
             });
-            actions.push({
-                title: 'Registro de Pacientes',
-                desc: 'Capturar datos de pacientes y estudios.',
-                icon: 'person_add',
-                path: '/pacientes'
-            });
         }
 
         if (user.role === 'admin' || user.role === 'captura') {
@@ -34,6 +28,9 @@ const Sucursales = () => {
                 icon: 'upload_file',
                 path: '/captura'
             });
+        }
+
+        if (user.role === 'admin' || user.role === 'captura' || user.role === 'quimico') {
             actions.push({
                 title: 'Historial Clínico',
                 desc: 'Búsqueda y consulta de resultados anteriores.',
@@ -42,13 +39,22 @@ const Sucursales = () => {
             });
         }
 
-        if (user.role === 'admin') {
+        if (user.role === 'admin' || user.role === 'quimico') {
             actions.push({
                 title: 'Recepción Matriz',
                 desc: 'Verificar arribo de muestras en Laboratorio Central.',
                 icon: 'home_health',
                 path: '/logistica/recepcion'
             });
+            actions.push({
+                title: 'Bitácora FO-DO-017',
+                desc: 'Seguimiento legal de la recepción de muestras.',
+                icon: 'assignment',
+                path: '/logistica/bitacora'
+            });
+        }
+
+        if (user.role === 'admin') {
             actions.push({
                 title: 'Auditoría Logística',
                 desc: 'Seguimiento global de la cadena de custodia.',
