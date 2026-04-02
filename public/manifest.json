@@ -1,0 +1,21 @@
+{
+  "name": "Solcan Lab Platform",
+  "short_name": "Solcan",
+  "description": "Plataforma de Bio-Logística Solcan",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0BCECD",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

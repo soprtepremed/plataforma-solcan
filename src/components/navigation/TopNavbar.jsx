@@ -51,19 +51,28 @@ export default function TopNavbar() {
         if (isForMe) {
           setNotifications(prev => [nuevo, ...prev].slice(0, 10));
           
-          // Notificación Nativa
-          if (Notification.permission === 'granted') {
-            new Notification(nuevo.title, {
-              body: nuevo.message,
-              icon: '/favicon.png'
+          // Notificación Nativa mediante Service Worker (VITAL para móvil)
+          if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(registration => {
+              registration.showNotification(nuevo.title, {
+                body: nuevo.message,
+                icon: '/favicon.png',
+                vibrate: [200, 100, 200],
+                tag: 'solcan-' + nuevo.id, // Evita duplicados
+                renotify: true
+              });
             });
           }
 
-          // Sonido de campana
+          // Sonido de campana - Ejecución rápida
           playDing();
         }
       })
-      .subscribe();
+      .subscribe({
+        onStatus: (status) => {
+          if (status === 'SUBSCRIBED') console.log('📡 Realtime de Solcan Conectado');
+        }
+      });
 
     return () => { supabase.removeChannel(channel); };
   }, [user]);
@@ -74,20 +83,20 @@ export default function TopNavbar() {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Nota La (A5)
+      osc.type = 'triangle'; // Sonido más penetrante que 'sine' para ambientes operativos
+      osc.frequency.setValueAtTime(1200, audioCtx.currentTime); 
       
       gain.gain.setValueAtTime(0, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.2);
+      gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.02); // Más volumen
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.8);
       
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       
       osc.start();
-      osc.stop(audioCtx.currentTime + 1.2);
+      osc.stop(audioCtx.currentTime + 0.8);
     } catch (err) {
-      console.warn("No se pudo reproducir el sonido:", err);
+      console.warn("Audio blocked:", err);
     }
   };
 
