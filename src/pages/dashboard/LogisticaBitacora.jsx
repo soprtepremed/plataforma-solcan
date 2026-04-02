@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./LogisticaBitacora.module.css";
@@ -316,17 +317,8 @@ export default function LogisticaBitacora() {
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       
-      const fileName = `Reporte_Bitacora_${selectedDate}.xlsx`;
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', fileName);
-      document.body.appendChild(link);
-      link.click();
-      
-      // Cleanup
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      const fileName = `Bitacora_Logistica_${selectedDate}.xlsx`;
+      saveAs(blob, fileName);
     } catch (error) {
       console.error("Error al exportar excel:", error);
       alert("Hubo un error al generar el archivo Excel.");
