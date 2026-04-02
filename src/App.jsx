@@ -9,6 +9,8 @@ import LogisticaAdmin from './pages/dashboard/LogisticaAdmin';
 import MensajeroDashboard from './pages/dashboard/MensajeroDashboard';
 import VerificacionMatriz from './pages/dashboard/VerificacionMatriz';
 import LogisticaBitacora from './pages/dashboard/LogisticaBitacora';
+import GestionMateriales from './pages/dashboard/GestionMateriales';
+import ImpresionEtiquetas from './pages/dashboard/ImpresionEtiquetas';
 import PortalPaciente from './pages/portal/PortalPaciente';
 import Sucursales from './pages/Sucursales';
 import { useAuth } from './context/AuthContext';
@@ -64,6 +66,8 @@ function App() {
         <Route path="/logistica/transporte" element={<PrivateRoute><DashboardLayout><MensajeroDashboard /></DashboardLayout></PrivateRoute>} />
         <Route path="/logistica/recepcion" element={<PrivateRoute><DashboardLayout><VerificacionMatriz /></DashboardLayout></PrivateRoute>} />
         <Route path="/logistica/bitacora" element={<PrivateRoute><DashboardLayout><LogisticaBitacora /></DashboardLayout></PrivateRoute>} />
+        <Route path="/logistica/materiales" element={<PrivateRoute><DashboardLayout><GestionMateriales /></DashboardLayout></PrivateRoute>} />
+        <Route path="/logistica/impresion" element={<PrivateRoute><DashboardLayout><ImpresionEtiquetas /></DashboardLayout></PrivateRoute>} />
         
         <Route path="/pacientes" element={<PrivateRoute><DashboardLayout><h2 style={{padding: '3rem', textAlign: 'center', color:'var(--co-primary)'}}>Módulo de Recepción y Pacientes</h2></DashboardLayout></PrivateRoute>} />
         <Route path="/almacen" element={<PrivateRoute><DashboardLayout><h2 style={{padding: '3rem', textAlign: 'center', color:'var(--co-primary)'}}>Módulo de Almacén e Inventario</h2></DashboardLayout></PrivateRoute>} />

@@ -9,6 +9,7 @@ export default function Login() {
   const [pin, setPin] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [showPin, setShowPin] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Cargar datos recordados al montar el componente
@@ -86,17 +87,28 @@ export default function Login() {
 
           <div className={styles.formGroup}>
             <label className={styles.inputLabel}>PIN DE SEGURIDAD</label>
-            <input 
-              type="password" 
-              inputMode="numeric"
-              pattern="[0-9]*"
-              className={styles.branchSelect} 
-              style={{ width: '100%', boxSizing: 'border-box' }}
-              placeholder="••••" 
-              value={pin}
-              onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-              autoComplete="current-password"
-            />
+            <div className={styles.pinWrapper}>
+              <input 
+                type={showPin ? "text" : "password"} 
+                inputMode="numeric"
+                pattern="[0-9]*"
+                className={styles.branchSelect} 
+                style={{ width: '100%', boxSizing: 'border-box', paddingRight: '45px' }}
+                placeholder="••••" 
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                autoComplete="current-password"
+              />
+              <button 
+                type="button" 
+                className={styles.togglePinBtn}
+                onClick={() => setShowPin(!showPin)}
+              >
+                <span className="material-symbols-rounded">
+                  {showPin ? 'visibility_off' : 'visibility'}
+                </span>
+              </button>
+            </div>
           </div>
 
           <div className={styles.rememberRow}>
@@ -107,7 +119,7 @@ export default function Login() {
                 onChange={(e) => setRememberMe(e.target.checked)} 
               />
               <span className={styles.checkmark}></span>
-              Recordar mi PIN en esta tablet
+              Recordar mi PIN en este dispositivo
             </label>
           </div>
 

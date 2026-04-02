@@ -12,12 +12,15 @@ export function AuthProvider({ children }) {
   });
   const navigate = useNavigate();
 
-  const login = async (username, pin, isMatrixAccess = false, selectedBranch = "", selectedRole = "") => {
+  const login = async (usernameInput, pinInput, isMatrixAccess = false, selectedBranch = "", selectedRole = "") => {
+    const username = usernameInput ? usernameInput.trim() : "";
+    const pin = pinInput ? pinInput.trim() : "";
+    
     try {
       const { data, error } = await supabase
         .from('empleados')
         .select('*')
-        .or(`username.eq."${username}",nombre.eq."${username}"`)
+        .or(`username.ilike."${username}",nombre.ilike."${username}"`)
         .eq('pin', pin)
         .maybeSingle();
 
@@ -39,7 +42,7 @@ export function AuthProvider({ children }) {
       return { success: true };
     } catch (err) {
       console.error("Error en login:", err);
-      return { success: false, message: err.message };
+      return { success: false, message: "Credenciales incorrectas. Verifica tu usuario y PIN." };
     }
   };
 

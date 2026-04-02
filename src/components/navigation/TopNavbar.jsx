@@ -30,7 +30,7 @@ export default function TopNavbar() {
       return [
         { label: 'Recepción Matriz', path: '/logistica/recepcion' },
         { label: 'Bitácora FO-DO-017', path: '/logistica/bitacora' },
-        { label: 'Historial', path: '/resultados' }
+        { label: 'Materiales', path: '/logistica/materiales' }
       ];
     } else if (user.role === 'recepcion') {
       return [

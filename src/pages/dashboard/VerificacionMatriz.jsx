@@ -5,15 +5,15 @@ import { useAuth } from "../../context/AuthContext";
 import styles from "./VerificacionMatriz.module.css";
 
 const MATERIAL_KEYS = [
-  { key: "dorado", label: "Tubo Dorado", icon: "water_drop" },
-  { key: "rojo", label: "Tubo Rojo", icon: "water_drop" },
-  { key: "lila", label: "Tubo Lila", icon: "water_drop" },
-  { key: "celeste", label: "Tubo Celeste", icon: "water_drop" },
-  { key: "verde", label: "Tubo Verde", icon: "water_drop" },
-  { key: "petri", label: "Cajas Petri", icon: "biotech" },
-  { key: "laminilla", label: "Laminillas", icon: "layers" },
-  { key: "suero", label: "Suero Separado", icon: "colorize" },
-  { key: "orina", label: "Tubo con Orina", icon: "opacity" },
+  { key: "dorado", label: "Tubo Dorado", icon: "water_drop", area: "quimica" },
+  { key: "rojo", label: "Tubo Rojo", icon: "water_drop", area: "quimica" },
+  { key: "lila", label: "Tubo Lila", icon: "water_drop", area: "hemato" },
+  { key: "celeste", label: "Tubo Celeste", icon: "water_drop", area: "hemato" },
+  { key: "verde", label: "Tubo Verde", icon: "water_drop", area: "hemato" },
+  { key: "petri", label: "Cajas Petri", icon: "biotech", area: "archivo" },
+  { key: "laminilla", label: "Laminillas", icon: "layers", area: "archivo" },
+  { key: "suero", label: "Suero Separado", icon: "colorize", area: "archivo" },
+  { key: "orina", label: "Tubo con Orina", icon: "opacity", area: "uro" },
 ];
 
 const playAlarm = () => {
@@ -44,10 +44,11 @@ export default function VerificacionMatriz() {
   const [loading, setLoading] = useState(true);
   const [alarmActive, setAlarmActive] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [filter, setFilter] = useState("Pendiente"); // Cambiamos default para ver lo nuevo primero
+  const [filter, setFilter] = useState("Pendiente"); 
   const [activeReceptionId, setActiveReceptionId] = useState(null);
   const [expandedIds, setExpandedIds] = useState([]);
   const [areaRecibe, setAreaRecibe] = useState("hemato");
+  const [confirmInfo, setConfirmInfo] = useState(null);
 
   const AREAS_SOLCAN = [
     { key: "hemato", label: "Hematología" },
@@ -59,13 +60,18 @@ export default function VerificacionMatriz() {
     { key: "recursos", label: "Recursos materiales" }
   ];
 
+  const FORMATOS_TYPES = [
+    { key: "f_do_001", label: "FO-DO-001 (Sol. Análisis)", area: "archivo" },
+    { key: "f_da_001", label: "FO-DA-001 (Control Muestras)", area: "archivo" },
+    { key: "f_qc_020", label: "FO-QC-020 (Bitácora Mensual)", area: "archivo" },
+    { key: "f_rm_004", label: "FO-RM-004 (Inventario Suministros)", area: "archivo" }
+  ];
+
   const fetchEnvios = async () => {
     setLoading(true);
     let query = supabase.from("logistica_envios").select("*");
     
     if (filter === "Pendiente") {
-        // Vemos tanto lo solicitado como lo que ya está en camino,
-        // pero solo si MI ÁREA aún no lo ha firmado.
         query = query.or(`status.eq.Pendiente,status.eq.En Tránsito`)
                      .is(`a_${areaRecibe}_user`, null);
     } else if (filter !== "Todos") {
@@ -100,8 +106,39 @@ export default function VerificacionMatriz() {
           orina: env.status === 'Recibido'
         },
         t_rec: { 
-          amb: env.status === 'Recibido' ? (env.temp_entra_amb || 24) : 25, 
-          ref: env.status === 'Recibido' ? (env.temp_entra_ref || 4) : 4 
+          amb: (env.temp_entra_amb || 25), 
+          ref: (env.temp_entra_ref || 4) 
+        },
+        t_sale: {
+          amb: env.temp_sale_amb || 0,
+          ref: env.temp_sale_ref || 0
+        },
+        formatos: {
+          f_do_001: env.f_do_001 || 0,
+          f_da_001: env.f_da_001 || 0,
+          f_qc_020: env.f_qc_020 || 0,
+          f_rm_004: env.f_rm_004 || 0
+        },
+        formatos_rec: {
+          f_do_001: env.f_do_001 || 0,
+          f_da_001: env.f_da_001 || 0,
+          f_qc_020: env.f_qc_020 || 0,
+          f_rm_004: env.f_rm_004 || 0
+        },
+        formatos_verified: {
+          f_do_001: env.status === 'Recibido',
+          f_da_001: env.status === 'Recibido',
+          f_qc_020: env.status === 'Recibido',
+          f_rm_004: env.status === 'Recibido'
+        },
+        signatures: {
+          hemato: env.a_hemato_user,
+          uro: env.a_uro_user,
+          quimica: env.a_quimica_user,
+          archivo: env.a_archivo_user,
+          calidad: env.a_calidad_user,
+          admin: env.a_admin_user,
+          recursos: env.a_recursos_user
         },
         obs: env.status === 'Recibido' ? (env.observaciones_recepcion || "") : "",
       }));
@@ -121,7 +158,14 @@ export default function VerificacionMatriz() {
   const handleUpdateRec = (envId, key, val) => {
     setEnvios(prev => prev.map(e => e.id === envId ? { 
       ...e, 
-      rec_values: { ...e.rec_values, [key]: parseInt(val) || 0 } 
+      rec_values: { ...e.rec_values, [key]: Math.max(0, parseInt(val) || 0) } 
+    } : e));
+  };
+
+  const handleUpdateFormatRec = (envId, key, val) => {
+    setEnvios(prev => prev.map(e => e.id === envId ? {
+      ...e,
+      formatos_rec: { ...e.formatos_rec, [key]: Math.max(0, parseInt(val) || 0) }
     } : e));
   };
 
@@ -132,6 +176,13 @@ export default function VerificacionMatriz() {
     } : e));
   };
 
+  const toggleFormatVerify = (envId, key) => {
+    setEnvios(prev => prev.map(e => e.id === envId ? {
+      ...e,
+      formatos_verified: { ...e.formatos_verified, [key]: !e.formatos_verified[key] }
+    } : e));
+  };
+
   const toggleExpand = (id) => {
     setExpandedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
@@ -139,26 +190,20 @@ export default function VerificacionMatriz() {
   const startAlarm = () => setAlarmActive(true);
   const stopAlarm = () => setAlarmActive(false);
 
-  // Lógica de Alarma Térmica en Tiempo Real: Ambiente (20-29°C) / Refri (2-7°C)
   useEffect(() => {
     if (!activeReceptionId) {
       stopAlarm();
       return;
     }
-
     const envioActivo = envios.find(e => e.id === activeReceptionId);
     if (!envioActivo) {
         stopAlarm();
         return;
     }
-
     const tAmb = parseFloat(envioActivo.t_rec.amb);
     const tRef = parseFloat(envioActivo.t_rec.ref);
-
-    // Verificamos si los valores son numéricos y están fuera de rango
     const isAmbFuera = !isNaN(tAmb) && (tAmb < 20 || tAmb > 29);
     const isRefFuera = !isNaN(tRef) && (tRef < 2 || tRef > 7);
-
     if (isAmbFuera || isRefFuera) {
       if (!alarmActive) startAlarm();
     } else {
@@ -179,20 +224,16 @@ export default function VerificacionMatriz() {
   const handleFinalizar = async (envio) => {
     const isCrisis = envio.t_rec.amb > 29 || envio.t_rec.amb < 20 || envio.t_rec.ref > 7 || envio.t_rec.ref < 2;
     if (isCrisis) { startAlarm(); alert("¡ALERTA TÉRMICA DETECTADA!"); }
-
     const initials = user?.name?.split(" ").map(n => n[0]).join("").substring(0, 3).toUpperCase() || "SOL";
     const timeShort = new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" });
-
     const { error } = await supabase.from("logistica_envios").update({
       [`a_${areaRecibe}_user`]: initials,
       [`a_${areaRecibe}_time`]: timeShort,
-      // Solo actualizamos estos datos fundamentales la primera vez o si están vacíos
       temp_entra_amb: parseFloat(envio.t_rec.amb),
       temp_entra_ref: parseFloat(envio.t_rec.ref),
       hora_recepcion: new Date().toISOString(),
       recibido_por: user?.name || "Usuario Sistema",
     }).eq("id", envio.id);
-
     if (error) alert("Error: " + error.message);
     else { 
       setActiveReceptionId(null); 
@@ -201,15 +242,15 @@ export default function VerificacionMatriz() {
     }
   };
 
-  const handleFinalizarGlobal = async (envio) => {
-    if (!window.confirm("¿Estás seguro de cerrar este envío definitivamente? Esto lo marcará como RECIBIDO para todas las áreas.")) return;
-
+  const handleFinalizarGlobal = async (envioParam) => {
+    const envio = envioParam || confirmInfo;
+    if (!envio) return;
+    setConfirmInfo(null);
     const { error } = await supabase.from("logistica_envios").update({
       status: 'Recibido',
       hora_recepcion: new Date().toISOString(),
       recibido_por: user?.name || "Usuario Sistema"
     }).eq("id", envio.id);
-
     if (error) alert("Error: " + error.message);
     else { 
       setActiveReceptionId(null); 
@@ -222,8 +263,7 @@ export default function VerificacionMatriz() {
   return (
     <div className={styles.container}>
       <button onClick={() => navigate(-1)} className={styles.backBtn}>
-        <span className="material-symbols-rounded">arrow_back</span>
-        Volver
+        <span className="material-symbols-rounded">arrow_back</span> Volver
       </button>
 
       <div className={styles.pageHeader}>
@@ -275,152 +315,238 @@ export default function VerificacionMatriz() {
 
                 {(!isRecibido || expandedIds.includes(envio.id)) && (
                   <div className={styles.cardContent}>
-                {!isActive && !isRecibido ? (
-                  <div className={styles.transitSummary}>
-                    {envio.status === 'Pendiente' ? (
-                      <>
-                        <p>🚛 <strong>Esperando Recolección</strong> • Sucursal solicitó transporte</p>
-                        <div className={styles.waitingNotice}>📍 No se puede recibir en Matriz hasta que un chofer lo recolecte.</div>
-                      </>
-                    ) : envio[`a_${areaRecibe}_user`] ? (
-                      <div className={styles.areaAlreadyDone}>
-                        <span className="material-symbols-rounded">verified_user</span>
-                        <div>
-                          <p><strong>{AREAS_SOLCAN.find(a => a.key === areaRecibe)?.label} Procesado</strong></p>
-                          <small>Firmado por: {envio[`a_${areaRecibe}_user`]} a las {envio[`a_${areaRecibe}_time`]}h</small>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <p>🚚 Muestras en camino • Chofer: <strong>{envio.mensajero_id}</strong></p>
-                        <button className={styles.startBtn} onClick={() => setActiveReceptionId(envio.id)}>📦 Iniciar Recepción Física</button>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    <div className={styles.receptionHeader}>
-                       {envio.observaciones_sucursal && (
-                         <div className={styles.branchObsNoticeInline}>
-                            <strong>⚠️ Observación de Origen:</strong> {envio.observaciones_sucursal}
-                         </div>
-                       )}
-                       <div className={styles.evidenceSection}>
-                       {envio.img_url && envio.img_url.split('|').map((url, i) => (
-                         <img key={i} src={url} className={styles.miniThumb} onClick={() => window.open(url, '_blank')} />
-                       ))}
-                      </div>
-                    </div>
-
-                    <div className={styles.auditChecklist}>
-                        <div className={styles.checklistGridHeader}>
-                           <span>Material</span>
-                           <span>Enviado</span>
-                           <span>Recibido</span>
-                           <span>¿Corrobora?</span>
-                        </div>
-                        {MATERIAL_KEYS.map(item => {
-                          const sent = envio[`s_${item.key === 'orina' ? 'papel' : item.key}`] || 0;
-                          const rec = envio.rec_values[item.key];
-                          const isVerified = envio.verified[item.key];
-                          
-                          return (
-                            <div key={item.key} className={`${styles.auditRow} ${isVerified ? styles.vRowSuccess : ''}`}>
-                              <span className={styles.vLabel}>{item.label}</span>
-                              <span className={styles.vSent}>{sent}</span>
-                              {isRecibido ? <span className={styles.vConfirmed}>{rec}</span> : 
-                               <input type="number" className={styles.vInput} value={rec} onChange={(e) => handleUpdateRec(envio.id, item.key, e.target.value)} />}
-                              
-                              <div className={styles.vVerifyAction}>
-                                 {isRecibido ? (
-                                    <span className="material-symbols-rounded" style={{color: '#10B981'}}>verified</span>
-                                 ) : (
-                                    <input type="checkbox" checked={isVerified} onChange={() => toggleVerify(envio.id, item.key)} />
-                                 )}
-                              </div>
+                  {!isActive && !isRecibido ? (
+                    <div className={styles.transitSummary}>
+                      {envio.status === 'Pendiente' ? (
+                        <>
+                          <p>🚛 <strong>Esperando Recolección</strong> • Sucursal solicitó transporte</p>
+                          <div className={styles.waitingNotice}>📍 No se puede recibir en Matriz hasta que un chofer lo recolecte.</div>
+                        </>
+                      ) : envio[`a_${areaRecibe}_user`] ? (
+                        <div className={styles.areaAlreadyDone}>
+                          <div className={styles.areaBadgeInfo}>
+                            <span className="material-symbols-rounded">verified_user</span>
+                            <div>
+                              <p><strong>{AREAS_SOLCAN.find(a => a.key === areaRecibe)?.label} Procesado</strong></p>
+                              <small>Firmado por: {envio[`a_${areaRecibe}_user`]} a las {envio[`a_${areaRecibe}_time`]}h</small>
                             </div>
-                          )
-                        })}
+                          </div>
+                          <div className={styles.shortcutActions}>
+                             <button className={styles.reviewBtn} onClick={() => setActiveReceptionId(envio.id)}>
+                               <span className="material-symbols-rounded">visibility</span> Revisar Detalle
+                             </button>
+                             {AREAS_SOLCAN.some(area => envio[`a_${area.key}_user`]) && (
+                               <button className={styles.globalCloseBtnMini} onClick={() => setConfirmInfo(envio)}>
+                                 <span className="material-symbols-rounded">task_alt</span> Cierre Global
+                               </button>
+                             )}
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <p>🚚 Muestras en camino • Chofer: <strong>{envio.mensajero_id}</strong></p>
+                          <button className={styles.startBtn} onClick={() => setActiveReceptionId(envio.id)}>📦 Iniciar Recepción Física</button>
+                        </>
+                      )}
                     </div>
+                  ) : (
+                    <>
+                      <div className={styles.receptionHeader}>
+                         {envio.observaciones_sucursal && (
+                           <div className={styles.branchObsNoticeInline}>
+                              <strong>⚠️ Observación de Origen:</strong> {envio.observaciones_sucursal}
+                           </div>
+                         )}
+                         <div className={styles.evidenceSection}>
+                         {envio.img_url && envio.img_url.split('|').map((url, i) => (
+                           <img key={i} src={url} className={styles.miniThumb} onClick={() => window.open(url, '_blank')} />
+                         ))}
+                        </div>
+                      </div>
 
-                    <div className={styles.tempBox}>
-                        <div className={`${styles.tempItem} ${(!isNaN(parseFloat(envio.t_rec.amb)) && (parseFloat(envio.t_rec.amb) < 20 || parseFloat(envio.t_rec.amb) > 29)) ? styles.tempDanger : ''}`}>
-                           <label><span className="material-symbols-rounded">device_thermostat</span> Ambiente Arribo (°C)</label>
-                           {isRecibido ? <span>{envio.t_rec.amb}°C</span> : (
-                             <div className={styles.stepperContainer}>
-                               <button className={styles.stepperBtn} onClick={() => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, amb: parseFloat((parseFloat(ev.t_rec.amb) - 0.5).toFixed(1))}} : ev))}>-</button>
-                               <input type="number" step="0.1" value={envio.t_rec.amb} onChange={(e) => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, amb: e.target.value}} : ev))} />
-                               <button className={styles.stepperBtn} onClick={() => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, amb: parseFloat((parseFloat(ev.t_rec.amb) + 0.5).toFixed(1))}} : ev))}>+</button>
+                      <div className={styles.auditChecklist}>
+                          <div className={styles.checklistGridHeader}>
+                             <span>Material</span>
+                             <span>Enviado</span>
+                             <span>Recibido</span>
+                             <span>¿Corrobora?</span>
+                          </div>
+                          {MATERIAL_KEYS.map(item => {
+                            const sent = envio[`s_${item.key === 'orina' ? 'papel' : item.key}`] || 0;
+                            const rec = envio.rec_values[item.key];
+                            const isVerified = envio.verified[item.key];
+                            const isLocked = !!envio.signatures[item.area];
+                            
+                            return (
+                              <div key={item.key} className={`${styles.auditRow} ${isVerified ? styles.vRowSuccess : ''} ${isLocked ? styles.vRowLocked : ''}`}>
+                                <span className={styles.vLabel}>{item.label}</span>
+                                <span className={styles.vSent}>{sent}</span>
+                                {(isRecibido || isLocked) ? <span className={styles.vConfirmed}>{rec}</span> : 
+                                 <input 
+                                   type="number" 
+                                   min="0"
+                                   className={styles.vInput} 
+                                   value={rec} 
+                                   onChange={(e) => handleUpdateRec(envio.id, item.key, e.target.value)} 
+                                 />}
+                                <div className={styles.vVerifyAction}>
+                                   {(isRecibido || isLocked) ? (
+                                      <span className="material-symbols-rounded" style={{color: isLocked ? '#94A3B8' : '#10B981'}}>
+                                        {isLocked ? 'lock' : 'verified'}
+                                      </span>
+                                   ) : (
+                                      <input type="checkbox" checked={isVerified} onChange={() => toggleVerify(envio.id, item.key)} />
+                                   )}
+                                </div>
+                              </div>
+                            )
+                          })}
+                      </div>
+
+                      <div className={styles.checklistSection}>
+                          <h4 className={styles.sectionSubTitle}>Formatos de Sucursal</h4>
+                          <div className={styles.checklistGridHeader}>
+                              <span>Formato</span>
+                              <span>Enviado</span>
+                              <span>Recibido</span>
+                              <span>¿Corrobora?</span>
+                          </div>
+                          {FORMATOS_TYPES.map(f => {
+                            const isVerified = envio.formatos_verified[f.key];
+                            const recVal = envio.formatos_rec[f.key];
+                            const isLocked = !!envio.signatures[f.area];
+                            return (
+                              <div key={f.key} className={`${styles.auditRow} ${isVerified ? styles.vRowSuccess : ''} ${isLocked ? styles.vRowLocked : ''}`}>
+                                 <span className={styles.vLabel}>{f.label}</span>
+                                 <span className={styles.vSent}>{envio.formatos[f.key]}</span>
+                                 {(isRecibido || isLocked) ? (
+                                    <span className={styles.vConfirmed}>{recVal}</span>
+                                 ) : (
+                                    <input 
+                                      type="number" 
+                                      min="0"
+                                      className={styles.vInput} 
+                                      value={recVal} 
+                                      onChange={(e) => handleUpdateFormatRec(envio.id, f.key, e.target.value)} 
+                                    />
+                                 )}
+                                 <div className={styles.vVerifyAction}>
+                                    {(isRecibido || isLocked) ? (
+                                       <span className="material-symbols-rounded" style={{color: isLocked ? '#94A3B8' : '#10B981'}}>
+                                         {isLocked ? 'lock' : 'verified'}
+                                       </span>
+                                    ) : (
+                                       <input 
+                                         type="checkbox" 
+                                         checked={isVerified} 
+                                         onChange={() => toggleFormatVerify(envio.id, f.key)} 
+                                       />
+                                    )}
+                                 </div>
+                              </div>
+                            )
+                          })}
+                      </div>
+
+                      <div className={styles.tempBox}>
+                          <div className={`${styles.tempItem} ${(!isNaN(parseFloat(envio.t_rec.amb)) && (parseFloat(envio.t_rec.amb) < 20 || parseFloat(envio.t_rec.amb) > 29)) ? styles.tempDanger : ''}`}>
+                             <div className={styles.tempLabels}>
+                                <label><span className="material-symbols-rounded">device_thermostat</span> Ambiente Arribo (°C)</label>
+                                <small className={styles.sourceTemp}>Salida: {envio.t_sale.amb}°C</small>
                              </div>
-                           )}
-                        </div>
-                        <div className={`${styles.tempItem} ${(!isNaN(parseFloat(envio.t_rec.ref)) && (parseFloat(envio.t_rec.ref) < 2 || parseFloat(envio.t_rec.ref) > 7)) ? styles.tempDanger : ''}`}>
-                           <label><span className="material-symbols-rounded">ac_unit</span> Refri Arribo (°C)</label>
-                           {isRecibido ? <span>{envio.t_rec.ref}°C</span> : (
-                             <div className={styles.stepperContainer}>
-                               <button className={styles.stepperBtn} onClick={() => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, ref: parseFloat((parseFloat(ev.t_rec.ref) - 0.5).toFixed(1))}} : ev))}>-</button>
-                               <input type="number" step="0.1" value={envio.t_rec.ref} onChange={(e) => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, ref: e.target.value}} : ev))} />
-                               <button className={styles.stepperBtn} onClick={() => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, ref: parseFloat((parseFloat(ev.t_rec.ref) + 0.5).toFixed(1))}} : ev))}>+</button>
+                             {isRecibido ? <span>{envio.t_rec.amb}°C</span> : (
+                               <div className={styles.stepperContainer}>
+                                 <button className={styles.stepperBtn} onClick={() => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, amb: parseFloat((parseFloat(ev.t_rec.amb) - 0.5).toFixed(1))}} : ev))}>-</button>
+                                 <input type="number" step="0.1" value={envio.t_rec.amb} onChange={(e) => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, amb: e.target.value}} : ev))} />
+                                 <button className={styles.stepperBtn} onClick={() => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, amb: parseFloat((parseFloat(ev.t_rec.amb) + 0.5).toFixed(1))}} : ev))}>+</button>
+                               </div>
+                             )}
+                          </div>
+                          <div className={`${styles.tempItem} ${(!isNaN(parseFloat(envio.t_rec.ref)) && (parseFloat(envio.t_rec.ref) < 2 || parseFloat(envio.t_rec.ref) > 7)) ? styles.tempDanger : ''}`}>
+                             <div className={styles.tempLabels}>
+                                <label><span className="material-symbols-rounded">ac_unit</span> Refri Arribo (°C)</label>
+                                <small className={styles.sourceTemp}>Salida: {envio.t_sale.ref}°C</small>
                              </div>
-                           )}
-                        </div>
-                    </div>
+                             {isRecibido ? <span>{envio.t_rec.ref}°C</span> : (
+                               <div className={styles.stepperContainer}>
+                                 <button className={styles.stepperBtn} onClick={() => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, ref: parseFloat((parseFloat(ev.t_rec.ref) - 0.5).toFixed(1))}} : ev))}>-</button>
+                                 <input type="number" step="0.1" value={envio.t_rec.ref} onChange={(e) => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, ref: e.target.value}} : ev))} />
+                                 <button className={styles.stepperBtn} onClick={() => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, t_rec: {...ev.t_rec, ref: parseFloat((parseFloat(ev.t_rec.ref) + 0.5).toFixed(1))}} : ev))}>+</button>
+                               </div>
+                             )}
+                          </div>
+                      </div>
 
-                    {!isRecibido && (
-                      <>
-                        <textarea 
-                          placeholder="Si algo no coincide, escribe aquí tus comentarios de discrepancia..." 
-                          className={styles.observationBox}
-                          value={envio.obs}
-                          onChange={(e) => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, obs: e.target.value} : ev))}
-                        />
-                     <div className={styles.areaSelectorBox}>
-                        <label>📍 ¿Para qué área técnica recibe?</label>
-                        <div className={styles.areaQuickSelect}>
-                          {AREAS_SOLCAN.map(a => (
-                            <button 
-                              key={a.key} 
-                              className={`${styles.areaBtnPill} ${areaRecibe === a.key ? styles.areaBtnPillActive : ''}`}
-                              onClick={() => setAreaRecibe(a.key)}
-                            >
-                              {a.label}
+                      {!isRecibido && (
+                        <>
+                          <textarea 
+                            placeholder="Si algo no coincide, escribe aquí tus comentarios de discrepancia..." 
+                            className={styles.observationBox}
+                            value={envio.obs}
+                            onChange={(e) => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, obs: e.target.value} : ev))}
+                          />
+                          <div className={styles.areaSelectorBox}>
+                            <label>📍 ¿Para qué área técnica recibe?</label>
+                            <div className={styles.areaQuickSelect}>
+                              {AREAS_SOLCAN.map(a => (
+                                <button 
+                                  key={a.key} 
+                                  className={`${styles.areaBtnPill} ${areaRecibe === a.key ? styles.areaBtnPillActive : ''}`}
+                                  onClick={() => setAreaRecibe(a.key)}
+                                >
+                                  {a.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className={styles.actionsContainer}>
+                            <button className={styles.cancelBtn} onClick={() => setActiveReceptionId(null)}>Cancelar</button>
+                            <button className={styles.saveBtn} onClick={() => handleFinalizar(envio)}>
+                              <span className="material-symbols-rounded">signature</span> Firmar {AREAS_SOLCAN.find(a => a.key === areaRecibe)?.label}
                             </button>
-                          ))}
-                        </div>
-                     </div>
-
-                        <div className={styles.actionsContainer}>
-                          <button className={styles.cancelBtn} onClick={() => setActiveReceptionId(null)}>Cancelar</button>
-                          <button className={styles.saveBtn} onClick={() => handleFinalizar(envio)}>
-                            <span className="material-symbols-rounded">signature</span> Firmar {AREAS_SOLCAN.find(a => a.key === areaRecibe)?.label}
-                          </button>
-                          
-                          {/* Botón de Cierre Global: Solo aparece si ya hay al menos una firma técnica */}
-                          {AREAS_SOLCAN.some(area => envio[`a_${area.key}_user`]) && (
-                            <button className={styles.globalCloseBtn} onClick={() => handleFinalizarGlobal(envio)}>
-                              <span className="material-symbols-rounded">task_alt</span> Finalizar Envío Global
-                            </button>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </>
+                            {AREAS_SOLCAN.some(area => envio[`a_${area.key}_user`]) && (
+                              <button className={styles.globalCloseBtn} onClick={() => setConfirmInfo(envio)}>
+                                <span className="material-symbols-rounded">task_alt</span> Finalizar Envío Global
+                              </button>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
+                  </div>
                 )}
-                </div>
-              )}
               </div>
-            )
+            );
           })}
         </div>
       )}
 
       {showSuccess && (
-        <div className={styles.successOverlay}>
-          <div className={styles.successCard}>
-             <div className={styles.successIcon}><span className="material-symbols-rounded">verified_user</span></div>
-             <h2>¡Recepción Técnica Exitosa!</h2>
-             <p>Se ha registrado tu firma de cadena de custodia correctamente.</p>
-             <button onClick={() => setShowSuccess(false)} className={styles.successBtn}>Aceptar</button>
+        <div className={styles.modalOverlay} onClick={() => setShowSuccess(false)}>
+          <div className={styles.successModal} onClick={e => e.stopPropagation()}>
+            <div className={styles.successIcon}>
+              <span className="material-symbols-rounded">check_circle</span>
+            </div>
+            <h2>¡Recepción Exitosa!</h2>
+            <p>La bitácora ha sido actualizada y firmada correctamente.</p>
+            <button className={styles.premiumBtn} onClick={() => setShowSuccess(false)}>Entendido</button>
+          </div>
+        </div>
+      )}
+
+      {confirmInfo && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.confirmModal}>
+            <div className={styles.warningIcon}>
+              <span className="material-symbols-rounded">warning</span>
+            </div>
+            <h2>¿Cierre Definitivo?</h2>
+            <p>¿Estás seguro de cerrar {confirmInfo.sucursal} definitivamente? <br/><b>Esto lo marcará como RECIBIDO para todas las áreas.</b></p>
+            <div className={styles.confirmActions}>
+              <button className={styles.cancelBtn} onClick={() => setConfirmInfo(null)}>Cancelar</button>
+              <button className={styles.confirmBtn} onClick={() => handleFinalizarGlobal(confirmInfo)}>Aceptar</button>
+            </div>
           </div>
         </div>
       )}

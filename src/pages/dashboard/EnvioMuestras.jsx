@@ -218,11 +218,11 @@ export default function EnvioMuestras() {
           ))}
 
           {/* Otros (Cant / Analisis) */}
-          <div className={styles.counterRow} style={{borderTop: '1px solid #eee', paddingTop: '1rem', marginTop: '1rem'}}>
+          <div className={`${styles.counterRow} ${styles.otrosRow}`}>
              <div className={styles.itemIcon} style={{ background: '#475569' }}>
                 <span className="material-symbols-rounded">add_circle</span>
              </div>
-             <div style={{flex: 1, display: 'flex', gap: '10px'}}>
+             <div className={styles.inputGroupCol}>
                 <input 
                   type="text" 
                   placeholder="Otros (Cant.)" 
@@ -285,7 +285,7 @@ export default function EnvioMuestras() {
              <p>Se ha generado el folio digital para transporte. El chofer ya puede ver esta hielera.</p>
              <div className={styles.successActions}>
                 <button onClick={resetForm} className={styles.successBtn}>Generar Nuevo Envío</button>
-                <button onClick={() => navigate('/logistica/recepcion')} className={styles.secondaryBtn}>Ir al Dashboard</button>
+                <button onClick={() => navigate('/logistica/sede')} className={styles.secondaryBtn}>Ir al Dashboard</button>
              </div>
           </div>
         </div>

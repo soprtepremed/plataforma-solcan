@@ -30,7 +30,7 @@ const Sucursales = () => {
             });
         }
 
-        if (user.role === 'admin' || user.role === 'captura' || user.role === 'quimico') {
+        if (user.role === 'admin' || user.role === 'captura') {
             actions.push({
                 title: 'Historial Clínico',
                 desc: 'Búsqueda y consulta de resultados anteriores.',
@@ -51,6 +51,12 @@ const Sucursales = () => {
                 desc: 'Seguimiento legal de la recepción de muestras.',
                 icon: 'assignment',
                 path: '/logistica/bitacora'
+            });
+            actions.push({
+                title: 'Gestión de Materiales',
+                desc: 'Control de reactivos e insumos por área técnica.',
+                icon: 'inventory_2',
+                path: '/logistica/materiales'
             });
         }
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
+import { useAuth } from "../../context/AuthContext";
 import styles from "./MensajeroDashboard.module.css";
 
 const MESSENGERS = [
@@ -11,6 +12,7 @@ const MESSENGERS = [
 ];
 
 export default function MensajeroDashboard() {
+  const { user } = useAuth();
   const [activeId, setActiveId] = useState(null);
   const [pendientes, setPendientes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +33,14 @@ export default function MensajeroDashboard() {
 
   useEffect(() => {
     fetchPendientes();
+    
+    // Auto-detección de mensajero por el usuario logeado
+    if (user && user.name) {
+       const matched = MESSENGERS.find(m => m.name.toLowerCase() === user.name.toLowerCase());
+       if (matched) {
+          setActiveId(matched.id);
+       }
+    }
 
     const channel = supabase
       .channel('recolecciones-nuevas')
@@ -80,31 +90,35 @@ export default function MensajeroDashboard() {
 
   const selectedMessenger = MESSENGERS.find(m => m.id === activeId);
 
+  // Si el usuario logeado ya es un mensajero, no es necesario mostrar el selector
+  const isAutoMessenger = user && MESSENGERS.some(m => m.name.toLowerCase() === user.name.toLowerCase());
+
   return (
     <div className={styles.container}>
-      <button onClick={() => navigate(-1)} className={styles.backBtn}>
-        <span className="material-symbols-rounded">arrow_back</span>
-        Volver
+      <button className={styles.backBtn} onClick={() => navigate("/")}>
+        <span className="material-symbols-rounded">arrow_back</span> Volver
       </button>
 
-      <div className={styles.selectorCard}>
-        <h2 className={styles.title}>¿Quién está recolectando hoy?</h2>
-        <div className={styles.idGrid}>
-          {MESSENGERS.map(m => (
-            <button 
-              key={m.id}
-              className={`${styles.idBtn} ${activeId === m.id ? styles.activeId : ''}`}
-              onClick={() => setActiveId(m.id)}
-            >
-              <div className={styles.avatarWrapper}>
-                <img src={m.avatar} alt={m.name} className={styles.avatarImg} />
-                {activeId === m.id && <span className={styles.activeDot}></span>}
-              </div>
-              <span className={styles.messengerName}>{m.name}</span>
-            </button>
-          ))}
+      {!isAutoMessenger && (
+        <div className={styles.selectorCard}>
+          <h2 className={styles.title}>¿Quién está recolectando hoy?</h2>
+          <div className={styles.idGrid}>
+            {MESSENGERS.map(m => (
+              <button 
+                key={m.id}
+                className={`${styles.idBtn} ${activeId === m.id ? styles.activeId : ''}`}
+                onClick={() => setActiveId(m.id)}
+              >
+                <div className={styles.avatarWrapper}>
+                  <img src={m.avatar} alt={m.name} className={styles.avatarImg} />
+                  {activeId === m.id && <span className={styles.activeDot}></span>}
+                </div>
+                <span className={styles.messengerName}>{m.name}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className={styles.listArea}>
         <h3 className={styles.listTitle}>
