@@ -80,21 +80,24 @@ export default function TopNavbar() {
   const playDing = () => {
     try {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
       
-      osc.type = 'triangle'; // Sonido más penetrante que 'sine' para ambientes operativos
-      osc.frequency.setValueAtTime(1200, audioCtx.currentTime); 
-      
-      gain.gain.setValueAtTime(0, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.02); // Más volumen
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.8);
-      
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.8);
+      const playNote = (freq, start, duration) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + start);
+        gain.gain.setValueAtTime(0, audioCtx.currentTime + start);
+        gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + start + 0.01); 
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + start + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + start);
+        osc.stop(audioCtx.currentTime + start + duration);
+      };
+
+      // Melodía rítmica (Double-Ding tipo iOS)
+      playNote(1567.98, 0, 0.3); // Nota aguda (Sol 6)
+      playNote(1174.66, 0.12, 0.5); // Nota media (Re 6)
     } catch (err) {
       console.warn("Audio blocked:", err);
     }
