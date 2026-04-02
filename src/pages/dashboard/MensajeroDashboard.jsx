@@ -83,6 +83,23 @@ export default function MensajeroDashboard() {
     if (error) {
       alert("Error: " + error.message);
     } else {
+      const envio = pendientes.find(e => e.id === envioId);
+      // Notificar a otros choferes
+      await supabase.from("notificaciones").insert([{
+        role: "mensajero",
+        title: "🆗 Recolección Atendida",
+        message: `${selectedMessenger?.name || 'Un compañero'} ya recolectó en ${envio?.sucursal}.`,
+        type: "success"
+      }]);
+
+      // Notificar a la SUCURSAL
+      await supabase.from("notificaciones").insert([{
+        title: "🚚 Chofer en Camino",
+        message: `${selectedMessenger?.name} ha iniciado la recolección de tus muestras.`,
+        type: "info",
+        metadata: { sucursal: envio?.sucursal }
+      }]);
+
       setPendientes(prev => prev.filter(e => e.id !== envioId));
       setShowSuccess(true);
     }

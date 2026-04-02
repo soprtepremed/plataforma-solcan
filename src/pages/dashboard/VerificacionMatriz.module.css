@@ -769,24 +769,30 @@
   margin-bottom: 3rem;
 }
 
-.successBtn {
+.premiumBtn {
   width: 100%;
-  padding: 1.5rem;
-  background: #0F172A;
+  padding: 1.2rem;
+  background: var(--co-accent);
   color: white;
   border: none;
-  border-radius: 20px;
+  border-radius: 18px;
   font-size: 1.1rem;
-  font-weight: 800;
+  font-weight: 850;
   cursor: pointer;
-  box-shadow: 0 15px 30px rgba(15, 23, 42, 0.2);
-  transition: all 0.3s;
+  box-shadow: 0 12px 30px rgba(11, 206, 205, 0.35);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.successBtn:hover {
-  transform: scale(1.03);
-  background: #1e293b;
-  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.4);
+.premiumBtn:hover {
+  transform: translateY(-4px) scale(1.02);
+  background: #09b8b7;
+  box-shadow: 0 18px 45px rgba(11, 206, 205, 0.45);
+}
+
+.premiumBtn:active {
+  transform: translateY(0) scale(0.98);
 }
 .modalOverlay {
   position: fixed;
@@ -802,13 +808,19 @@
 
 .successModal, .confirmModal {
   background: white;
-  padding: 2.5rem;
-  border-radius: 20px;
+  padding: 3.5rem 2.5rem;
+  border-radius: 35px;
   max-width: 440px;
   width: 90%;
   text-align: center;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  animation: modalUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 40px 100px -20px rgba(15, 23, 42, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  animation: modalPop 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+@keyframes modalPop {
+  0% { opacity: 0; transform: scale(0.85) translateY(30px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .successIcon, .warningIcon {
@@ -821,8 +833,18 @@
   justify-content: center;
 }
 
-.successIcon { background: #ECFDF5; color: #10B981; }
+.successIcon { 
+  background: #DCFCE7; 
+  color: #10B981; 
+  animation: iconPulse 2s infinite;
+}
 .warningIcon { background: #FFF7ED; color: #F97316; }
+
+@keyframes iconPulse {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
 
 .successIcon span, .warningIcon span { font-size: 40px; }
 

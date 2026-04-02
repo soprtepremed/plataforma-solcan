@@ -148,6 +148,24 @@ export default function EnvioMuestras() {
         hora_sale: new Date().toISOString()
       }]);
       if (error) throw error;
+      
+      // Notificar a Mensajeros
+      await supabase.from("notificaciones").insert([{
+        role: "mensajero",
+        title: "📦 Nueva Recolección en " + sucursal,
+        message: `Se ha registrado un nuevo envío. Favor de acudir a recolectar.`,
+        type: "info",
+        metadata: { sucursal }
+      }]);
+
+      // Autonotificar a la sucursal
+      await supabase.from("notificaciones").insert([{
+        title: "📑 Envío Registrado",
+        message: `Has generado un nuevo envío para ${sucursal}. El chofer ya ha sido notificado.`,
+        type: "success",
+        metadata: { sucursal }
+      }]);
+
       setSentSuccess(true);
     } catch (err) {
       alert("❌ Error: " + err.message);

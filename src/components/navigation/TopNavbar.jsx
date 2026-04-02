@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
@@ -7,7 +8,99 @@ import styles from './TopNavbar.module.css';
 export default function TopNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, logout } = useAuth(); // Importar usuario actual y accion cerrar sesion
+  const { user, logout } = useAuth();
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  // Pedir permiso para notificaciones nativas al cargar
+  useEffect(() => {
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // Suscripción en tiempo real a notificaciones
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchNotifications = async () => {
+      const { data } = await supabase
+        .from('notificaciones')
+        .select('*')
+        .or(`role.eq.${user.role},user_id.eq.${user.id},metadata->>sucursal.eq."${user.branch}"`)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (data) setNotifications(data);
+    };
+
+    fetchNotifications();
+
+    const channel = supabase
+      .channel('notificaciones_realtime')
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'notificaciones' 
+      }, (payload) => {
+        const nuevo = payload.new;
+        // Filtrar si es para mi rol, mi ID o mi sucursal
+        const isForMe = nuevo.role === user.role || 
+                        nuevo.user_id === user.id || 
+                        (nuevo.metadata && nuevo.metadata.sucursal === user.branch);
+
+        if (isForMe) {
+          setNotifications(prev => [nuevo, ...prev].slice(0, 10));
+          
+          // Notificación Nativa
+          if (Notification.permission === 'granted') {
+            new Notification(nuevo.title, {
+              body: nuevo.message,
+              icon: '/favicon.png'
+            });
+          }
+
+          // Sonido de campana
+          playDing();
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
+  const playDing = () => {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Nota La (A5)
+      
+      gain.gain.setValueAtTime(0, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.2);
+      
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      
+      osc.start();
+      osc.stop(audioCtx.currentTime + 1.2);
+    } catch (err) {
+      console.warn("No se pudo reproducir el sonido:", err);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const markAllAsRead = async () => {
+    if (unreadCount === 0) return;
+    await supabase.from('notificaciones')
+      .update({ read: true })
+      .eq('read', false)
+      .or(`role.eq.${user.role},user_id.eq.${user.id},metadata->>sucursal.eq."${user.branch}"`);
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
 
   // Lógica Dinámica de Roles (Fase 3)
   const getMenuOptions = () => {
@@ -97,6 +190,46 @@ export default function TopNavbar() {
           <span className={`material-symbols-rounded ${styles.iconBtn}`}>
             search
           </span>
+          <div className={styles.notificationWrapper}>
+            <span 
+              className={`material-symbols-rounded ${styles.iconBtn} ${unreadCount > 0 ? styles.hasUnread : ''}`}
+              onClick={() => {
+                setShowNotifications(!showNotifications);
+                if (!showNotifications) markAllAsRead();
+              }}
+            >
+              notifications
+              {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
+            </span>
+
+            {showNotifications && (
+              <div className={styles.notificationDropdown}>
+                <div className={styles.notifHeader}>
+                  <h4>Notificaciones</h4>
+                  <button onClick={() => setShowNotifications(false)}>×</button>
+                </div>
+                <div className={styles.notifList}>
+                  {notifications.length === 0 ? (
+                    <div className={styles.emptyNotif}>No tienes notificaciones</div>
+                  ) : (
+                    notifications.map(n => (
+                      <div key={n.id} className={`${styles.notifItem} ${!n.read ? styles.unreadItem : ''}`}>
+                        <div className={styles.notifDot}></div>
+                        <div className={styles.notifContent}>
+                          <p className={styles.notifTitle}>{n.title}</p>
+                          <p className={styles.notifBody}>{n.message}</p>
+                          <span className={styles.notifTime}>
+                            {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           <span 
             className={`material-symbols-rounded ${styles.iconBtn}`} 
             title="Cerrar Sesión" 

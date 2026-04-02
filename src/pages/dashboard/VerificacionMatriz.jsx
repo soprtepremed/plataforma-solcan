@@ -236,6 +236,16 @@ export default function VerificacionMatriz() {
     }).eq("id", envio.id);
     if (error) alert("Error: " + error.message);
     else { 
+      // Notificar al Chofer (si hay mensajero_id)
+      if (envio.mensajero_id) {
+        await supabase.from("notificaciones").insert([{
+          role: "mensajero",
+          title: "✅ Área Recibida en Matriz",
+          message: `El área de ${AREAS_SOLCAN.find(a => a.key === areaRecibe)?.label} ha aceptado tu entrega de ${envio.sucursal}.`,
+          type: "success"
+        }]);
+      }
+
       setActiveReceptionId(null); 
       if (filter !== 'Todos') setEnvios(prev => prev.filter(e => e.id !== envio.id));
       setShowSuccess(true);
@@ -253,6 +263,16 @@ export default function VerificacionMatriz() {
     }).eq("id", envio.id);
     if (error) alert("Error: " + error.message);
     else { 
+      // Notificar al Chofer 
+      if (envio.mensajero_id) {
+        await supabase.from("notificaciones").insert([{
+          role: "mensajero",
+          title: "🏆 Envío Recibido en Matriz",
+          message: `Tu entrega de la sucursal ${envio.sucursal} ha sido cerrada y aceptada globalmente por ${user?.name}.`,
+          type: "success"
+        }]);
+      }
+
       setActiveReceptionId(null); 
       setEnvios(prev => prev.filter(e => e.id !== envio.id));
       setExpandedIds(prev => prev.filter(id => id !== envio.id));
