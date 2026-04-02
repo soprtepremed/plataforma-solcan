@@ -274,11 +274,33 @@ export default function EnvioMuestras() {
         </div>
 
         <div className={styles.captureArea} style={{marginTop: '2rem'}}>
-          <input type="file" accept="image/*" multiple onChange={handlePhotoChange} id="file-up" style={{ display: 'none' }} />
-          <label htmlFor="file-up" className={styles.cameraTrigger}>
-            <span className="material-symbols-rounded" style={{ fontSize: '48px' }}>photo_camera</span>
-            <span>Añadir Evidencia de Hielera</span>
-          </label>
+          <div className={styles.captureGrid}>
+            <label className={styles.captureBtn}>
+              <input 
+                type="file" 
+                accept="image/*" 
+                capture="environment" 
+                multiple 
+                onChange={handlePhotoChange} 
+                style={{ display: 'none' }} 
+              />
+              <span className="material-symbols-rounded">photo_camera</span>
+              <span>Tomar Foto</span>
+            </label>
+
+            <label className={styles.captureBtn}>
+              <input 
+                type="file" 
+                accept="image/*" 
+                multiple 
+                onChange={handlePhotoChange} 
+                style={{ display: 'none' }} 
+              />
+              <span className="material-symbols-rounded">image</span>
+              <span>Subir Galería</span>
+            </label>
+          </div>
+
           <div className={styles.photoGallery}>
             {photos.map((file, idx) => (
               <div key={idx} className={styles.photoThumb}>

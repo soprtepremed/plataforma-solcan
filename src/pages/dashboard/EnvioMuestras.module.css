@@ -271,26 +271,49 @@
   margin-bottom: 3rem;
 }
 
-.cameraTrigger {
+.captureGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.captureBtn {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 3rem;
-  background: #F1F5F9;
-  border: 2px dashed #CBD5E1;
+  padding: 2rem 1rem;
+  background: #F8FAFC;
+  border: 2px solid #E2E8F0;
   border-radius: 24px;
   cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--co-text-muted);
-  font-weight: 700;
-  transition: all 0.3s;
 }
 
-.cameraTrigger:hover {
-  background: #E2E8F0;
+.captureBtn span:first-child {
+  font-size: 2.5rem;
+  color: var(--co-accent);
+}
+
+.captureBtn span:last-child {
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.captureBtn:hover {
+  background: white;
   border-color: var(--co-accent);
   color: var(--co-primary);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(11, 206, 205, 0.1);
+}
+
+.captureBtn:active {
+  transform: scale(0.95);
 }
 
 .photoGallery {
