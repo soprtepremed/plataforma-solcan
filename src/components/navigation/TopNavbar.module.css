@@ -242,7 +242,14 @@
 }
 
 @media (max-width: 900px) {
-  .notificationDropdown { right: -120px; width: 300px; }
+  .notificationDropdown { 
+    position: fixed;
+    top: calc(var(--topbar-h-slim) + var(--topbar-h-main) - 10px);
+    left: 5%;
+    right: 5%;
+    width: 90%;
+    border-radius: 12px;
+  }
   .navLinks { display: none; }
   .stripeLinks { display: none; }
   .mobileMenuBtn { display: block; }
