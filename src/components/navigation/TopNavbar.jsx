@@ -95,9 +95,12 @@ export default function TopNavbar() {
         osc.stop(audioCtx.currentTime + start + duration);
       };
 
-      // Melodía rítmica (Double-Ding tipo iOS)
-      playNote(1567.98, 0, 0.3); // Nota aguda (Sol 6)
-      playNote(1174.66, 0.12, 0.5); // Nota media (Re 6)
+      // Melodía rítmica (Double-Ding tipo iOS) repetida por 4 segundos
+      for (let i = 0; i < 6; i++) {
+        const offset = i * 0.7; // Espaciado entre repeticiones
+        playNote(1567.98, offset, 0.3); // Nota aguda (Sol 6)
+        playNote(1174.66, offset + 0.12, 0.5); // Nota media (Re 6)
+      }
     } catch (err) {
       console.warn("Audio blocked:", err);
     }
