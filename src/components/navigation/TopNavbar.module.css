@@ -43,6 +43,12 @@
   padding: 0 4%;
 }
 
+.logoWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .logoArea {
   display: flex;
   align-items: center;
@@ -168,7 +174,8 @@
 .notificationDropdown {
   position: absolute;
   top: 45px;
-  right: -50px;
+  left: 0;
+  right: auto;
   width: 320px;
   background: white;
   border-radius: 20px;

@@ -159,11 +159,53 @@ export default function TopNavbar() {
         </div>
       </div>
 
-      {/* Nivel 2: Barra principal blanca */}
       <div className={styles.mainNav}>
-        {/* Componente Logo a la Izquierda */}
-        <div onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-          <Logo size="md" />
+        <div className={styles.logoWrapper}>
+          <div onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+            <Logo size="md" />
+          </div>
+
+          {/* Notificaciones junto al Logo */}
+          <div className={styles.notificationWrapper}>
+            <span 
+              className={`material-symbols-rounded ${styles.iconBtn} ${unreadCount > 0 ? styles.hasUnread : ''}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowNotifications(!showNotifications);
+                if (!showNotifications) markAllAsRead();
+              }}
+            >
+              notifications
+            </span>
+            {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
+
+            {showNotifications && (
+              <div className={styles.notificationDropdown} onClick={(e) => e.stopPropagation()}>
+                <div className={styles.notifHeader}>
+                  <h4>Notificaciones</h4>
+                  <button onClick={() => setShowNotifications(false)}>&times;</button>
+                </div>
+                <div className={styles.notifList}>
+                  {notifications.length > 0 ? (
+                    notifications.map(n => (
+                      <div key={n.id} className={`${styles.notifItem} ${!n.read ? styles.unreadItem : ''}`}>
+                        <div className={styles.notifDot}></div>
+                        <div className={styles.notifContent}>
+                          <div className={styles.notifTitle}>{n.title}</div>
+                          <div className={styles.notifBody}>{n.message}</div>
+                          <div className={styles.notifTime}>
+                            {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.emptyNotif}>No hay notificaciones nuevas</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Enlaces al Centro (Ocultos en móvil) */}
@@ -196,48 +238,12 @@ export default function TopNavbar() {
               />
             </div>
           </div>
-          <span className={`material-symbols-rounded ${styles.iconBtn}`}>
-            search
-          </span>
-          <div className={styles.notificationWrapper}>
-            <span 
-              className={`material-symbols-rounded ${styles.iconBtn} ${unreadCount > 0 ? styles.hasUnread : ''}`}
-              onClick={() => {
-                setShowNotifications(!showNotifications);
-                if (!showNotifications) markAllAsRead();
-              }}
-            >
-              notifications
-              {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
-            </span>
 
-            {showNotifications && (
-              <div className={styles.notificationDropdown}>
-                <div className={styles.notifHeader}>
-                  <h4>Notificaciones</h4>
-                  <button onClick={() => setShowNotifications(false)}>×</button>
-                </div>
-                <div className={styles.notifList}>
-                  {notifications.length === 0 ? (
-                    <div className={styles.emptyNotif}>No tienes notificaciones</div>
-                  ) : (
-                    notifications.map(n => (
-                      <div key={n.id} className={`${styles.notifItem} ${!n.read ? styles.unreadItem : ''}`}>
-                        <div className={styles.notifDot}></div>
-                        <div className={styles.notifContent}>
-                          <p className={styles.notifTitle}>{n.title}</p>
-                          <p className={styles.notifBody}>{n.message}</p>
-                          <span className={styles.notifTime}>
-                            {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+          {user?.role !== 'mensajero' && (
+            <span className={`material-symbols-rounded ${styles.iconBtn}`}>
+              search
+            </span>
+          )}
 
           <span 
             className={`material-symbols-rounded ${styles.iconBtn}`} 
