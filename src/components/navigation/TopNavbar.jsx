@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
+import Cropper from 'react-easy-crop';
 import styles from './TopNavbar.module.css';
 
 export default function TopNavbar() {
@@ -13,67 +14,99 @@ export default function TopNavbar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  const handleAvatarUpload = async (event) => {
-    try {
-      setUploading(true);
-      const file = event.target.files[0];
-      if (!file) return;
+  // Cropper states
+  const [imageToCrop, setImageToCrop] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
-      // Resizing to 150x150 for performance and round contour (KISS)
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-      
-      const imageUrl = URL.createObjectURL(file);
-      img.onload = async () => {
-        canvas.width = 150;
+  const onCropComplete = useCallback((_croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleAvatarUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.addEventListener('load', () => setImageToCrop(reader.result));
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const getCroppedImg = (imageSrc, pixelCrop) => {
+    const image = new Image();
+    image.src = imageSrc;
+    return new Promise((resolve) => {
+      image.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 150; // Final size
         canvas.height = 150;
-        
-        // Draw image centered and scaled to cover
-        const minDim = Math.min(img.width, img.height);
-        const sx = (img.width - minDim) / 2;
-        const sy = (img.height - minDim) / 2;
-        ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, 150, 150);
-        
-        canvas.toBlob(async (blob) => {
-          const fileName = `${user.id}-${Date.now()}.png`;
-          const filePath = `${fileName}`;
 
-          // Upload to Supabase Storage
-          const { error: uploadError } = await supabase.storage
-            .from('avatars')
-            .upload(filePath, blob, { 
-              contentType: 'image/png',
-              cacheControl: '3600',
-              upsert: true
-            });
-
-          if (uploadError) throw uploadError;
-
-          // Get Public URL
-          const { data: { publicUrl } } = supabase.storage
-            .from('avatars')
-            .getPublicUrl(filePath);
-
-          // Update DB
-          const { error: dbError } = await supabase
-            .from('empleados')
-            .update({ foto_url: publicUrl })
-            .eq('id', user.id);
-
-          if (dbError) throw dbError;
-
-          // Update Context
-          updateUser({ foto_url: publicUrl });
-          URL.revokeObjectURL(imageUrl);
-          setUploading(false);
-        }, 'image/png', 0.85); // High quality but compressed
+        ctx.drawImage(
+          image,
+          pixelCrop.x,
+          pixelCrop.y,
+          pixelCrop.width,
+          pixelCrop.height,
+          0,
+          0,
+          150,
+          150
+        );
+        canvas.toBlob((blob) => resolve(blob), 'image/png', 0.85);
       };
-      img.src = imageUrl;
+    });
+  };
 
+  const confirmUpload = async () => {
+    if (!croppedAreaPixels || !imageToCrop) return;
+    
+    setUploading(true);
+    setImageToCrop(null); // Close modal
+
+    try {
+      console.log('🚀 Iniciando procesamiento de imagen...');
+      const blob = await getCroppedImg(imageToCrop, croppedAreaPixels);
+      const fileName = `${user.id}-${Date.now()}.png`;
+      const filePath = `${fileName}`;
+
+      console.log('📤 Subiendo a Supabase Storage (avatars)...');
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, blob, { 
+          contentType: 'image/png',
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.error('❌ Error Storage:', uploadError);
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      console.log('🔗 URL Pública:', publicUrl);
+
+      const { error: dbError } = await supabase
+        .from('empleados')
+        .update({ foto_url: publicUrl })
+        .eq('id', user.id);
+
+      if (dbError) {
+        console.error('❌ Error DB:', dbError);
+        throw dbError;
+      }
+
+      console.log('✅ Perfil actualizado.');
+      updateUser({ foto_url: publicUrl });
     } catch (error) {
-      console.error('Error uploading avatar:', error);
-      alert('Error al subir la imagen: ' + error.message);
+      console.error('💣 Error final:', error);
+      alert('Error al actualizar foto: ' + (error.message || 'Error desconocido'));
+    } finally {
       setUploading(false);
     }
   };
@@ -377,6 +410,33 @@ export default function TopNavbar() {
           <strong>Cerrar Sesión</strong>
         </div>
       </div>
+
+      {/* MODAL DE RECORTE DE IMAGEN */}
+      {imageToCrop && (
+        <div className={styles.cropModal}>
+          <div className={styles.cropContainer}>
+            <Cropper
+              image={imageToCrop}
+              crop={crop}
+              zoom={zoom}
+              aspect={1}
+              cropShape="round"
+              showGrid={false}
+              onCropChange={setCrop}
+              onCropComplete={onCropComplete}
+              onZoomChange={setZoom}
+            />
+          </div>
+          <div className={styles.cropActions}>
+            <button className={`${styles.cropBtn} ${styles.cancelBtn}`} onClick={() => setImageToCrop(null)}>
+              Cancelar
+            </button>
+            <button className={`${styles.cropBtn} ${styles.confirmBtn}`} onClick={confirmUpload}>
+              Recortar y Subir
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

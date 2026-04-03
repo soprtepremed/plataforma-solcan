@@ -284,6 +284,73 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Cropper Modal */
+.cropModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 5000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.cropContainer {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  height: 400px;
+  background: #333;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.cropActions {
+  margin-top: 30px;
+  display: flex;
+  gap: 15px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.cropBtn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.confirmBtn {
+  background: var(--co-gradient);
+  color: white;
+  box-shadow: 0 4px 15px rgba(11, 206, 205, 0.4);
+}
+
+.confirmBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(11, 206, 205, 0.6);
+}
+
+.cancelBtn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.cancelBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 @media (max-width: 900px) {
   .notificationDropdown { 
     position: fixed;
