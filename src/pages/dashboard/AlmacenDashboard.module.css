@@ -1,0 +1,266 @@
+.container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    padding: 1.5rem 2rem;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+}
+
+.titleArea h1 {
+    font-size: 1.8rem;
+    color: var(--co-primary);
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.titleArea p {
+    color: #64748b;
+    margin: 4px 0 0;
+    font-size: 0.95rem;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.statCard {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    border: 1px solid #f1f5f9;
+    transition: transform 0.2s;
+}
+
+.statCard:hover {
+    transform: translateY(-5px);
+}
+
+.statIcon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.statIcon span { font-size: 28px; }
+
+.blue { background: #eff6ff; color: #3b82f6; }
+.amber { background: #fffbeb; color: #f59e0b; }
+.emerald { background: #ecfdf5; color: #10b981; }
+
+.statInfo h3 {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.statValue {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.mainContent {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.panel {
+    background: white;
+    border-radius: 24px;
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.02);
+}
+
+.panelHeader {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panelHeader h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #334155;
+    margin: 0;
+}
+
+.valeList {
+    padding: 1rem;
+}
+
+.valeRow {
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid #f8fafc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.valeRow:hover {
+    background: #f8fafc;
+}
+
+.valeMainInfo h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #1e293b;
+}
+
+.valeMeta {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.badge-pendiente { background: #fff7ed; color: #c2410c; }
+.badge-surtido { background: #f0fdf4; color: #15803d; }
+.badge-urgente { background: #fef2f2; color: #b91c1c; }
+
+.actionBtn {
+    background: #f1f5f9;
+    border: none;
+    padding: 8px;
+    border-radius: 10px;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.actionBtn:hover {
+    background: var(--co-primary);
+    color: white;
+}
+
+/* Modal Detalle */
+.modalOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: white;
+    width: 90%;
+    max-width: 900px;
+    max-height: 85vh;
+    border-radius: 24px;
+    overflow-y: auto;
+    position: relative;
+    padding: 2.5rem;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.itemTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+}
+
+.itemTable th {
+    text-align: left;
+    padding: 12px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.itemTable td {
+    padding: 16px 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.inputQty {
+    width: 70px;
+    padding: 8px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.modalActions {
+    margin-top: 3rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.confirmBtn {
+    background: var(--co-primary);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.sidePanel h3 {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    color: #475569;
+}
+
+.stockAlert {
+    padding: 1rem;
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}

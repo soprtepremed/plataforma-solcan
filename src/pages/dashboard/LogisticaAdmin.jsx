@@ -178,7 +178,13 @@ export default function LogisticaAdmin() {
             {usuarios.filter(u => u.nombre.toLowerCase().includes(searchUser.toLowerCase()) || u.username.toLowerCase().includes(searchUser.toLowerCase())).map(usr => (
               <div key={usr.id} className={styles.userCard}>
                  <div className={styles.userHeader}>
-                    <div className={styles.userAvatar}>{usr.nombre[0]}</div>
+                    <div className={styles.userAvatar}>
+                      {usr.foto_url ? (
+                        <img src={usr.foto_url} alt={usr.nombre} className={styles.avatarImg} />
+                      ) : (
+                        usr.nombre[0]
+                      )}
+                    </div>
                     <div className={styles.userInfo}>
                        <input 
                          className={styles.userEditName} 

@@ -8,9 +8,75 @@ import styles from './TopNavbar.module.css';
 export default function TopNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const handleAvatarUpload = async (event) => {
+    try {
+      setUploading(true);
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Resizing to 150x150 for performance and round contour (KISS)
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      const imageUrl = URL.createObjectURL(file);
+      img.onload = async () => {
+        canvas.width = 150;
+        canvas.height = 150;
+        
+        // Draw image centered and scaled to cover
+        const minDim = Math.min(img.width, img.height);
+        const sx = (img.width - minDim) / 2;
+        const sy = (img.height - minDim) / 2;
+        ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, 150, 150);
+        
+        canvas.toBlob(async (blob) => {
+          const fileName = `${user.id}-${Date.now()}.png`;
+          const filePath = `${fileName}`;
+
+          // Upload to Supabase Storage
+          const { error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, blob, { 
+              contentType: 'image/png',
+              cacheControl: '3600',
+              upsert: true
+            });
+
+          if (uploadError) throw uploadError;
+
+          // Get Public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+
+          // Update DB
+          const { error: dbError } = await supabase
+            .from('empleados')
+            .update({ foto_url: publicUrl })
+            .eq('id', user.id);
+
+          if (dbError) throw dbError;
+
+          // Update Context
+          updateUser({ foto_url: publicUrl });
+          URL.revokeObjectURL(imageUrl);
+          setUploading(false);
+        }, 'image/png', 0.85); // High quality but compressed
+      };
+      img.src = imageUrl;
+
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      alert('Error al subir la imagen: ' + error.message);
+      setUploading(false);
+    }
+  };
 
   // Pedir permiso para notificaciones nativas al cargar
   useEffect(() => {
@@ -121,14 +187,17 @@ export default function TopNavbar() {
   const getMenuOptions = () => {
     if (!user) return [];
     
-    if (user.role === 'admin') {
-      return [
-        { label: 'Auditoría Global', path: '/logistica/admin' },
-        { label: 'Bitácora FO-DO-017', path: '/logistica/bitacora' },
-        { label: 'Recepción Lab', path: '/logistica/recepcion' },
-        { label: 'Captura PDF', path: '/captura' },
-        { label: 'Historial', path: '/resultados' }
+    if (user.role === 'admin' || user.role === 'almacen') {
+      const base = [
+        { label: 'Gestión Almacén', path: '/almacen/dashboard' },
+        { label: 'Inventario Global', path: '/logistica/materiales' },
+        { label: 'Bitácora FO-DO-017', path: '/logistica/bitacora' }
       ];
+      if (user.role === 'admin') {
+        base.push({ label: 'Auditoría Global', path: '/logistica/admin' });
+        base.push({ label: 'Recepción Lab', path: '/logistica/recepcion' });
+      }
+      return base;
     } else if (user.role === 'captura') {
       return [
         { label: 'Subir Resultados', path: '/captura' },
@@ -136,9 +205,10 @@ export default function TopNavbar() {
       ];
     } else if (user.role === 'quimico') {
       return [
+        { label: 'Solicitar Material', path: '/almacen/solicitud' },
         { label: 'Recepción Matriz', path: '/logistica/recepcion' },
         { label: 'Bitácora FO-DO-017', path: '/logistica/bitacora' },
-        { label: 'Materiales', path: '/logistica/materiales' }
+        { label: 'Mis Materiales', path: '/logistica/materiales' }
       ];
     } else if (user.role === 'recepcion') {
       return [
@@ -233,14 +303,29 @@ export default function TopNavbar() {
                 📍 {user?.branch}
               </span>
             </span>
-            <div className={styles.avatarCircle} onClick={() => document.getElementById('avatar-upload').click()}>
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+            <div 
+              className={`${styles.avatarCircle} ${uploading ? styles.uploading : ''}`} 
+              onClick={() => !uploading && document.getElementById('avatar-upload').click()}
+              style={{ position: 'relative', overflow: 'hidden' }}
+            >
+              {user?.foto_url ? (
+                <img src={user.foto_url} alt={user.name} className={styles.avatarImg} />
+              ) : (
+                user?.name ? user.name.charAt(0).toUpperCase() : 'U'
+              )}
+              
+              {uploading && (
+                <div className={styles.uploadOverlay}>
+                  <span className="material-symbols-rounded">sync</span>
+                </div>
+              )}
+
               <input 
                 type="file" 
                 id="avatar-upload" 
                 hidden 
                 accept="image/*" 
-                onChange={(e) => alert('Funcionalidad de carga de imagen en desarrollo. Pronto podrás ver tu foto aquí.')}
+                onChange={handleAvatarUpload}
               />
             </div>
           </div>

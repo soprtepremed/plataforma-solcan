@@ -148,6 +148,42 @@
   filter: brightness(1.1);
 }
 
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.uploading {
+  cursor: wait;
+}
+
+.uploadOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.uploadOverlay span {
+  animation: rotate 1.5s linear infinite;
+  font-size: 1.5rem;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .notificationWrapper {
   position: relative;
   display: flex;

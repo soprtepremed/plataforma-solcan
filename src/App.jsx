@@ -10,6 +10,8 @@ import MensajeroDashboard from './pages/dashboard/MensajeroDashboard';
 import VerificacionMatriz from './pages/dashboard/VerificacionMatriz';
 import LogisticaBitacora from './pages/dashboard/LogisticaBitacora';
 import GestionMateriales from './pages/dashboard/GestionMateriales';
+import AlmacenDashboard from './pages/dashboard/AlmacenDashboard';
+import SolicitudMaterial from './pages/dashboard/SolicitudMaterial';
 import ImpresionEtiquetas from './pages/dashboard/ImpresionEtiquetas';
 import PortalPaciente from './pages/portal/PortalPaciente';
 import Sucursales from './pages/Sucursales';
@@ -70,6 +72,10 @@ function App() {
         <Route path="/logistica/impresion" element={<PrivateRoute><DashboardLayout><ImpresionEtiquetas /></DashboardLayout></PrivateRoute>} />
         
         <Route path="/pacientes" element={<PrivateRoute><DashboardLayout><h2 style={{padding: '3rem', textAlign: 'center', color:'var(--co-primary)'}}>Módulo de Recepción y Pacientes</h2></DashboardLayout></PrivateRoute>} />
+        
+        {/* Almacén e Inventario */}
+        <Route path="/almacen/dashboard" element={<PrivateRoute><DashboardLayout><AlmacenDashboard /></DashboardLayout></PrivateRoute>} />
+        <Route path="/almacen/solicitud" element={<PrivateRoute><DashboardLayout><SolicitudMaterial /></DashboardLayout></PrivateRoute>} />
         <Route path="/almacen" element={<PrivateRoute><DashboardLayout><h2 style={{padding: '3rem', textAlign: 'center', color:'var(--co-primary)'}}>Módulo de Almacén e Inventario</h2></DashboardLayout></PrivateRoute>} />
 
         {/* Portal Público del Paciente (sin login) */}

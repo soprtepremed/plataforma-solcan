@@ -33,7 +33,8 @@ export function AuthProvider({ children }) {
         name: data.nombre,
         role: selectedRole || data.role,
         branch: isMatrixAccess ? "Tuxtla Gutierrez" : (selectedBranch || data.sucursal),
-        username: data.username
+        username: data.username,
+        foto_url: data.foto_url
       };
 
       setUser(userData);
@@ -46,6 +47,14 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateUser = (newData) => {
+    setUser(prev => {
+      const updated = { ...prev, ...newData };
+      localStorage.setItem('solcan_user', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('solcan_user');
@@ -53,7 +62,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
