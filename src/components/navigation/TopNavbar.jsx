@@ -218,38 +218,40 @@ export default function TopNavbar() {
 
   // Lógica Dinámica de Roles (Fase 3)
   const getMenuOptions = () => {
-    if (!user) return [];
+    if (!user || !user.role) return [];
     
-    if (user.role === 'admin' || user.role === 'almacen') {
+    const role = user.role.toLowerCase();
+
+    if (role === 'admin' || role === 'almacen') {
       const base = [
         { label: 'Gestión Almacén', path: '/almacen/dashboard' },
         { label: 'Inventario Global', path: '/logistica/materiales' },
         { label: 'Bitácora FO-DO-017', path: '/logistica/bitacora' }
       ];
-      if (user.role === 'admin') {
+      if (role === 'admin') {
         base.push({ label: 'Auditoría Global', path: '/logistica/admin' });
         base.push({ label: 'Recepción Lab', path: '/logistica/recepcion' });
       }
       return base;
-    } else if (user.role === 'captura') {
+    } else if (role === 'captura') {
       return [
         { label: 'Subir Resultados', path: '/captura' },
         { label: 'Historial', path: '/resultados' }
       ];
-    } else if (user.role === 'quimico') {
+    } else if (role === 'quimico') {
       return [
         { label: 'Solicitar Material', path: '/almacen/solicitud' },
         { label: 'Recepción Matriz', path: '/logistica/recepcion' },
         { label: 'Bitácora FO-DO-017', path: '/logistica/bitacora' },
         { label: 'Mis Materiales', path: '/logistica/materiales' }
       ];
-    } else if (user.role === 'recepcion') {
+    } else if (role === 'recepcion') {
       return [
         { label: 'Preparar Envío', path: '/logistica/envio' },
         { label: 'Mi Bitácora', path: '/logistica/bitacora' },
         { label: 'Estado Sede', path: '/logistica/sede' }
       ];
-    } else if (user.role === 'mensajero') {
+    } else if (role === 'mensajero') {
       return [
         { label: 'Ruta de Transporte', path: '/logistica/transporte' }
       ];
