@@ -302,8 +302,22 @@ export default function VerificacionMatriz() {
         ))}
       </div>
 
-      {loading && envios.length === 0 ? (
-        <div className={styles.emptyState}><span className="material-symbols-rounded spin">sync</span></div>
+      {loading ? (
+        <div className={styles.emptyState}>
+          <span className="material-symbols-rounded spin">sync</span>
+          <p>Cargando información de matriz...</p>
+        </div>
+      ) : envios.length === 0 ? (
+        <div className={styles.emptyState}>
+            <div className={styles.emptyIconBox}>
+              <span className="material-symbols-rounded">inventory_2</span>
+            </div>
+            <h3 className={styles.emptyTitle}>Sin envíos pendientes</h3>
+            <p className={styles.emptyDesc}>Por el momento no hay ningún envío en la sucursal que requiera atención técnica o física.</p>
+            <button onClick={fetchEnvios} className={styles.refreshBtnPill}>
+               <span className="material-symbols-rounded">refresh</span> Reintentar actualización
+            </button>
+        </div>
       ) : (
         <div className={styles.grid}>
           {envios.map(envio => {
