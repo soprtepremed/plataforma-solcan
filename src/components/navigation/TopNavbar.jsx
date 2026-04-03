@@ -13,6 +13,7 @@ export default function TopNavbar() {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   // Cropper states
   const [imageToCrop, setImageToCrop] = useState(null);
@@ -261,6 +262,15 @@ export default function TopNavbar() {
 
   const menuOptions = getMenuOptions();
 
+  const roleLabels = {
+    'admin': 'Administrador General',
+    'quimico': 'Químico Analista',
+    'recepcion': 'Recepción de Sucursal',
+    'mensajero': 'Operador Logístico',
+    'captura': 'Asistente de Captura',
+    'almacen': 'Gestión de Almacén'
+  };
+
   return (
     <nav className={styles.navbarContainer}>
       {/* Nivel 1: Accesos secundarios y Portal */}
@@ -340,7 +350,7 @@ export default function TopNavbar() {
             </span>
             <div 
               className={`${styles.avatarCircle} ${uploading ? styles.uploading : ''}`} 
-              onClick={() => !uploading && document.getElementById('avatar-upload').click()}
+              onClick={() => !uploading && setShowProfile(!showProfile)}
               style={{ position: 'relative', overflow: 'hidden' }}
             >
               {user?.foto_url ? (
@@ -363,6 +373,43 @@ export default function TopNavbar() {
                 onChange={handleAvatarUpload}
               />
             </div>
+
+            {showProfile && (
+              <div className={styles.profileDropdown} onClick={(e) => e.stopPropagation()}>
+                <div className={styles.profileHeader}>
+                   <div className={styles.profileAvatarLarge}>
+                      {user?.foto_url ? (
+                        <img src={user.foto_url} alt={user.name} />
+                      ) : (
+                        user?.name?.charAt(0).toUpperCase()
+                      )}
+                   </div>
+                   <div className={styles.profileMeta}>
+                      <div className={styles.profileName}>
+                        {user?.name}
+                      </div>
+                      <div className={styles.profileBranch}>
+                        📍 {user?.branch}
+                      </div>
+                      <div className={styles.profileRole}>
+                        {roleLabels[user?.role?.toLowerCase()] || user?.role}
+                      </div>
+                   </div>
+                </div>
+
+                <div className={styles.profileActions}>
+                   <button className={styles.profileActionBtn} onClick={() => { setShowProfile(false); document.getElementById('avatar-upload').click(); }}>
+                      <span className="material-symbols-rounded">photo_camera</span>
+                      Cambiar Foto de Perfil
+                   </button>
+                   <div className={styles.profileDivider}></div>
+                   <button className={`${styles.profileActionBtn} ${styles.logoutBtnAction}`} onClick={() => { setShowProfile(false); logout(); }}>
+                      <span className="material-symbols-rounded">logout</span>
+                      Cerrar Sesión
+                   </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {user?.role !== 'mensajero' && (
