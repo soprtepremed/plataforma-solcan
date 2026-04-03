@@ -330,6 +330,20 @@
   align-items: center;
 }
 
+@media (max-width: 900px) {
+  .transportBar {
+    flex-direction: column;
+  }
+  .transportLabel {
+    border-right: none;
+    border-bottom: 2px solid #000;
+    min-width: 100% !important;
+  }
+  .transportValue {
+    padding: 10px 15px;
+  }
+}
+
 /* .groupHeader redundant definition removed */
 
 .darkHeader {
