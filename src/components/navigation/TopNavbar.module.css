@@ -426,12 +426,38 @@
   color: #DC2626;
 }
 
-@media (max-width: 768px) {
-  .profileDropdown {
-    right: -50px;
-    width: calc(100vw - 40px);
-    max-width: 300px;
-  }
+.soundTestTitle {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #64748B;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.soundTestGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.soundBtn {
+  padding: 6px;
+  border-radius: 8px;
+  border: 1.5px solid #E2E8F0;
+  background: white;
+  font-size: 0.7rem;
+  font-weight: 750;
+  color: var(--co-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.soundBtn:hover {
+  border-color: var(--co-accent);
+  color: var(--co-accent);
+  background: rgba(11, 206, 205, 0.05);
 }
 
 /* Cropper Modal */

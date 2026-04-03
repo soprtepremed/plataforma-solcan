@@ -177,22 +177,32 @@ export default function TopNavbar() {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
+  // Gestión de Sonido Singleton (Optimización de Recursos)
+  const [audioCtx, setAudioCtx] = useState(null);
+  useEffect(() => {
+    return () => { if (audioCtx) audioCtx.close(); };
+  }, [audioCtx]);
+
   const playDing = () => {
     try {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      let ctx = audioCtx;
+      if (!ctx) {
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        setAudioCtx(ctx);
+      }
       
       const playNote = (freq, start, duration) => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + start);
-        gain.gain.setValueAtTime(0, audioCtx.currentTime + start);
-        gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + start + 0.01); 
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + start + duration);
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+        gain.gain.setValueAtTime(0, ctx.currentTime + start);
+        gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + start + 0.01); 
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + start + duration);
         osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(audioCtx.currentTime + start);
-        osc.stop(audioCtx.currentTime + start + duration);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + duration);
       };
 
       // Melodía rítmica (Double-Ding tipo iOS) repetida por 4 segundos
@@ -261,6 +271,39 @@ export default function TopNavbar() {
   };
 
   const menuOptions = getMenuOptions();
+
+  const playSample = (type) => {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const playFreq = (freq, start, duration, typeOsc = 'triangle', vol = 0.3) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = typeOsc;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + start);
+        gain.gain.setValueAtTime(0, audioCtx.currentTime + start);
+        gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + start + 0.01); 
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + start + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + start);
+        osc.stop(audioCtx.currentTime + start + duration);
+      };
+
+      if (type === 'tritone') {
+        // iPhone Tri-tone (D6 - B5 - G5 aprox)
+        playFreq(1174.66, 0, 0.2, 'sine', 0.4); // Re 6
+        playFreq(987.77, 0.15, 0.2, 'sine', 0.3); // Si 5
+        playFreq(783.99, 0.3, 0.4, 'sine', 0.2); // Sol 5
+      } else if (type === 'note') {
+        // iPhone Note (C6 - G6)
+        playFreq(1046.50, 0, 0.15, 'sine', 0.4);
+        playFreq(1567.98, 0.1, 0.3, 'sine', 0.3);
+      } else if (type === 'ding') {
+        // Pure Glass Ding
+        playFreq(2000, 0, 0.4, 'sine', 0.4);
+      }
+    } catch (err) { console.warn(err); }
+  };
 
   const roleLabels = {
     'admin': 'Administrador General',
@@ -398,11 +441,17 @@ export default function TopNavbar() {
                 </div>
 
                 <div className={styles.profileActions}>
+                   <div className={styles.soundTestTitle}>🔉 MODO DE ALERTA (Prueba)</div>
+                   <div className={styles.soundTestGrid}>
+                      <button className={styles.soundBtn} onClick={() => playSample('tritone')}>Tritone</button>
+                      <button className={styles.soundBtn} onClick={() => playSample('note')}>Note</button>
+                      <button className={styles.soundBtn} onClick={() => playSample('ding')}>Ding</button>
+                   </div>
+                   <div className={styles.profileDivider}></div>
                    <button className={styles.profileActionBtn} onClick={() => { setShowProfile(false); document.getElementById('avatar-upload').click(); }}>
                       <span className="material-symbols-rounded">photo_camera</span>
                       Cambiar Foto de Perfil
                    </button>
-                   <div className={styles.profileDivider}></div>
                    <button className={`${styles.profileActionBtn} ${styles.logoutBtnAction}`} onClick={() => { setShowProfile(false); logout(); }}>
                       <span className="material-symbols-rounded">logout</span>
                       Cerrar Sesión

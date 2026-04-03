@@ -139,7 +139,18 @@ export default function LogisticaAdmin() {
                       <td>{envio.mensajero_id || '---'}</td>
                       <td>
                         <div className={styles.miniStatsArea}>
-                           <span>D:{envio.s_dorado}</span> <span>L:{envio.s_lila}</span> <span>O:{envio.s_papel}</span>
+                           <div className={styles.statCol}>
+                             <label>DORADO</label>
+                             <span>S: {envio.s_dorado} | R: {envio.r_dorado || 0}</span>
+                           </div>
+                           <div className={styles.statCol}>
+                             <label>LILA</label>
+                             <span>S: {envio.s_lila} | R: {envio.r_lila || 0}</span>
+                           </div>
+                           <div className={styles.statCol}>
+                             <label>ORINA</label>
+                             <span>S: {envio.s_papel} | R: {envio.r_papel || 0}</span>
+                           </div>
                         </div>
                       </td>
                       <td>
@@ -175,7 +186,7 @@ export default function LogisticaAdmin() {
           </div>
 
           <div className={styles.userGrid}>
-            {usuarios.filter(u => u.nombre.toLowerCase().includes(searchUser.toLowerCase()) || u.username.toLowerCase().includes(searchUser.toLowerCase())).map(usr => (
+            {usuarios.filter(u => (u.nombre?.toLowerCase() || "").includes(searchUser.toLowerCase()) || (u.username?.toLowerCase() || "").includes(searchUser.toLowerCase())).map(usr => (
               <div key={usr.id} className={styles.userCard}>
                  <div className={styles.userHeader}>
                     <div className={styles.userAvatar}>

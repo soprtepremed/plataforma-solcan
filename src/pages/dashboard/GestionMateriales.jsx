@@ -113,10 +113,18 @@ export default function GestionMateriales() {
 
     const handleFinalizar = async (unitId) => {
         if (!confirm('¿Seguro que deseas dar de baja este material? Se eliminará del inventario activo.')) return;
-        const { error } = await supabase.from('materiales_unidades')
-            .update({ estatus: 'Agotado', fecha_finalizacion: new Date().toISOString() })
-            .eq('id', unitId);
-        if (!error) fetchData();
+        try {
+            const { error } = await supabase.from('materiales_unidades')
+                .update({ estatus: 'Agotado', fecha_finalizacion: new Date().toISOString() })
+                .eq('id', unitId);
+            
+            if (error) throw error;
+            alert('✅ Material dado de baja correctamente.');
+            fetchData();
+        } catch (err) {
+            console.error('Error al finalizar material:', err);
+            alert('❌ Error al dar de baja el material: ' + err.message);
+        }
     };
 
     const handlePrintLabel = (unitId) => {
@@ -126,48 +134,60 @@ export default function GestionMateriales() {
     // Funciones de Guardado
     const saveNewCatalogItem = async (e) => {
         e.preventDefault();
-        const { error } = await supabase.from('materiales_catalogo').insert([{
-            ...catalogForm,
-            area_tecnica: activeArea
-        }]);
+        try {
+            const { error } = await supabase.from('materiales_catalogo').insert([{
+                ...catalogForm,
+                area_tecnica: activeArea
+            }]);
 
-        if (!error) {
+            if (error) throw error;
+
+            alert('✅ Material registrado en catálogo correctamente.');
             setShowCatalogModal(false);
             setCatalogForm({ nombre: '', prefijo: '', unidad: 'Pieza', stock_minimo: 10 });
             fetchData();
-        } else alert('Error al registrar material');
+        } catch (err) {
+            console.error('Error catálogo:', err);
+            alert('❌ Error al registrar en catálogo: ' + err.message);
+        }
     };
 
     const saveStockEntry = async (e) => {
         e.preventDefault();
         if (!stockForm.catalogo_id || !stockForm.lote) return;
 
-        const catalogItem = stats.find(s => s.id === stockForm.catalogo_id);
-        const areaCode = activeArea.slice(0, 2).toUpperCase();
-        const year = new Date().getFullYear().toString().slice(-2);
-        
-        let newUnits = [];
-        for (let i = 1; i <= stockForm.cantidad; i++) {
-            const unitCode = i.toString().padStart(2, '0');
-            const uniqueID = `${areaCode}-${catalogItem.prefijo}-${year}-${stockForm.lote}/${unitCode}`;
+        try {
+            const catalogItem = stats.find(s => s.id === stockForm.catalogo_id);
+            const areaCode = activeArea.slice(0, 2).toUpperCase();
+            const year = new Date().getFullYear().toString().slice(-2);
             
-            newUnits.push({
-                catalogo_id: stockForm.catalogo_id,
-                codigo_barras_unico: uniqueID,
-                lote_numero: stockForm.lote,
-                caducidad: stockForm.caducidad,
-                area_actual: activeArea,
-                estatus: 'Almacenado'
-            });
-        }
+            let newUnits = [];
+            for (let i = 1; i <= stockForm.cantidad; i++) {
+                const unitCode = i.toString().padStart(2, '0');
+                const uniqueID = `${areaCode}-${catalogItem.prefijo}-${year}-${stockForm.lote}/${unitCode}`;
+                
+                newUnits.push({
+                    catalogo_id: stockForm.catalogo_id,
+                    codigo_barras_unico: uniqueID,
+                    lote_numero: stockForm.lote,
+                    caducidad: stockForm.caducidad,
+                    area_actual: activeArea,
+                    estatus: 'Almacenado'
+                });
+            }
 
-        const { error } = await supabase.from('materiales_unidades').insert(newUnits);
+            const { error } = await supabase.from('materiales_unidades').insert(newUnits);
 
-        if (!error) {
+            if (error) throw error;
+
+            alert(`✅ ${stockForm.cantidad} unidades ingresadas a stock correctamente.`);
             setShowStockModal(false);
             setStockForm({ catalogo_id: '', lote: '', caducidad: '', cantidad: 1 });
             fetchData();
-        } else alert('Error al registrar stock');
+        } catch (err) {
+            console.error('Error stock:', err);
+            alert('❌ Error al registrar entrada de stock: ' + err.message);
+        }
     };
 
     const filteredStats = stats.filter(i => i.nombre.toLowerCase().includes(searchTerm.toLowerCase()));

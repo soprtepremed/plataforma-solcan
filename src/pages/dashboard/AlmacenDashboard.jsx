@@ -11,20 +11,53 @@ export default function AlmacenDashboard() {
     const [showDetail, setShowDetail] = useState(false);
     const [stats, setStats] = useState({ pendientes: 0, surtidos: 0, urgentes: 0 });
 
+    const [lowStock, setLowStock] = useState([]);
+    const [expiringItems, setExpiringItems] = useState([]);
+
     const fetchVales = async () => {
         setLoading(true);
-        const { data, error } = await supabase
+        // 1. Vales y solicitudes
+        const { data: valesData, error: valesErr } = await supabase
             .from('solicitudes_vale')
             .select(`*, solicitante:empleados(nombre), items:solicitudes_items(*, material:materiales_catalogo(*))`)
             .order('created_at', { ascending: false });
 
-        if (!error && data) {
-            setVales(data);
-            const pend = data.filter(v => v.estatus === 'Pendiente').length;
-            const surt = data.filter(v => v.estatus === 'Surtido Total').length;
-            const urg = data.filter(v => v.prioridad === 'Urgente' && v.estatus === 'Pendiente').length;
+        if (!valesErr && valesData) {
+            setVales(valesData);
+            const pend = valesData.filter(v => v.estatus === 'Pendiente').length;
+            const surt = valesData.filter(v => v.estatus === 'Surtido Total').length;
+            const urg = valesData.filter(v => v.prioridad === 'Urgente' && v.estatus === 'Pendiente').length;
             setStats({ pendientes: pend, surtidos: surt, urgentes: urg });
         }
+
+        // 2. Alertas de Inventario (Real)
+        const { data: catData } = await supabase.from('materiales_catalogo').select('id, nombre, stock_minimo');
+        const { data: unitData } = await supabase.from('materiales_unidades').select('catalogo_id, estatus, caducidad');
+
+        if (catData && unitData) {
+            const low = catData.filter(item => {
+                const count = unitData.filter(u => u.catalogo_id === item.id && u.estatus === 'Almacenado').length;
+                return count < item.stock_minimo;
+            }).map(item => ({
+                nombre: item.nombre,
+                actual: unitData.filter(u => u.catalogo_id === item.id && u.estatus === 'Almacenado').length,
+                minimo: item.stock_minimo
+            }));
+            setLowStock(low);
+
+            // Caducidades próximas (30 días)
+            const hoy = new Date();
+            const limite = new Date();
+            limite.setDate(hoy.getDate() + 30);
+
+            const expiring = unitData.filter(u => u.estatus === 'Almacenado' && u.caducidad && new Date(u.caducidad) < limite)
+                .map(u => ({
+                    nombre: catData.find(c => c.id === u.catalogo_id)?.nombre || 'Material',
+                    caducidad: u.caducidad
+                }));
+            setExpiringItems(expiring.slice(0, 5)); // Top 5
+        }
+
         setLoading(false);
     };
 
@@ -32,17 +65,59 @@ export default function AlmacenDashboard() {
         fetchVales();
     }, []);
 
-    const handleSurtir = async (valeId, items) => {
-        // Lógica simplificada: marcar como surtido
-        const { error } = await supabase
-            .from('solicitudes_vale')
-            .update({ estatus: 'Surtido Total' })
-            .eq('id', valeId);
+    const handleSurtir = async (valeId, items, areaDestino) => {
+        if (!items || items.length === 0) return;
         
-        if (!error) {
-            alert('✅ Vale surtido con éxito.');
+        setLoading(true);
+        try {
+            for (const item of items) {
+                // 1. Buscar unidades disponibles (Almacenado) de este material
+                const { data: units, error: fetchErr } = await supabase
+                    .from('materiales_unidades')
+                    .select('id')
+                    .eq('catalogo_id', item.catalogo_id)
+                    .eq('estatus', 'Almacenado')
+                    .limit(item.cantidad_solicitada);
+
+                if (fetchErr) throw fetchErr;
+
+                if (units && units.length > 0) {
+                    // 2. Mover estas unidades al área técnica destino
+                    const unitIds = units.map(u => u.id);
+                    const { error: updErr } = await supabase
+                        .from('materiales_unidades')
+                        .update({ 
+                            area_actual: areaDestino.toLowerCase(),
+                            // Registramos quién lo surtió si queremos (opcional)
+                        })
+                        .in('id', unitIds);
+                    
+                    if (updErr) throw updErr;
+
+                    // 3. Registrar cantidad surtida en el ítem del vale
+                    await supabase
+                        .from('solicitudes_items')
+                        .update({ cantidad_surtida: units.length })
+                        .eq('id', item.id);
+                }
+            }
+
+            // 4. Marcar vale como Surtido Total
+            const { error: finalErr } = await supabase
+                .from('solicitudes_vale')
+                .update({ estatus: 'Surtido Total' })
+                .eq('id', valeId);
+            
+            if (finalErr) throw finalErr;
+
+            alert('✅ Vale surtido con éxito e inventario actualizado.');
             setShowDetail(false);
             fetchVales();
+        } catch (err) {
+            console.error('Error al surtir:', err);
+            alert('❌ Error al procesar el surtido: ' + err.message);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -119,17 +194,24 @@ export default function AlmacenDashboard() {
                 <aside className={styles.sidePanel}>
                     <div className={styles.panel}>
                         <div className={styles.panelHeader}>
-                            <h2>Alertas de Almacén</h2>
+                            <h2>Alertas de Almacén (Real)</h2>
                         </div>
                         <div style={{padding: '1.5rem'}}>
-                            <div className={styles.stockAlert}>
-                                <strong>⚠️ Stock Bajo (Hematología)</strong>
-                                <p>Tubos Rojos están por debajo del mínimo (80/100).</p>
-                            </div>
-                            <div className={styles.stockAlert} style={{background: '#fef2f2', borderColor: '#ef4444'}}>
-                                <strong>🚨 Caducidad Próxima</strong>
-                                <p>Lote RH-202 de Reactivo Química vence en 5 días.</p>
-                            </div>
+                            {lowStock.length === 0 && expiringItems.length === 0 && (
+                                <p style={{fontSize: '0.8rem', color: '#64748B'}}>No hay alertas críticas detectadas.</p>
+                            )}
+                            {lowStock.map((item, idx) => (
+                                <div key={`low-${idx}`} className={styles.stockAlert}>
+                                    <strong>⚠️ Stock Bajo</strong>
+                                    <p>{item.nombre} está bajo el mínimo ({item.actual}/{item.minimo}).</p>
+                                </div>
+                            ))}
+                            {expiringItems.map((item, idx) => (
+                                <div key={`exp-${idx}`} className={styles.stockAlert} style={{background: '#fef2f2', borderColor: '#ef4444'}}>
+                                    <strong>🚨 Caducidad Próxima</strong>
+                                    <p>{item.nombre} vence el {new Date(item.caducidad).toLocaleDateString()}.</p>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </aside>
@@ -162,11 +244,11 @@ export default function AlmacenDashboard() {
                                 {selectedVale.items.map(item => (
                                     <tr key={item.id}>
                                         <td>{item.material?.nombre}</td>
-                                        <td>{item.material?.unidad}</td>
+                                        <td>{item.material?.unidad || 'Pieza'}</td>
                                         <td><strong>{item.cantidad_solicitada}</strong></td>
-                                        <td>150 (Ejemplo)</td>
+                                        <td>{item.material?.stock_actual || 'Consultando...'}</td>
                                         <td>
-                                            <input type="number" defaultValue={item.cantidad_solicitada} className={styles.inputQty} />
+                                            <input type="number" defaultValue={item.cantidad_solicitada} className={styles.inputQty} readOnly />
                                         </td>
                                     </tr>
                                 ))}
@@ -175,7 +257,13 @@ export default function AlmacenDashboard() {
 
                         <div className={styles.modalActions}>
                             <button className={styles.actionBtn} onClick={() => setShowDetail(false)}>Cerrar</button>
-                            <button className={styles.confirmBtn} onClick={() => handleSurtir(selectedVale.id)}>Marcar como Surtido y Finalizar</button>
+                            <button 
+                                className={styles.confirmBtn} 
+                                onClick={() => handleSurtir(selectedVale.id, selectedVale.items, selectedVale.area_destino)}
+                                disabled={selectedVale.estatus === 'Surtido Total'}
+                            >
+                                {selectedVale.estatus === 'Surtido Total' ? 'Vale ya Finalizado' : 'Surtir y Transferir Material'}
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -79,26 +79,51 @@ export default function EnvioMuestras() {
     return { ambAlert, refAlert };
   };
 
-  const triggerBeep = () => {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(880, audioContext.currentTime);
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
-    gain.gain.setValueAtTime(0.1, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-    osc.start();
-    osc.stop(audioContext.currentTime + 0.5);
+  // Gestión de Sonido Singleton (Optimización de Recursos)
+  const [audioCtx, setAudioCtx] = useState(null);
+  useEffect(() => {
+    return () => { if (audioCtx) audioCtx.close(); };
+  }, [audioCtx]);
+
+  const playDing = () => {
+    try {
+      let ctx = audioCtx;
+      if (!ctx) {
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        setAudioCtx(ctx);
+      }
+      
+      const playNote = (freq, start, duration) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+        gain.gain.setValueAtTime(0, ctx.currentTime + start);
+        gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + start + 0.01); 
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + start + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + duration);
+      };
+
+      // Melodía rítmica (Double-Ding tipo iOS) repetida por 4 segundos
+      for (let i = 0; i < 6; i++) {
+        const offset = i * 0.7; // Espaciado entre repeticiones
+        playNote(1567.98, offset, 0.3); // Nota aguda (Sol 6)
+        playNote(1174.66, offset + 0.12, 0.5); // Nota media (Re 6)
+      }
+    } catch (err) {
+      console.warn("Audio blocked:", err);
+    }
   };
 
   React.useEffect(() => {
     const alerts = checkAlerts();
     let interval;
     if (alerts.ambAlert || alerts.refAlert) {
-      triggerBeep();
-      interval = setInterval(triggerBeep, 1500);
+      playDing();
+      interval = setInterval(playDing, 4000);
     }
     return () => { if (interval) clearInterval(interval); };
   }, [tempAmb, tempRef]);
@@ -181,7 +206,7 @@ export default function EnvioMuestras() {
       rojo: 0, dorado: 0, lila: 0, celeste: 0, verde: 0,
       orina: 0, orina_24h: 0, medio_transporte: 0, hisopo: 0, laminilla_he: 0, laminilla_mi: 0, heces: 0
     });
-    setFormatos({ f_do_001: false, f_da_001: false, f_qc_020: false, f_rm_004: false });
+    setFormatos({ f_do_001: 0, f_da_001: 0, f_qc_020: 0, f_rm_004: 0 });
     setObservaciones("");
     setOtrosCant("");
     setOtrosAnalisis("");

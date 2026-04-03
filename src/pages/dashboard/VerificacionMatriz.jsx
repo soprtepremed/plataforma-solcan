@@ -16,28 +16,41 @@ const MATERIAL_KEYS = [
   { key: "orina", label: "Tubo con Orina", icon: "opacity", area: "uro" },
 ];
 
-const playAlarm = () => {
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  const triggerBeep = (freq, start, duration) => {
-    const osc = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    osc.type = "square";
-    osc.frequency.setValueAtTime(freq, audioContext.currentTime + start);
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
-    gain.gain.setValueAtTime(0.1, audioContext.currentTime + start);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + start + duration);
-    osc.start(audioContext.currentTime + start);
-    osc.stop(audioContext.currentTime + start + duration);
-    return osc;
-  };
-  triggerBeep(1200, 0, 0.1);
-  triggerBeep(1200, 0.2, 0.1);
-  triggerBeep(1200, 0.4, 0.1);
-  return { oscillator: { stop: () => {} }, audioContext };
-};
-
 export default function VerificacionMatriz() {
+  // Gestión de Alarma Singleton (Optimización de Recursos)
+  const [audioCtx, setAudioCtx] = useState(null);
+  useEffect(() => {
+    return () => { if (audioCtx) audioCtx.close(); };
+  }, [audioCtx]);
+
+  const playAlarm = () => {
+    try {
+      let ctx = audioCtx;
+      if (!ctx) {
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        setAudioCtx(ctx);
+      }
+      const triggerBeep = (freq, start, duration) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(0.1, ctx.currentTime + start);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + start + duration);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + duration);
+        return osc;
+      };
+      triggerBeep(1200, 0, 0.1);
+      triggerBeep(1200, 0.2, 0.1);
+      triggerBeep(1200, 0.4, 0.1);
+    } catch (err) {
+      console.warn("Audio blocked:", err);
+    }
+  };
+
   const navigate = useNavigate();
   const { user } = useAuth();
   const [envios, setEnvios] = useState([]);
@@ -120,10 +133,10 @@ export default function VerificacionMatriz() {
           f_rm_004: env.f_rm_004 || 0
         },
         formatos_rec: {
-          f_do_001: env.f_do_001 || 0,
-          f_da_001: env.f_da_001 || 0,
-          f_qc_020: env.f_qc_020 || 0,
-          f_rm_004: env.f_rm_004 || 0
+          f_do_001: env.status === 'Recibido' ? (env.r_f_do_001 || 0) : (env.f_do_001 || 0),
+          f_da_001: env.status === 'Recibido' ? (env.r_f_da_001 || 0) : (env.f_da_001 || 0),
+          f_qc_020: env.status === 'Recibido' ? (env.r_f_qc_020 || 0) : (env.f_qc_020 || 0),
+          f_rm_004: env.status === 'Recibido' ? (env.r_f_rm_004 || 0) : (env.f_rm_004 || 0)
         },
         formatos_verified: {
           f_do_001: env.status === 'Recibido',
@@ -226,6 +239,7 @@ export default function VerificacionMatriz() {
     if (isCrisis) { startAlarm(); alert("¡ALERTA TÉRMICA DETECTADA!"); }
     const initials = user?.name?.split(" ").map(n => n[0]).join("").substring(0, 3).toUpperCase() || "SOL";
     const timeShort = new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" });
+    
     const { error } = await supabase.from("logistica_envios").update({
       [`a_${areaRecibe}_user`]: initials,
       [`a_${areaRecibe}_time`]: timeShort,
@@ -233,7 +247,24 @@ export default function VerificacionMatriz() {
       temp_entra_ref: parseFloat(envio.t_rec.ref),
       hora_recepcion: new Date().toISOString(),
       recibido_por: user?.name || "Usuario Sistema",
+      // Persistencia de Auditoría Física (Recibido)
+      r_dorado: envio.rec_values.dorado,
+      r_rojo: envio.rec_values.rojo,
+      r_lila: envio.rec_values.lila,
+      r_celeste: envio.rec_values.celeste,
+      r_verde: envio.rec_values.verde,
+      r_petri: envio.rec_values.petri,
+      r_laminilla: envio.rec_values.laminilla,
+      r_suero: envio.rec_values.suero,
+      r_papel: envio.rec_values.orina,
+      // Persistencia de Formatos
+      r_f_do_001: envio.formatos_rec.f_do_001,
+      r_f_da_001: envio.formatos_rec.f_da_001,
+      r_f_qc_020: envio.formatos_rec.f_qc_020,
+      r_f_rm_004: envio.formatos_rec.f_rm_004,
+      observaciones_recepcion: envio.obs
     }).eq("id", envio.id);
+
     if (error) alert("Error: " + error.message);
     else { 
       // Notificar al Chofer (si hay mensajero_id)
@@ -259,7 +290,22 @@ export default function VerificacionMatriz() {
     const { error } = await supabase.from("logistica_envios").update({
       status: 'Recibido',
       hora_recepcion: new Date().toISOString(),
-      recibido_por: user?.name || "Usuario Sistema"
+      recibido_por: user?.name || "Usuario Sistema",
+      // En cierre global también aseguramos persistencia si se editó algo
+      r_dorado: envio.rec_values.dorado,
+      r_rojo: envio.rec_values.rojo,
+      r_lila: envio.rec_values.lila,
+      r_celeste: envio.rec_values.celeste,
+      r_verde: envio.rec_values.verde,
+      r_petri: envio.rec_values.petri,
+      r_laminilla: envio.rec_values.laminilla,
+      r_suero: envio.rec_values.suero,
+      r_papel: envio.rec_values.orina,
+      r_f_do_001: envio.formatos_rec.f_do_001,
+      r_f_da_001: envio.formatos_rec.f_da_001,
+      r_f_qc_020: envio.formatos_rec.f_qc_020,
+      r_f_rm_004: envio.formatos_rec.f_rm_004,
+      observaciones_recepcion: envio.obs
     }).eq("id", envio.id);
     if (error) alert("Error: " + error.message);
     else { 
