@@ -444,6 +444,21 @@ export default function VerificacionMatriz() {
                         </div>
                       </div>
 
+                      <div className={styles.areaSelectorBox}>
+                        <label>📍 ¿Para qué área técnica recibe?</label>
+                        <div className={styles.areaQuickSelect}>
+                          {AREAS_SOLCAN.map(a => (
+                            <button 
+                              key={a.key} 
+                              className={`${styles.areaBtnPill} ${areaRecibe === a.key ? styles.areaBtnPillActive : ''}`}
+                              onClick={() => setAreaRecibe(a.key)}
+                            >
+                              {a.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
                       <div className={styles.auditChecklist}>
                           <div className={styles.checklistGridHeader}>
                              <span>Material</span>
@@ -565,20 +580,6 @@ export default function VerificacionMatriz() {
                             value={envio.obs}
                             onChange={(e) => setEnvios(prev => prev.map(ev => ev.id === envio.id ? {...ev, obs: e.target.value} : ev))}
                           />
-                          <div className={styles.areaSelectorBox}>
-                            <label>📍 ¿Para qué área técnica recibe?</label>
-                            <div className={styles.areaQuickSelect}>
-                              {AREAS_SOLCAN.map(a => (
-                                <button 
-                                  key={a.key} 
-                                  className={`${styles.areaBtnPill} ${areaRecibe === a.key ? styles.areaBtnPillActive : ''}`}
-                                  onClick={() => setAreaRecibe(a.key)}
-                                >
-                                  {a.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
                           <div className={styles.actionsContainer}>
                             <button className={styles.cancelBtn} onClick={() => setActiveReceptionId(null)}>Cancelar</button>
                             <button className={styles.saveBtn} onClick={() => handleFinalizar(envio)}>

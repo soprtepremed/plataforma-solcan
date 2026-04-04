@@ -266,7 +266,40 @@
 .notifContent { flex: 1; text-align: left; }
 .notifTitle { font-weight: 800; font-size: 0.85rem; margin-bottom: 3px; color: var(--co-primary); }
 .notifBody { font-size: 0.8rem; color: #64748B; margin-bottom: 6px; line-height: 1.4; }
-.notifTime { font-size: 0.7rem; color: #94A3B8; font-weight: 600; }
+.notifTime { font-size: 0.75rem; color: #94A3B8; font-weight: 700; }
+
+.notifMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.dismissBtn {
+  background: #F1F5F9;
+  border: none;
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #94A3B8;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.dismissBtn:hover {
+  background: #EF4444;
+  color: white;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.dismissBtn span {
+  font-size: 14px;
+}
 
 .emptyNotif { padding: 40px; text-align: center; color: #94A3B8; font-size: 0.85rem; }
 

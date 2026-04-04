@@ -124,12 +124,17 @@ export default function TopNavbar() {
     if (!user) return;
 
     const fetchNotifications = async () => {
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const isoToday = today.toISOString();
+
       const { data } = await supabase
         .from('notificaciones')
         .select('*')
         .or(`role.eq.${user.role},user_id.eq.${user.id},metadata->>sucursal.eq."${user.branch}"`)
+        .gte('created_at', isoToday)
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(20);
       if (data) setNotifications(data);
     };
 
@@ -149,7 +154,12 @@ export default function TopNavbar() {
                         (nuevo.metadata && nuevo.metadata.sucursal === user.branch);
 
         if (isForMe) {
-          setNotifications(prev => [nuevo, ...prev].slice(0, 10));
+          // Solo agregar si es de hoy (para consistencia con el filtro inicial)
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          if (new Date(nuevo.created_at) >= today) {
+            setNotifications(prev => [nuevo, ...prev].slice(0, 20));
+          }
           
           // Notificación Nativa mediante Service Worker (VITAL para móvil)
           if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
@@ -164,8 +174,12 @@ export default function TopNavbar() {
             });
           }
 
-          // Sonido de campana - Ejecución rápida
-          playDing();
+          // Sonido diferenciado por rol
+          if (user.role === 'mensajero') {
+            playSample('tritone');
+          } else {
+            playSample('note');
+          }
         }
       })
       .subscribe({
@@ -177,43 +191,23 @@ export default function TopNavbar() {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  // Gestión de Sonido Singleton (Optimización de Recursos)
-  const [audioCtx, setAudioCtx] = useState(null);
-  useEffect(() => {
-    return () => { if (audioCtx) audioCtx.close(); };
-  }, [audioCtx]);
+  const formatNotifDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    
+    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    if (isToday) return timeStr;
+    
+    return `${date.toLocaleDateString([], { day: '2-digit', month: 'short' })}, ${timeStr}`;
+  };
 
-  const playDing = () => {
-    try {
-      let ctx = audioCtx;
-      if (!ctx) {
-        ctx = new (window.AudioContext || window.webkitAudioContext)();
-        setAudioCtx(ctx);
-      }
-      
-      const playNote = (freq, start, duration) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
-        gain.gain.setValueAtTime(0, ctx.currentTime + start);
-        gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + start + 0.01); 
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + start + duration);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(ctx.currentTime + start);
-        osc.stop(ctx.currentTime + start + duration);
-      };
-
-      // Melodía rítmica (Double-Ding tipo iOS) repetida por 4 segundos
-      for (let i = 0; i < 6; i++) {
-        const offset = i * 0.7; // Espaciado entre repeticiones
-        playNote(1567.98, offset, 0.3); // Nota aguda (Sol 6)
-        playNote(1174.66, offset + 0.12, 0.5); // Nota media (Re 6)
-      }
-    } catch (err) {
-      console.warn("Audio blocked:", err);
-    }
+  const dismissNotification = async (e, id) => {
+    e.stopPropagation();
+    // Animación optimista: Eliminamos de la lista local
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    // Eliminamos de la base de datos para que no reaparezca
+    await supabase.from('notificaciones').delete().eq('id', id);
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -357,8 +351,15 @@ export default function TopNavbar() {
                         <div className={styles.notifContent}>
                           <div className={styles.notifTitle}>{n.title}</div>
                           <div className={styles.notifBody}>{n.message}</div>
-                          <div className={styles.notifTime}>
-                            {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
+                          <div className={styles.notifMeta}>
+                             <span className={styles.notifTime}>{formatNotifDate(n.created_at)}</span>
+                             <button 
+                               className={styles.dismissBtn} 
+                               onClick={(e) => dismissNotification(e, n.id)}
+                               title="Descartar"
+                             >
+                                <span className="material-symbols-rounded">close</span>
+                             </button>
                           </div>
                         </div>
                       </div>

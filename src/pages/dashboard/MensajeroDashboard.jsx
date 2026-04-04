@@ -17,6 +17,7 @@ export default function MensajeroDashboard() {
   const [pendientes, setPendientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
   const navigate = useNavigate();
 
   const fetchPendientes = async () => {
@@ -182,7 +183,7 @@ export default function MensajeroDashboard() {
                       <span className={styles.galleryLabel}>Evidencias de Origen:</span>
                       <div className={styles.miniGallery}>
                         {photos.map((url, i) => (
-                          <div key={i} className={styles.miniThumb} onClick={() => window.open(url, '_blank')}>
+                          <div key={i} className={styles.miniThumb} onClick={() => setPreviewImage(url)}>
                             <img src={url} alt={`Evidencia ${i+1}`} />
                           </div>
                         ))}
@@ -222,7 +223,17 @@ export default function MensajeroDashboard() {
           </div>
         </div>
       )}
+
+      {previewImage && (
+        <div className={styles.imagePreviewOverlay} onClick={() => setPreviewImage(null)}>
+           <div className={styles.imagePreviewContent} onClick={(e) => e.stopPropagation()}>
+              <button className={styles.closePreviewBtn} onClick={() => setPreviewImage(null)}>
+                <span className="material-symbols-rounded">close</span>
+              </button>
+              <img src={previewImage} alt="Vista previa" className={styles.previewFullImg} />
+           </div>
+        </div>
+      )}
     </div>
   );
 }
-

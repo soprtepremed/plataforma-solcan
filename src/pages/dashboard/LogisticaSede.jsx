@@ -111,31 +111,110 @@ export default function LogisticaSede() {
           <div style={{textAlign: 'center', padding: '2rem'}}>Cargando historial...</div>
         ) : envios.length > 0 ? (
           envios.map(envio => (
-            <div key={envio.id} className={styles.shipmentItem}>
-              <div className={styles.shipDate}>
-                <strong>{new Date(envio.created_at).toLocaleDateString()}</strong>
-                <div style={{fontSize: '0.75rem'}}>{new Date(envio.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-              </div>
-
-              <div className={`${styles.shipStatus} ${styles['status-' + envio.status.replace(' ', '')]}`}>
-                <span className="material-symbols-rounded" style={{fontSize: '18px'}}>
-                  {envio.status === 'Pendiente' ? 'schedule' : 
-                   envio.status === 'En Tránsito' ? 'conveyor_belt' : 'done_all'}
-                </span>
-                {envio.status}
-              </div>
-
-              <div>
-                {envio.observaciones_recepcion && (
-                  <div className={styles.obsBadge}>
-                    <span className="material-symbols-rounded" style={{fontSize: '16px'}}>feedback</span>
-                    Reporte de Matriz
+            <div key={envio.id} className={styles.shipmentCard}>
+              <div className={styles.cardMain}>
+                <div className={styles.shipMainInfo}>
+                  <div className={styles.dateBox}>
+                    <span className="material-symbols-rounded">calendar_today</span>
+                    <div>
+                      <strong>{new Date(envio.created_at).toLocaleDateString()}</strong>
+                      <div className={styles.timeStr}>{new Date(envio.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                    </div>
                   </div>
-                )}
+                  <div className={`${styles.statusBadge} ${styles['status-' + envio.status.replace(/ /g, '')]}`}>
+                    <span className="material-symbols-rounded">
+                      {envio.status === 'Pendiente' ? 'schedule' : 
+                       envio.status === 'En Tránsito' ? 'local_shipping' : 'verified'}
+                    </span>
+                    {envio.status}
+                  </div>
+                </div>
+
+                <div className={styles.formalCargoReport}>
+                  <div className={styles.reportHeader}>REPORTE DIGITAL DE CARGA (FO-DO-017)</div>
+                  <div className={styles.dualTableContainer}>
+                    <table className={styles.cargoTable}>
+                      <thead>
+                        <tr>
+                          <th>Muestras / Biológicos</th>
+                          <th>Cant.</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {envio.s_lila > 0 && <tr><td>Tubo Lila (EDTA)</td><td>{envio.s_lila}</td></tr>}
+                        {envio.s_rojo > 0 && <tr><td>Tubo Rojo (Suero)</td><td>{envio.s_rojo}</td></tr>}
+                        {envio.s_dorado > 0 && <tr><td>Tubo Dorado (Separador)</td><td>{envio.s_dorado}</td></tr>}
+                        {envio.s_celeste > 0 && <tr><td>Tubo Celeste (Citratos)</td><td>{envio.s_celeste}</td></tr>}
+                        {envio.s_verde > 0 && <tr><td>Tubo Verde (Heparina)</td><td>{envio.s_verde}</td></tr>}
+                        {envio.s_papel > 0 && <tr><td>Tubo Orina / Papel</td><td>{envio.s_papel}</td></tr>}
+                        {envio.s_orina_24h > 0 && <tr><td>Orina 24 Horas</td><td>{envio.s_orina_24h}</td></tr>}
+                        {envio.s_medio_transporte > 0 && <tr><td>Medio de Transporte</td><td>{envio.s_medio_transporte}</td></tr>}
+                        {envio.s_hisopo > 0 && <tr><td>Tubo Vidrio con Hisopo</td><td>{envio.s_hisopo}</td></tr>}
+                        {envio.s_laminilla_he > 0 && <tr><td>Laminilla HE</td><td>{envio.s_laminilla_he}</td></tr>}
+                        {envio.s_laminilla_mi > 0 && <tr><td>Laminilla MI</td><td>{envio.s_laminilla_mi}</td></tr>}
+                        {envio.s_heces > 0 && <tr><td>Muestra de Heces</td><td>{envio.s_heces}</td></tr>}
+                      </tbody>
+                    </table>
+
+                    <table className={styles.cargoTable}>
+                      <thead>
+                        <tr>
+                          <th>Formatos de Control</th>
+                          <th>Cant.</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {envio.f_do_001 > 0 && <tr className={styles.rowFormat}><td>FO-DO-001 (Sol. Análisis)</td><td>{envio.f_do_001}</td></tr>}
+                        {envio.f_da_001 > 0 && <tr className={styles.rowFormat}><td>FO-DA-001 (Control Mues.)</td><td>{envio.f_da_001}</td></tr>}
+                        {envio.f_qc_020 > 0 && <tr className={styles.rowFormat}><td>FO-QC-020 (Bitácora Mens.)</td><td>{envio.f_qc_020}</td></tr>}
+                        {envio.f_rm_004 > 0 && <tr className={styles.rowFormat}><td>FO-RM-004 (Inventario)</td><td>{envio.f_rm_004}</td></tr>}
+                        
+                        <tr className={styles.rowOtherHeader}>
+                          <th colSpan="2">Otros Cargos</th>
+                        </tr>
+                        {envio.s_otros_cant ? (
+                          <tr className={styles.rowOther}>
+                            <td>{envio.s_otros_analisis || 'Otros'}</td>
+                            <td>{envio.s_otros_cant}</td>
+                          </tr>
+                        ) : (
+                          <tr><td colSpan="2" style={{color:'#CBD5E1', fontSize:'0.7rem', fontStyle:'italic'}}>Sin otros cargos registrados</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className={styles.logisticsDetails}>
+                   <div className={styles.logItem}>
+                      <span className="material-symbols-rounded">person</span>
+                      <span>Mensajero: <strong>{envio.mensajero_id || 'Por asignar'}</strong></span>
+                   </div>
+                   <div className={styles.logItem}>
+                      <span className="material-symbols-rounded">thermostat</span>
+                      <span>Temp. Salida: <strong>{envio.temp_sale_amb || 'N/A'}°C / {envio.temp_sale_ref || 'N/A'}°C</strong></span>
+                   </div>
+                   {envio.status === 'Recibido' && (
+                     <div className={styles.logItem} style={{color: '#059669'}}>
+                        <span className="material-symbols-rounded">check_circle</span>
+                        <span>Recibido por: <strong>{envio.recibido_por?.split(' ')[0]}</strong></span>
+                     </div>
+                   )}
+                </div>
               </div>
 
-              <div style={{color: 'var(--co-text-muted)', fontSize: '0.8rem'}}>
-                ID: {envio.id.slice(0,8)}...
+              {envio.observaciones_recepcion && (
+                <div className={styles.feedbackArea}>
+                   <div className={styles.obsBadge}>
+                      <span className="material-symbols-rounded">feedback</span>
+                      Reporte de Matriz: <em>{envio.observaciones_recepcion}</em>
+                   </div>
+                </div>
+              )}
+              
+              <div className={styles.cardFooter}>
+                <span className={styles.shipId}>ID: {envio.id.slice(0,8).toUpperCase()}</span>
+                {envio.hora_recoleccion && <span className={styles.footerTime}>Recolectado: {new Date(envio.hora_recoleccion).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>}
               </div>
             </div>
           ))
