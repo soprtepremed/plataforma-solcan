@@ -176,21 +176,41 @@ export default function TopNavbar() {
   };
 
   const handlePushToggle = async () => {
+    if (isSubscribing) return;
+    setIsSubscribing(true);
 
-    if (Notification.permission !== 'granted') {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
+    try {
+      if (pushSubscribed) {
+        // Lógica de DESACTIVACIÓN (OFF)
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          await subscription.unsubscribe();
+          // Opcional: Eliminar de la base de datos
+          await supabase.from('push_subscriptions').delete().match({ user_id: user.id });
+        }
+        setPushSubscribed(false);
+        playSample('note'); // Sonido de desactivación
+      } else {
+        // Lógica de ACTIVACIÓN (ON)
+        if (Notification.permission !== 'granted') {
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') {
+            setIsSubscribing(false);
+            return;
+          }
+        }
         await performPushSubscription();
-        // Feedback inmediato
         setPushSubscribed(true);
         playSample('ding');
       }
-    } else {
-      await performPushSubscription();
-      setPushSubscribed(true);
-      playSample('ding');
+    } catch (err) {
+      console.error('Push Toggle Error:', err);
+    } finally {
+      setIsSubscribing(false);
     }
   };
+
 
 
   // Efecto de inicialización automática
