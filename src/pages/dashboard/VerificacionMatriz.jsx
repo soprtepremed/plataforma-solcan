@@ -624,9 +624,14 @@ export default function VerificacionMatriz() {
                             <button className={styles.saveBtn} onClick={() => handleFinalizar(envio)}>
                               <span className="material-symbols-rounded">signature</span> Firmar {AREAS_SOLCAN.find(a => a.key === areaRecibe)?.label}
                             </button>
-                            {AREAS_SOLCAN.some(area => envio[`a_${area.key}_user`]) && (
-                              <button className={styles.globalCloseBtn} onClick={() => setConfirmInfo(envio)}>
-                                <span className="material-symbols-rounded">task_alt</span> Finalizar Envío Global
+                            {/* Solo el Administrador puede Cerrar Globalmente el Recibo */}
+                            {!isRecibido && (user?.role === 'admin' || user?.role === 'administrador') && (
+                              <button 
+                                className={styles.finishBtnGlobal}
+                                onClick={() => handleFinalizarGlobal(envio.id)}
+                              >
+                                <span className="material-symbols-rounded">done_all</span>
+                                Cerrar Recibo de Hielera
                               </button>
                             )}
                           </div>

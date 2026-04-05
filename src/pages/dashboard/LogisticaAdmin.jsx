@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import { useAuth } from "../../context/AuthContext";
 import styles from "./LogisticaAdmin.module.css";
 
 const AREAS_SOLCAN = [
@@ -13,12 +14,24 @@ const AREAS_SOLCAN = [
 ];
 
 export default function LogisticaAdmin() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("auditoria");
   const [data, setData] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterSucursal, setFilterSucursal] = useState("Todas");
   const [searchUser, setSearchUser] = useState("");
+
+  // Guard de seguridad: Solo Administradores registrados
+  if (!user || (user.role.toLowerCase() !== 'admin' && user.role.toLowerCase() !== 'administrador')) {
+    return (
+      <div style={{ padding: '80px 20px', textAlign: 'center', minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <span className="material-symbols-rounded" style={{ fontSize: '4rem', color: '#EF4444', marginBottom: '1rem' }}>lock_person</span>
+        <h2 style={{ color: '#1E293B', marginBottom: '0.5rem' }}>Acceso Restringido</h2>
+        <p style={{ color: '#64748B', maxWidth: '400px' }}>Esta área es exclusiva para la Dirección General. Tu acceso ha sido registrado por motivos de auditoría clínica.</p>
+      </div>
+    );
+  }
 
   const fetchData = async () => {
     setLoading(true);

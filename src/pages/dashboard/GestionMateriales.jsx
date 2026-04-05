@@ -282,15 +282,17 @@ export default function GestionMateriales() {
                             </button>
                         ))}
                     </div>
-                    <div className={styles.adminBtns}>
-                        <button className={styles.plusBtn} onClick={() => setShowCatalogModal(true)} title="Nuevo Material">
-                            <span className="material-symbols-rounded">add_circle</span>
-                        </button>
-                        <button className={styles.entryBtn} onClick={() => setShowStockModal(true)}>
-                            <span className="material-symbols-rounded">inventory_2</span>
-                            Registrar Entrada
-                        </button>
-                    </div>
+                    {(user?.role === 'admin' || user?.role === 'administrador') && (
+                        <div className={styles.adminBtns}>
+                            <button className={styles.plusBtn} onClick={() => setShowCatalogModal(true)} title="Nuevo Material">
+                                <span className="material-symbols-rounded">add_circle</span>
+                            </button>
+                            <button className={styles.entryBtn} onClick={() => setShowStockModal(true)}>
+                                <span className="material-symbols-rounded">inventory_2</span>
+                                Registrar Entrada
+                            </button>
+                        </div>
+                    )}
                 </div>
             </header>
 

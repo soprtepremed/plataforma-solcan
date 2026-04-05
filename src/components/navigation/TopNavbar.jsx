@@ -227,13 +227,13 @@ export default function TopNavbar() {
     
     const role = user.role.toLowerCase();
 
-    if (role === 'admin' || role === 'almacen') {
+    if (role === 'admin' || role === 'administrador' || role === 'almacen') {
       const base = [
         { label: 'Gestión Almacén', path: '/almacen/dashboard' },
         { label: 'Inventario Global', path: '/logistica/materiales' },
         { label: 'Bitácora FO-DO-017', path: '/logistica/bitacora' }
       ];
-      if (role === 'admin') {
+      if (role === 'admin' || role === 'administrador') {
         base.push({ label: 'Auditoría Global', path: '/logistica/admin' });
         base.push({ label: 'Recepción Lab', path: '/logistica/recepcion' });
       }
@@ -245,12 +245,11 @@ export default function TopNavbar() {
       ];
     } else if (role === 'quimico') {
       return [
-        { label: 'Solicitar Material', path: '/almacen/solicitud' },
         { label: 'Recepción Matriz', path: '/logistica/recepcion' },
         { label: 'Bitácora FO-DO-017', path: '/logistica/bitacora' },
-        { label: 'Mis Materiales', path: '/logistica/materiales' }
+        { label: 'Solicitar Insumos', path: '/almacen/solicitud' }
       ];
-    } else if (role === 'recepcion') {
+    } else if (role === 'recepcion' || role === 'recepción') {
       return [
         { label: 'Preparar Envío', path: '/logistica/envio' },
         { label: 'Mi Bitácora', path: '/logistica/bitacora' },
