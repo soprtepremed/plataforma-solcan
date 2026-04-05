@@ -523,12 +523,7 @@ export default function TopNavbar() {
                 </div>
 
                 <div className={styles.profileActions}>
-                   <div className={styles.soundTestTitle}>🔉 MODO DE ALERTA (Prueba)</div>
-                   <div className={styles.soundTestGrid}>
-                      <button className={styles.soundBtn} onClick={() => playSample('tritone')}>Tritone</button>
-                      <button className={styles.soundBtn} onClick={() => playSample('note')}>Note</button>
-                      <button className={styles.soundBtn} onClick={() => playSample('ding')}>Ding</button>
-                   </div>
+
                    <div className={styles.profileDivider}></div>
                    {pushSupported && !pushSubscribed && (
                      <div className={styles.pushPromptCard}>
