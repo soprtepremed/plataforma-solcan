@@ -251,16 +251,17 @@ export default function TopNavbar() {
           } else {
             playSample('note');
           }
+          setCount(prev => prev + 1);
         }
       })
-      .subscribe({
-        onStatus: (status) => {
-          if (status === 'SUBSCRIBED') console.log('📡 Realtime de Solcan Conectado');
-        }
-      });
+      .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
+
 
   const formatNotifDate = (dateStr) => {
     const date = new Date(dateStr);
