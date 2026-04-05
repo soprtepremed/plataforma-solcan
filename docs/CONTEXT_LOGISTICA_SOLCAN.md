@@ -3,7 +3,9 @@
 Este documento resume las actualizaciones críticas realizadas en la plataforma Solcan para asegurar la continuidad técnica en futuras sesiones de desarrollo y minimizar el consumo de tokens de contexto.
 
 ## 1. Sistema de Notificaciones (TopNavbar)
-- **Filtro Temporal**: Se implementó una cláusula `WHERE` para cargar solo notificaciones del día en curso.
+- **Notificaciones de Fondo (Web Push API)**: Alertas nativas incluso con la APP cerrada.
+- **Arquitectura de Envío**: Trigger SQL -> Edge Function (Deno) -> Dispositivos del usuario.
+- **Filtro Temporal**: Cláusula `WHERE` para restringir a notificaciones del día.
 - **Jerarquía Sonora**: Role-based (Tritone para Mensajeros, Note para Sucursales).
 - **Rendimiento**: Uso de Singleton AudioContext.
 

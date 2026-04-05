@@ -20,6 +20,11 @@ export default function TopNavbar() {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
+
+  const VAPID_PUBLIC_KEY = 'BDQcmHxsTZt5zXvSixGMkwgFhOYM0q7nJ76Xr11MAZidIOl7T-UGYpA-LwDtVARJwMNwwiXgjqu_IRjqhCmwfY4';
 
   const onCropComplete = useCallback((_croppedArea, croppedAreaPixels) => {
     setCroppedAreaPixels(croppedAreaPixels);
@@ -112,12 +117,78 @@ export default function TopNavbar() {
     }
   };
 
-  // Pedir permiso para notificaciones nativas al cargar
-  useEffect(() => {
-    if (Notification.permission === 'default') {
-      Notification.requestPermission();
+  const urlBase64ToUint8Array = (base64String) => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
     }
-  }, []);
+    return outputArray;
+  };
+
+  const checkPushSubscription = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      setPushSupported(false);
+      return;
+    }
+    setPushSupported(true);
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    
+    // Auto-suscripción si ya hay permiso pero no hay suscripción activa en este navegador
+    if (Notification.permission === 'granted' && !subscription) {
+      performPushSubscription();
+    }
+    
+    setPushSubscribed(!!subscription);
+  };
+
+  const performPushSubscription = async () => {
+    if (isSubscribing) return;
+    setIsSubscribing(true);
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+
+      const { error } = await supabase.from('push_subscriptions').upsert({
+         user_id: user.id,
+         subscription: subscription,
+         device_name: navigator.userAgent.split(')')[0].split('(')[1] || 'Dispositivo Desconocido'
+      }, { onConflict: 'user_id, subscription' });
+
+      if (error) throw error;
+      setPushSubscribed(true);
+    } catch (err) {
+      console.error('Auto-Push Error:', err);
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
+  const handlePushToggle = async () => {
+    if (Notification.permission !== 'granted') {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        performPushSubscription();
+      }
+    } else {
+      // Si ya tiene permiso pero quiere desactivar/reactivar (clonamos lógica anterior o simplemente togglamos)
+      performPushSubscription(); 
+    }
+  };
+
+  // Efecto de inicialización automática
+  useEffect(() => {
+    if (user) {
+      checkPushSubscription();
+    }
+  }, [user]);
 
   // Suscripción en tiempo real a notificaciones
   useEffect(() => {
@@ -448,6 +519,25 @@ export default function TopNavbar() {
                       <button className={styles.soundBtn} onClick={() => playSample('ding')}>Ding</button>
                    </div>
                    <div className={styles.profileDivider}></div>
+                   {pushSupported && !pushSubscribed && (
+                     <div className={styles.pushPromptCard}>
+                        <div className={styles.pushPromptTitle}>⚠️ Notificaciones Desactivadas</div>
+                        <p>Actívalas para recibir alertas de ruta en tiempo real.</p>
+                        <button 
+                          className={styles.pushPromptBtn} 
+                          onClick={handlePushToggle}
+                          disabled={isSubscribing}
+                        >
+                           {isSubscribing ? 'Sincronizando...' : 'Activar Notificaciones'}
+                        </button>
+                     </div>
+                   )}
+                   {pushSupported && pushSubscribed && (
+                      <div className={styles.pushStatusActive}>
+                         <span className="material-symbols-rounded">check_circle</span>
+                         Notificaciones de fondo activas
+                      </div>
+                   )}
                    <button className={styles.profileActionBtn} onClick={() => { setShowProfile(false); document.getElementById('avatar-upload').click(); }}>
                       <span className="material-symbols-rounded">photo_camera</span>
                       Cambiar Foto de Perfil

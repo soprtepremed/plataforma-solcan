@@ -9,6 +9,7 @@ const MESSENGERS = [
   { id: "EDWARD", name: "Edward", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Edward" },
   { id: "ALEJANDRO", name: "Alejandro", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alejandro" },
   { id: "BULMARO", name: "Bulmaro", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Bulmaro" },
+  { id: "EDYR", name: "Edyr Arnaldo", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Edyr" },
 ];
 
 export default function MensajeroDashboard() {

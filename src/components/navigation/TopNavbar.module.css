@@ -442,9 +442,72 @@
   margin: 4px 0;
 }
 
+.pushPromptCard {
+  background: #FFFBEB;
+  border: 1px solid #FEF3C7;
+  padding: 12px;
+  border-radius: 12px;
+  margin: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pushPromptTitle {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #92400E;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pushPromptCard p {
+  font-size: 0.7rem;
+  color: #B45309;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.pushPromptBtn {
+  background: #F59E0B;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pushPromptBtn:hover {
+  background: #D97706;
+}
+
+.pushStatusActive {
+  padding: 10px;
+  background: #F0FDFA;
+  border: 1px solid #CCFBF1;
+  color: #0D9488;
+  font-size: 0.7rem;
+  font-weight: 750;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.pushStatusActive span {
+  font-size: 1.2rem;
+  color: #0D9488;
+}
+
 .logoutBtnAction {
   color: #EF4444;
 }
+
 
 .logoutBtnAction span {
   color: #EF4444;

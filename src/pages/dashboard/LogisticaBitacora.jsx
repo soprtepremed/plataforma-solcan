@@ -20,7 +20,8 @@ const MESSENGERS_MAP = {
   "ALBERT": "Alberth",
   "EDWARD": "Edward",
   "ALEJANDRO": "Alejandro",
-  "BULMARO": "Bulmaro"
+  "BULMARO": "Bulmaro",
+  "EDYR": "Edyr Arnaldo"
 };
 
 const SUC_MAP = {
@@ -82,8 +83,11 @@ export default function LogisticaBitacora() {
 
   const fetchLogs = async () => {
     setLoading(true);
-    const startOfDay = `${selectedDate}T00:00:00Z`;
-    const endOfDay = `${selectedDate}T23:59:59Z`;
+    const dStart = new Date(`${selectedDate}T00:00:00`);
+    const dEnd = new Date(`${selectedDate}T23:59:59`);
+    
+    const startOfDay = dStart.toISOString();
+    const endOfDay = dEnd.toISOString();
 
     let query = supabase
       .from("logistica_envios")
