@@ -525,25 +525,24 @@ export default function TopNavbar() {
                 <div className={styles.profileActions}>
 
                    <div className={styles.profileDivider}></div>
-                   {pushSupported && !pushSubscribed && (
-                     <div className={styles.pushPromptCard}>
-                        <div className={styles.pushPromptTitle}>⚠️ Notificaciones Desactivadas</div>
-                        <p>Actívalas para recibir alertas de ruta en tiempo real.</p>
-                        <button 
-                          className={styles.pushPromptBtn} 
-                          onClick={handlePushToggle}
-                          disabled={isSubscribing}
-                        >
-                           {isSubscribing ? 'Sincronizando...' : 'Activar Notificaciones'}
-                        </button>
-                     </div>
-                   )}
-                   {pushSupported && pushSubscribed && (
-                      <div className={styles.pushStatusActive}>
-                         <span className="material-symbols-rounded">check_circle</span>
-                         Notificaciones de fondo activas
+                    {pushSupported && (
+                      <div className={styles.pushToggleRow}>
+                         <div className={styles.pushToggleRowLabel}>
+                            <span>Notificaciones Push</span>
+                            <small>{pushSubscribed ? 'En segundo plano (ON)' : 'Inactivas (OFF)'}</small>
+                         </div>
+                         <label className={styles.toggleSwitch}>
+                            <input 
+                              type="checkbox" 
+                              checked={pushSubscribed} 
+                              onChange={handlePushToggle}
+                              disabled={isSubscribing}
+                            />
+                            <span className={styles.toggleSlider}></span>
+                         </label>
                       </div>
-                   )}
+                    )}
+
                    <button className={styles.profileActionBtn} onClick={() => { setShowProfile(false); document.getElementById('avatar-upload').click(); }}>
                       <span className="material-symbols-rounded">photo_camera</span>
                       Cambiar Foto de Perfil
