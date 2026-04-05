@@ -175,13 +175,18 @@ export default function TopNavbar() {
     if (Notification.permission !== 'granted') {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
-        performPushSubscription();
+        await performPushSubscription();
+        // Feedback inmediato
+        setPushSubscribed(true);
+        playSample('ding');
       }
     } else {
-      // Si ya tiene permiso pero quiere desactivar/reactivar (clonamos lógica anterior o simplemente togglamos)
-      performPushSubscription(); 
+      await performPushSubscription();
+      setPushSubscribed(true);
+      playSample('ding');
     }
   };
+
 
   // Efecto de inicialización automática
   useEffect(() => {
