@@ -137,21 +137,23 @@ export default function TopNavbar() {
     const registration = await navigator.serviceWorker.ready;
     const subscription = await registration.pushManager.getSubscription();
     
-    // Auto-suscripción si ya hay permiso pero no hay suscripción activa en este navegador
-    if (Notification.permission === 'granted' && !subscription) {
+    // Sincronización forzada: Si el navegador tiene suscripción, la aseguramos en la BD
+    if (subscription) {
+      performPushSubscription(subscription);
+    } else if (Notification.permission === 'granted') {
       performPushSubscription();
     }
     
     setPushSubscribed(!!subscription);
   };
 
-  const performPushSubscription = async () => {
-    if (isSubscribing) return;
+  const performPushSubscription = async (existingSub = null) => {
+    if (isSubscribing && !existingSub) return;
     setIsSubscribing(true);
     try {
       const registration = await navigator.serviceWorker.ready;
       
-      const subscription = await registration.pushManager.subscribe({
+      const subscription = existingSub || await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
       });
@@ -162,16 +164,19 @@ export default function TopNavbar() {
          device_name: navigator.userAgent.split(')')[0].split('(')[1] || 'Dispositivo Desconocido'
       }, { onConflict: 'user_id, subscription' });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error sincronizando Push con DB:', error);
+      }
       setPushSubscribed(true);
     } catch (err) {
-      console.error('Auto-Push Error:', err);
+      console.error('Auto-Push Sync Error:', err);
     } finally {
       setIsSubscribing(false);
     }
   };
 
   const handlePushToggle = async () => {
+
     if (Notification.permission !== 'granted') {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
