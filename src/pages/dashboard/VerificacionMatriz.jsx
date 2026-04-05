@@ -10,9 +10,10 @@ const MATERIAL_KEYS = [
   { key: "lila", label: "Tubo Lila", icon: "water_drop", area: "hemato" },
   { key: "celeste", label: "Tubo Celeste", icon: "water_drop", area: "hemato" },
   { key: "verde", label: "Tubo Verde", icon: "water_drop", area: "hemato" },
-  { key: "petri", label: "Cajas Petri", icon: "biotech", area: "archivo" },
-  { key: "laminilla", label: "Laminillas", icon: "layers", area: "archivo" },
-  { key: "suero", label: "Suero Separado", icon: "colorize", area: "archivo" },
+  { key: "petri", label: "Cajas Petri", icon: "biotech", area: "uro" },
+  { key: "laminilla_he", label: "Laminilla HE", icon: "layers", area: "hemato" },
+  { key: "laminilla_mi", label: "Laminilla MI", icon: "layers_clear", area: "uro" },
+  { key: "suero", label: "Suero Separado", icon: "colorize", area: "quimica" },
   { key: "orina", label: "Tubo con Orina", icon: "opacity", area: "uro" },
 ];
 
@@ -80,93 +81,107 @@ export default function VerificacionMatriz() {
     { key: "f_rm_004", label: "FO-RM-004 (Inventario Suministros)", area: "archivo" }
   ];
 
-  const fetchEnvios = async () => {
-    setLoading(true);
-    let query = supabase.from("logistica_envios").select("*");
-    
-    if (filter === "Pendiente") {
+  const fetchEnvios = async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
+    try {
+      let query = supabase
+        .from("logistica_envios")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (filter === "Pendiente") {
         query = query.or(`status.eq.Pendiente,status.eq.En Tránsito`)
                      .is(`a_${areaRecibe}_user`, null);
-    } else if (filter !== "Todos") {
+      } else if (filter !== "Todos") {
         query = query.eq("status", filter);
-    }
+      }
     
-    const { data, error } = await query.order("created_at", { ascending: false });
+      const { data, error } = await query;
 
-    if (!error) {
-      const mapped = data.map(env => ({
-        ...env,
-        rec_values: {
-          dorado: env.status === 'Recibido' ? (env.r_dorado || 0) : (env.s_dorado || 0),
-          rojo: env.status === 'Recibido' ? (env.r_rojo || 0) : (env.s_rojo || 0),
-          lila: env.status === 'Recibido' ? (env.r_lila || 0) : (env.s_lila || 0),
-          celeste: env.status === 'Recibido' ? (env.r_celeste || 0) : (env.s_celeste || 0),
-          verde: env.status === 'Recibido' ? (env.r_verde || 0) : (env.s_verde || 0),
-          petri: env.status === 'Recibido' ? (env.r_petri || 0) : (env.s_petri || 0),
-          laminilla: env.status === 'Recibido' ? (env.r_laminilla || 0) : (env.s_laminilla || 0),
-          suero: env.status === 'Recibido' ? (env.r_suero || 0) : (env.s_suero || 0),
-          orina: env.status === 'Recibido' ? (env.r_papel || 0) : (env.s_papel || 0)
-        },
-        verified: {
-          dorado: env.status === 'Recibido',
-          rojo: env.status === 'Recibido',
-          lila: env.status === 'Recibido',
-          celeste: env.status === 'Recibido',
-          verde: env.status === 'Recibido',
-          petri: env.status === 'Recibido',
-          laminilla: env.status === 'Recibido',
-          suero: env.status === 'Recibido',
-          orina: env.status === 'Recibido'
-        },
-        t_rec: { 
-          amb: (env.temp_entra_amb || 25), 
-          ref: (env.temp_entra_ref || 4) 
-        },
-        t_sale: {
-          amb: env.temp_sale_amb || 0,
-          ref: env.temp_sale_ref || 0
-        },
-        formatos: {
-          f_do_001: env.f_do_001 || 0,
-          f_da_001: env.f_da_001 || 0,
-          f_qc_020: env.f_qc_020 || 0,
-          f_rm_004: env.f_rm_004 || 0
-        },
-        formatos_rec: {
-          f_do_001: env.status === 'Recibido' ? (env.r_f_do_001 || 0) : (env.f_do_001 || 0),
-          f_da_001: env.status === 'Recibido' ? (env.r_f_da_001 || 0) : (env.f_da_001 || 0),
-          f_qc_020: env.status === 'Recibido' ? (env.r_f_qc_020 || 0) : (env.f_qc_020 || 0),
-          f_rm_004: env.status === 'Recibido' ? (env.r_f_rm_004 || 0) : (env.f_rm_004 || 0)
-        },
-        formatos_verified: {
-          f_do_001: env.status === 'Recibido',
-          f_da_001: env.status === 'Recibido',
-          f_qc_020: env.status === 'Recibido',
-          f_rm_004: env.status === 'Recibido'
-        },
-        signatures: {
-          hemato: env.a_hemato_user,
-          uro: env.a_uro_user,
-          quimica: env.a_quimica_user,
-          archivo: env.a_archivo_user,
-          calidad: env.a_calidad_user,
-          admin: env.a_admin_user,
-          recursos: env.a_recursos_user
-        },
-        obs: env.status === 'Recibido' ? (env.observaciones_recepcion || "") : "",
-      }));
-      setEnvios(mapped);
-    }
+      if (!error) {
+        const mapped = data.map(env => ({
+          ...env,
+          rec_values: {
+            dorado: env.status === 'Recibido' ? (env.r_dorado || 0) : (env.s_dorado || 0),
+            rojo: env.status === 'Recibido' ? (env.r_rojo || 0) : (env.s_rojo || 0),
+            lila: env.status === 'Recibido' ? (env.r_lila || 0) : (env.s_lila || 0),
+            celeste: env.status === 'Recibido' ? (env.r_celeste || 0) : (env.s_celeste || 0),
+            verde: env.status === 'Recibido' ? (env.r_verde || 0) : (env.s_verde || 0),
+            petri: env.status === 'Recibido' ? (env.r_petri || 0) : (env.s_petri || 0),
+            laminilla_he: env.status === 'Recibido' ? (env.r_laminilla_he || 0) : (env.s_laminilla_he || 0),
+            laminilla_mi: env.status === 'Recibido' ? (env.r_laminilla_mi || 0) : (env.s_laminilla_mi || 0),
+            suero: env.status === 'Recibido' ? (env.r_suero || 0) : (env.s_suero || 0),
+            orina: env.status === 'Recibido' ? (env.r_papel || 0) : (env.s_papel || 0)
+          },
+          verified: {
+            dorado: env.status === 'Recibido',
+            rojo: env.status === 'Recibido',
+            lila: env.status === 'Recibido',
+            celeste: env.status === 'Recibido',
+            verde: env.status === 'Recibido',
+            petri: env.status === 'Recibido',
+            laminilla_he: env.status === 'Recibido',
+            laminilla_mi: env.status === 'Recibido',
+            suero: env.status === 'Recibido',
+            orina: env.status === 'Recibido'
+          },
+          t_rec: { 
+            amb: (env.temp_entra_amb || 25), 
+            ref: (env.temp_entra_ref || 4) 
+          },
+          t_sale: {
+            amb: env.temp_sale_amb || 0,
+            ref: env.temp_sale_ref || 0
+          },
+          formatos: {
+            f_do_001: env.f_do_001 || 0,
+            f_da_001: env.f_da_001 || 0,
+            f_qc_020: env.f_qc_020 || 0,
+            f_rm_004: env.f_rm_004 || 0
+          },
+          formatos_rec: {
+            f_do_001: env.status === 'Recibido' ? (env.r_f_do_001 || 0) : (env.f_do_001 || 0),
+            f_da_001: env.status === 'Recibido' ? (env.r_f_da_001 || 0) : (env.f_da_001 || 0),
+            f_qc_020: env.status === 'Recibido' ? (env.r_f_qc_020 || 0) : (env.f_qc_020 || 0),
+            f_rm_004: env.status === 'Recibido' ? (env.r_f_rm_004 || 0) : (env.f_rm_004 || 0)
+          },
+          formatos_verified: {
+            f_do_001: env.status === 'Recibido',
+            f_da_001: env.status === 'Recibido',
+            f_qc_020: env.status === 'Recibido',
+            f_rm_004: env.status === 'Recibido'
+          },
+          signatures: {
+            hemato: env.a_hemato_user,
+            uro: env.a_uro_user,
+            quimica: env.a_quimica_user,
+            archivo: env.a_archivo_user,
+            calidad: env.a_calidad_user,
+            admin: env.a_admin_user,
+            recursos: env.a_recursos_user
+          },
+          obs: env.status === 'Recibido' ? (env.observaciones_recepcion || "") : "",
+        }));
+        setEnvios(mapped);
+      }
+    } catch (e) { console.error(e); }
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchEnvios();
+    fetchEnvios(false);
+  }, [filter]);
+
+  useEffect(() => {
+    fetchEnvios(true);
+  }, [areaRecibe]);
+
+  useEffect(() => {
     const channel = supabase.channel('cambios-logistica').on('postgres_changes', { event: '*', schema: 'public', table: 'logistica_envios' }, () => {
-      fetchEnvios();
+      fetchEnvios(true);
     }).subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [filter, areaRecibe]);
+  }, []);
 
   const handleUpdateRec = (envId, key, val) => {
     setEnvios(prev => prev.map(e => e.id === envId ? { 
@@ -254,7 +269,8 @@ export default function VerificacionMatriz() {
       r_celeste: envio.rec_values.celeste,
       r_verde: envio.rec_values.verde,
       r_petri: envio.rec_values.petri,
-      r_laminilla: envio.rec_values.laminilla,
+      r_laminilla_he: envio.rec_values.laminilla_he,
+      r_laminilla_mi: envio.rec_values.laminilla_mi,
       r_suero: envio.rec_values.suero,
       r_papel: envio.rec_values.orina,
       // Persistencia de Formatos
@@ -298,7 +314,8 @@ export default function VerificacionMatriz() {
       r_celeste: envio.rec_values.celeste,
       r_verde: envio.rec_values.verde,
       r_petri: envio.rec_values.petri,
-      r_laminilla: envio.rec_values.laminilla,
+      r_laminilla_he: envio.rec_values.laminilla_he,
+      r_laminilla_mi: envio.rec_values.laminilla_mi,
       r_suero: envio.rec_values.suero,
       r_papel: envio.rec_values.orina,
       r_f_do_001: envio.formatos_rec.f_do_001,
@@ -379,7 +396,28 @@ export default function VerificacionMatriz() {
                         {expandedIds.includes(envio.id) ? 'expand_less' : 'expand_more'}
                       </span>
                     )}
-                    <h4>{envio.sucursal}</h4>
+                    <div>
+                      <h4 style={{marginBottom:'4px'}}>{envio.sucursal}</h4>
+                      <div className={styles.miniAreaStatusLine}>
+                        {AREAS_SOLCAN.map(area => {
+                          const isSigned = !!envio.signatures[area.key];
+                          // Lógica de Requerido (Basada en muestras y formatos)
+                          const hasContent = 
+                            MATERIAL_KEYS.some(m => m.area === area.key && (envio[`s_${m.key === 'orina' ? 'papel' : m.key}`] > 0)) ||
+                            (area.key === 'archivo' && (envio.f_do_001 > 0 || envio.f_da_001 > 0 || envio.f_qc_020 > 0 || envio.f_rm_004 > 0));
+
+                          return (
+                            <span 
+                              key={area.key} 
+                              className={`${styles.miniAreaBadge} ${isSigned ? styles.badgeSigned : hasContent ? styles.badgeRequired : styles.badgeNotNeeded}`}
+                              title={isSigned ? `Firmado por ${envio.signatures[area.key]}` : area.label}
+                            >
+                              {area.key.substring(0,2).toUpperCase()}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                   <span className={`${styles.statusBadge} ${styles['status_' + envio.status.replace(/ /g, '_')]}`}>{envio.status}</span>
                 </div>
@@ -527,9 +565,10 @@ export default function VerificacionMatriz() {
                                  )}
                                  <div className={styles.vVerifyAction}>
                                     {(isRecibido || isLocked) ? (
-                                       <span className="material-symbols-rounded" style={{color: isLocked ? '#94A3B8' : '#10B981'}}>
-                                         {isLocked ? 'lock' : 'verified'}
-                                       </span>
+                                       <div className={styles.receivedBadge}>
+                                         <span className="material-symbols-rounded" style={{fontSize:'1rem'}}>check_circle</span>
+                                         <span>RECIBIDO</span>
+                                       </div>
                                     ) : (
                                        <input 
                                          type="checkbox" 

@@ -150,8 +150,8 @@ export default function LogisticaSede() {
                         {envio.s_orina_24h > 0 && <tr><td>Orina 24 Horas</td><td>{envio.s_orina_24h}</td></tr>}
                         {envio.s_medio_transporte > 0 && <tr><td>Medio de Transporte</td><td>{envio.s_medio_transporte}</td></tr>}
                         {envio.s_hisopo > 0 && <tr><td>Tubo Vidrio con Hisopo</td><td>{envio.s_hisopo}</td></tr>}
-                        {envio.s_laminilla_he > 0 && <tr><td>Laminilla HE</td><td>{envio.s_laminilla_he}</td></tr>}
-                        {envio.s_laminilla_mi > 0 && <tr><td>Laminilla MI</td><td>{envio.s_laminilla_mi}</td></tr>}
+                        {envio.s_laminilla_he > 0 && <tr><td>Laminilla HE (Hemato)</td><td>{envio.s_laminilla_he}</td></tr>}
+                        {envio.s_laminilla_mi > 0 && <tr><td>Laminilla MI (Micro)</td><td>{envio.s_laminilla_mi}</td></tr>}
                         {envio.s_heces > 0 && <tr><td>Muestra de Heces</td><td>{envio.s_heces}</td></tr>}
                       </tbody>
                     </table>
