@@ -521,7 +521,15 @@ export default function TopNavbar() {
 
             {showProfile && (
               <div className={styles.profileDropdown} onClick={(e) => e.stopPropagation()}>
+                <button 
+                  className={styles.closeProfileBtn} 
+                  onClick={() => setShowProfile(false)}
+                  title="Cerrar Menú"
+                >
+                  <span className="material-symbols-rounded">close</span>
+                </button>
                 <div className={styles.profileHeader}>
+
                    <div className={styles.profileAvatarLarge}>
                       {user?.foto_url ? (
                         <img src={user.foto_url} alt={user.name} />

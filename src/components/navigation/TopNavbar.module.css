@@ -681,3 +681,31 @@ input:checked + .toggleSlider:before {
   .mobileDropdown.open { display: flex; }
   .mobileDropdown.closed { display: none; }
 }
+
+.closeProfileBtn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--co-text-secondary);
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.closeProfileBtn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--co-accent);
+  transform: rotate(90deg);
+}
+
+.closeProfileBtn span {
+  font-size: 1.2rem;
+}
