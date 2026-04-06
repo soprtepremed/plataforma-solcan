@@ -1,0 +1,16 @@
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = 'https://ybhfsvkwpmhzwuboynre.supabase.co';
+const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InliaGZzdmt3cG1oend1Ym95bnJlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDc1MzUzMSwiZXhwIjoyMDkwMzI5NTMxfQ.m8XtxtGy0O4oMihm03bWSjn-hTFZUdNQtxVzmux53GU';
+
+const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+async function enableNet() {
+  const sql = "CREATE EXTENSION IF NOT EXISTS pg_net CASCADE;";
+  console.log('📡 Habilitando extensión pg_net en Supabase...');
+  const { error } = await supabase.rpc('exec_sql', { query_text: sql });
+  if (error) console.error('❌ Error habilitando pg_net:', error.message);
+  else console.log('✅ Extensión pg_net habilitada correctamente.');
+}
+
+enableNet();

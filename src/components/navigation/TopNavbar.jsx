@@ -189,10 +189,14 @@ export default function TopNavbar() {
         const subscription = await registration.pushManager.getSubscription();
         if (subscription) {
           await subscription.unsubscribe();
-          // Opcional: Eliminar de la base de datos
-          await supabase.from('push_subscriptions').delete().match({ user_id: user.id });
+          // Solo eliminamos ESTE dispositivo específico de la base de datos
+          await supabase.from('push_subscriptions')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('subscription', subscription);
         }
         setPushSubscribed(false);
+
         playSample('note'); // Sonido de desactivación
       } else {
         // Lógica de ACTIVACIÓN (ON)
