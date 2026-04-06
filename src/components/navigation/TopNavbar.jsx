@@ -578,6 +578,25 @@ export default function TopNavbar() {
                       </div>
                     )}
 
+                    {pushSupported && (
+                      <button 
+                        className={styles.profileActionBtn} 
+                        style={{ color: 'var(--co-accent)', border: '1px solid var(--co-accent-soft)', margin: '5px 10px' }}
+                        onClick={async () => {
+                          const registration = await navigator.serviceWorker.ready;
+                          registration.showNotification('🛎️ Prueba Local Solcan', {
+                            body: 'Si ves esto, el celular SÍ permite avisos. El problema es la sincronización.',
+                            vibrate: [200, 100, 200]
+                          });
+                          alert('He disparado una alerta interna. ¿Te vibró el cel?');
+                        }}
+                      >
+                         <span className="material-symbols-rounded">vibration</span>
+                         Probar Notif. Local
+                      </button>
+                    )}
+
+
                    <button className={styles.profileActionBtn} onClick={() => { setShowProfile(false); document.getElementById('avatar-upload').click(); }}>
                       <span className="material-symbols-rounded">photo_camera</span>
                       Cambiar Foto de Perfil
