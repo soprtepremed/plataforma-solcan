@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
+import { sendPushNotification } from "../../lib/pushNotifications";
 import styles from "./EnvioMuestras.module.css";
 
 const MATERIAL_TYPES = [
@@ -174,7 +175,7 @@ export default function EnvioMuestras() {
       }]);
       if (error) throw error;
       
-      // Notificar a Mensajeros
+      // Notificar a Mensajeros (UI + Push en segundo plano)
       await supabase.from("notificaciones").insert([{
         role: "mensajero",
         title: "📦 Nueva Recolección en " + sucursal,
@@ -182,6 +183,13 @@ export default function EnvioMuestras() {
         type: "info",
         metadata: { sucursal }
       }]);
+      // BYPASS: Disparar Push directamente sin depender del trigger de BD
+      sendPushNotification({
+        role: "mensajero",
+        title: "📦 Nueva Recolección en " + sucursal,
+        message: `Sucursal ${sucursal} registró un envío. Favor de acudir a recolectar.`,
+        metadata: { sucursal, url: '/logistica/mensajero' }
+      });
 
       // Autonotificar a la sucursal
       await supabase.from("notificaciones").insert([{

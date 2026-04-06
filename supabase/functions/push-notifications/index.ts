@@ -52,27 +52,41 @@ serve(async (req) => {
       url: record.metadata?.url || '/'
     });
 
-    const results = await Promise.allSettled(subs.map(async (s) => {
+    const results = await Promise.all(subs.map(async (s) => {
+      let logEntry = {
+        message: `📲 Intentando enviar a dispositivo...`,
+        details: { user_id: s.user_id, subscription: s.subscription }
+      };
+
       try {
-        await webpush.sendNotification(s.subscription, pushPayload);
+        const response = await webpush.sendNotification(s.subscription, pushPayload);
+        logEntry.message = `✅ ÉXITO Google/FCM aceptó el envío.`;
+        logEntry.details = { ...logEntry.details, status: response.statusCode };
+        await supabase.from('push_logs').insert([logEntry]);
+        return { ok: true };
       } catch (err: any) {
+        logEntry.message = `❌ FALLO DE GOOGLE/FCM: ${err.message}`;
+        logEntry.details = { ...logEntry.details, error: err.body || err.message, status: err.statusCode };
+        await supabase.from('push_logs').insert([logEntry]);
+        
         if (err.statusCode === 410 || err.statusCode === 404) {
-           // Suscripción expirada, la limpiamos
            await supabase.from('push_subscriptions').delete().eq('subscription', s.subscription);
         }
-        throw err;
+        return { ok: false, error: err.message };
       }
     }));
 
-    return new Response(JSON.stringify({ ok: true, sent: subs.length }), {
+    return new Response(JSON.stringify({ ok: true, sent: subs.length, results }), {
       headers: { "Content-Type": "application/json" },
     });
 
   } catch (error: any) {
     console.error("❌ Error en Push Function:", error.message);
+    await supabase.from('push_logs').insert([{ message: '🚨 ERROR FATAL FUNCIÓN', details: { error: error.message } }]);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
   }
 })
+

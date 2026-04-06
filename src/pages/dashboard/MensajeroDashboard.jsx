@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
+import { sendPushNotification } from "../../lib/pushNotifications";
 import styles from "./MensajeroDashboard.module.css";
 
 const MESSENGERS = [
@@ -101,6 +102,14 @@ export default function MensajeroDashboard() {
         type: "info",
         metadata: { sucursal: envio?.sucursal }
       }]);
+
+      // BYPASS: Push directo sin depender del trigger de BD
+      sendPushNotification({
+        role: "mensajero",
+        title: "🆗 Recolección Atendida",
+        message: `${selectedMessenger?.name || 'Un chofer'} ya recolectó en ${envio?.sucursal}.`,
+        metadata: { url: '/logistica/mensajero' }
+      });
 
       setPendientes(prev => prev.filter(e => e.id !== envioId));
       setShowSuccess(true);
