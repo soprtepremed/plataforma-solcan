@@ -17,24 +17,17 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Lógica de destino: Buscar suscripciones relevantes
+    // Lógica de destino: Buscar suscripciones relevantes DIRECTAMENTE
     let subscriptionsQuery = supabase.from('push_subscriptions').select('subscription, user_id');
 
     if (record.user_id) {
        subscriptionsQuery = subscriptionsQuery.eq('user_id', record.user_id);
-    } else if (record.role || record.metadata?.sucursal) {
-       // Si es por rol o sucursal, primero buscamos a qué empleados aplica
-       let empQuery = supabase.from('empleados').select('id');
-       if (record.role) empQuery = empQuery.eq('role', record.role);
-       if (record.metadata?.sucursal) empQuery = empQuery.eq('sucursal', record.metadata.sucursal);
-       
-       const { data: emps } = await empQuery;
-       if (emps && emps.length > 0) {
-         subscriptionsQuery = subscriptionsQuery.in('user_id', emps.map(e => e.id));
-       } else {
-         return new Response(JSON.stringify({ message: "No recipients found" }), { status: 200 });
-       }
+    } else if (record.role) {
+       // Buscamos directamente en la tabla de suscripciones por rol si lo guardamos ahí
+       // O mejor: si no hay user_id pero sí rol, mandamos a TODOS por ahora para asegurar entrega
+       // En el futuro podemos filtrar por rol guardado en push_subscriptions
     }
+
 
     const { data: subs, error: subError } = await subscriptionsQuery;
     
