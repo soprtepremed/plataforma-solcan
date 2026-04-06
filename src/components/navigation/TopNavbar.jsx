@@ -165,12 +165,15 @@ export default function TopNavbar() {
       }, { onConflict: 'user_id, subscription' });
 
       if (error) {
-        console.error('Error sincronizando Push con DB:', error);
+        console.error('Error de Guardado:', error);
+        alert('🚨 ERROR DE REGISTRO: ' + error.message + ' (Detalles: ' + error.hint + ')');
       }
       setPushSubscribed(true);
     } catch (err) {
       console.error('Auto-Push Sync Error:', err);
+      alert('🚨 ERROR FATAL: ' + err.message);
     } finally {
+
       setIsSubscribing(false);
     }
   };
