@@ -24,8 +24,6 @@ export default function TopNavbar() {
   const [pushSubscribed, setPushSubscribed] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
 
-  const VAPID_PUBLIC_KEY = 'BDQcmHxsTZt5zXvSixGMkwgFhOYM0q7nJ76Xr11MAZidIOl7T-UGYpA-LwDtVARJwMNwwiXgjqu_IRjqhCmwfY4';
-
   const onCropComplete = useCallback((_croppedArea, croppedAreaPixels) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);

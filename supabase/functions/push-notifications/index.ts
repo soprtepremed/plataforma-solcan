@@ -17,16 +17,12 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Lógica de destino: Buscar suscripciones relevantes DIRECTAMENTE
+    // 🚀 MODO CIEGO: Seleccionamos TODOS los dispositivos registrados en Solcan
+    console.log("📡 Empezando Broadcast a todos los choferes...");
     let subscriptionsQuery = supabase.from('push_subscriptions').select('subscription, user_id');
 
-    if (record.user_id) {
-       subscriptionsQuery = subscriptionsQuery.eq('user_id', record.user_id);
-    } else if (record.role) {
-       // Buscamos directamente en la tabla de suscripciones por rol si lo guardamos ahí
-       // O mejor: si no hay user_id pero sí rol, mandamos a TODOS por ahora para asegurar entrega
-       // En el futuro podemos filtrar por rol guardado en push_subscriptions
-    }
+    // Ignoramos filtros de rol o user_id para asegurar entrega total (Modo Ciego)
+
 
 
     const { data: subs, error: subError } = await subscriptionsQuery;
