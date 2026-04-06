@@ -1,35 +1,41 @@
-// Service Worker for Solcan Lab Notifications (Hardened Version)
+// Service Worker for Solcan Lab Notifications (v2.1 - Ultra Force)
+
+self.addEventListener('install', (event) => {
+  self.skipWaiting(); // Forzar actualización inmediata
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim()); // Tomar control de las pestañas al instante
+});
 
 self.addEventListener('push', function(event) {
-  console.log('📬 Nueva señal de Push recibida!');
+  console.log('📬 ¡Llegó un mensaje real de Solcan!');
   
   let data = {
-    title: '🛎️ Alerta Solcan',
-    message: 'Tienes una nueva actualización en tu ruta.',
+    title: 'Solcan: Nueva Recolección',
+    message: 'Tienes una actualización en tu bitácora de ruta.',
     url: '/'
   };
 
   try {
     if (event.data) {
-      data = event.data.json();
+      const json = event.data.json();
+      data = { ...data, ...json };
     }
   } catch (e) {
-    console.error('⚠️ Error al leer datos de Push, usando respaldo:', e);
+    console.error('⚠️ Usando mensaje por defecto:', e);
   }
 
   const options = {
     body: data.message,
-    icon: '/favicon.png', // Asegúrate que exista en /public
-    badge: '/favicon.svg',
-    vibrate: [300, 100, 400, 100, 300], // Vibración más notable
-    tag: 'solcan-notif-v1', // Evita duplicados
-    renotify: true, // Avisa incluso si ya hay una igual
+    icon: '/favicon.png',
+    badge: '/favicon.png',
+    vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40], // Vibración extendida
+    tag: 'solcan-alert-' + Date.now(), // Forzar nueva notificación siempre
+    requireInteraction: true, // No se quita hasta que la toques
     data: {
       url: data.url || '/'
-    },
-    actions: [
-      { action: 'open', title: 'Ver Ruta' }
-    ]
+    }
   };
 
   event.waitUntil(
@@ -40,29 +46,13 @@ self.addEventListener('push', function(event) {
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
   event.waitUntil(
-    clients.matchAll({ type: 'window' }).then(windowClients => {
-      // Si ya hay una ventana abierta, la enfocamos
-      for (const client of windowClients) {
-        if (client.url === event.notification.data.url && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      // O abrimos una nueva
-      if (clients.openWindow) {
+    clients.matchAll({ type: 'window' }).then(clientsArr => {
+      const activeClient = clientsArr.find(c => c.visibilityState === 'visible');
+      if (activeClient) {
+        return activeClient.focus();
+      } else {
         return clients.openWindow(event.notification.data.url);
       }
     })
   );
-});
-
-// Listener para mensajes del cliente
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
-    const { title, message } = event.data;
-    self.registration.showNotification(title, {
-      body: message,
-      icon: '/favicon.png',
-      vibrate: [200, 100, 200]
-    });
-  }
 });
