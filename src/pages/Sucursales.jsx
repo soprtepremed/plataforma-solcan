@@ -86,7 +86,7 @@ const Sucursales = () => {
     return (
         <div className={styles.homeContainer}>
             <header className={styles.welcomeHeader}>
-                <h1>¡Hola, {user?.name.split(' ')[0]}!</h1>
+                <h1>¡Hola, {user?.sucursal || user?.branch || user?.name.split(' ')[0]}!</h1>
                 <p>Bienvenido al Panel de Control de <strong>Solcan Lab</strong>. ¿En qué trabajaremos hoy?</p>
             </header>
 
