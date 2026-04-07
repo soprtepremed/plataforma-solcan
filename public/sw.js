@@ -30,7 +30,6 @@ self.addEventListener('push', function(event) {
     body: data.message,
     icon: '/favicon.png',
     badge: '/favicon.png',
-    vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40], // Vibración extendida
     tag: 'solcan-alert-' + Date.now(), // Forzar nueva notificación siempre
     requireInteraction: true, // No se quita hasta que la toques
     data: {

@@ -83,11 +83,9 @@ export default function LogisticaBitacora() {
 
   const fetchLogs = async () => {
     setLoading(true);
-    const dStart = new Date(`${selectedDate}T00:00:00`);
-    const dEnd = new Date(`${selectedDate}T23:59:59`);
-    
-    const startOfDay = dStart.toISOString();
-    const endOfDay = dEnd.toISOString();
+    // Usamos el formato YYYY-MM-DD literal para evitar desfases de zona horaria
+    const startOfDay = `${selectedDate}T00:00:00.000Z`;
+    const endOfDay = `${selectedDate}T23:59:59.999Z`;
 
     let query = supabase
       .from("logistica_envios")
@@ -95,8 +93,14 @@ export default function LogisticaBitacora() {
       .gte("created_at", startOfDay)
       .lte("created_at", endOfDay);
     
-    if (user && user.role !== 'admin' && user.role !== 'quimico') {
-      query = query.eq("sucursal", user.branch);
+    // Si NO es Admin, filtramos estrictamente por sucursal
+    // Pero si es Admin o Químico Central (Matriz), puede ver todo
+    const isGlobalUser = user?.role?.toLowerCase().includes('admin') || 
+                         user?.role?.toLowerCase() === 'quimico';
+
+    if (!isGlobalUser && user?.branch) {
+      // Intentamos coincidencia parcial si el nombre tiene variaciones (acentos/espacios)
+      query = query.ilike("sucursal", `%${user.branch}%`);
     }
 
     if (selectedDriver !== "Todos") {
@@ -107,8 +111,15 @@ export default function LogisticaBitacora() {
       query = query.eq("sucursal", selectedSucursal);
     }
 
+    console.log("🔍 Consultando bitácora:", { startOfDay, endOfDay, branch: user?.branch });
+    
     const { data: logs, error } = await query.order("created_at", { ascending: true });
-    if (!error) setData(logs);
+    
+    if (error) {
+      console.error("❌ Error de Supabase:", error);
+    } else {
+      setData(logs || []);
+    }
     setLoading(false);
   };
 

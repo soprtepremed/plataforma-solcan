@@ -5,21 +5,25 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-async function checkSchema() {
-  console.log('📡 Verificando estructura de push_subscriptions...');
+async function checkLogs() {
+  console.log('📡 Revisando push_logs recientes...');
   
-  // Try to insert an empty record to get a schema error if it fails? 
-  // No, just try to select one row.
   const { data, error } = await supabase
-    .from('push_subscriptions')
+    .from('push_logs')
     .select('*')
-    .limit(1);
+    .order('created_at', { ascending: false })
+    .limit(5);
 
   if (error) {
-    console.error('❌ Error de esquema/permisos:', error.message);
+    console.error('❌ Error al leer logs:', error.message);
   } else {
-    console.log('✅ Conexión exitosa. Columnas detectadas en la primera fila:', Object.keys(data[0] || {}).join(', '));
+    console.log('✅ Logs recientes:');
+    data.forEach(log => {
+      console.log(`[${log.created_at}] ${log.message}`);
+      console.log(`Detalles: ${JSON.stringify(log.details)}`);
+      console.log('---');
+    });
   }
 }
 
-checkSchema();
+checkLogs();

@@ -62,6 +62,7 @@ function App() {
         <Route path="/resultados" element={<PrivateRoute><DashboardLayout><ResultadosLista /></DashboardLayout></PrivateRoute>} />
         
         {/* Bio-Logística: Trazabilidad de Muestras */}
+        <Route path="/logistica" element={<Navigate to="/logistica/bitacora" replace />} />
         <Route path="/logistica/admin" element={<PrivateRoute><DashboardLayout><LogisticaAdmin /></DashboardLayout></PrivateRoute>} />
         <Route path="/logistica/sede" element={<PrivateRoute><DashboardLayout><LogisticaSede /></DashboardLayout></PrivateRoute>} />
         <Route path="/logistica/envio" element={<PrivateRoute><DashboardLayout><EnvioMuestras /></DashboardLayout></PrivateRoute>} />
@@ -74,9 +75,9 @@ function App() {
         <Route path="/pacientes" element={<PrivateRoute><DashboardLayout><h2 style={{padding: '3rem', textAlign: 'center', color:'var(--co-primary)'}}>Módulo de Recepción y Pacientes</h2></DashboardLayout></PrivateRoute>} />
         
         {/* Almacén e Inventario */}
+        <Route path="/almacen" element={<Navigate to="/almacen/dashboard" replace />} />
         <Route path="/almacen/dashboard" element={<PrivateRoute><DashboardLayout><AlmacenDashboard /></DashboardLayout></PrivateRoute>} />
         <Route path="/almacen/solicitud" element={<PrivateRoute><DashboardLayout><SolicitudMaterial /></DashboardLayout></PrivateRoute>} />
-        <Route path="/almacen" element={<PrivateRoute><DashboardLayout><h2 style={{padding: '3rem', textAlign: 'center', color:'var(--co-primary)'}}>Módulo de Almacén e Inventario</h2></DashboardLayout></PrivateRoute>} />
 
         {/* Portal Público del Paciente (sin login) */}
         <Route path="/portal" element={<PortalPaciente />} />
