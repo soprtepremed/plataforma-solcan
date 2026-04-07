@@ -249,7 +249,6 @@ export default function TopNavbar() {
            </div>
 
            <div className={styles.controlIconsPC}>
-              <button className={styles.iconBtn}><span className="material-symbols-rounded">search</span></button>
               <button className={styles.iconBtn} onClick={logout}><span className="material-symbols-rounded">logout</span></button>
            </div>
 
