@@ -1,45 +1,47 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Cropper from 'react-easy-crop';
 import styles from './TopNavbar.module.css';
 
 export default function TopNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, logout, updateUser } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [showNotifMenu, setShowNotifMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const { user, logout, updateUser } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
   const dropdownRef = useRef(null);
+  const fileInputRef = useRef(null);
 
-  // Estados para gestión de imagen y recorte
+  // States para el Cropper
   const [image, setImage] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [swipedNotifId, setSwipedNotifId] = useState(null);
+  const swipeStartX = useRef(0);
+  const autoResetTimer = useRef(null);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-
+  // Cerrar menús al hacer click fuera
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowNotifMenu(false);
         setShowProfileMenu(false);
       }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 📡 CANAL DE NOTIFICACIONES REALTIME
+  // Cargar notificaciones (Solo hoy)
   useEffect(() => {
     if (!user) return;
     const fetchNotifications = async () => {
-      // Obtenemos el inicio del día local en formato ISO
       const today = new Date();
       today.setHours(0,0,0,0);
       const startOfToday = today.toISOString();
@@ -53,97 +55,117 @@ export default function TopNavbar() {
       if (data) setNotifications(data);
     };
     fetchNotifications();
-    const ch = supabase.channel('notif_solcan').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notificaciones' }, (payload) => {
-      const nuevo = payload.new;
-      if (nuevo.role === user.role || nuevo.user_id === user.id) {
-        setNotifications(prev => [nuevo, ...prev].slice(0, 15));
-        playSample(user.role === 'mensajero' ? 'tritone' : 'note');
-      }
-    }).subscribe();
-    return () => { supabase.removeChannel(ch); };
+
+    const channel = supabase
+      .channel('notificaciones_navbar')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notificaciones' }, payload => {
+        const nuevo = payload.new;
+        if (nuevo.role === user.role || nuevo.user_id === user.id) {
+           setNotifications(prev => [nuevo, ...prev]);
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  const playSample = (type) => {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const playFreq = (freq, start, duration, vol = 0.5) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
-        gain.gain.setValueAtTime(0, ctx.currentTime + start);
-        gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + start + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + start + duration);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(ctx.currentTime + start); osc.stop(ctx.currentTime + start + duration);
-      };
-      if (type === 'tritone') { playFreq(1174.66, 0, 0.2); playFreq(987.77, 0.15, 0.2); playFreq(783.99, 0.3, 0.4); }
-      else { playFreq(1046.50, 0, 0.15); playFreq(1567.98, 0.1, 0.3); }
-    } catch (err) { console.warn(err); }
-  };
+  const unreadCount = notifications.length;
 
-  const markAllAsRead = async () => {
-    if (unreadCount === 0) return;
-    setNotifications(prev => prev.map(n => ({...n, read: true})));
-    await supabase.from('notificaciones').update({ read: true }).eq('read', false).or(`role.eq.${user.role},user_id.eq.${user.id}`);
-  };
-
-  // 📷 Lógica de Recorte y Perfil
-  const onFileChange = (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const reader = new FileReader();
-      reader.onload = () => setImage(reader.result);
-      reader.readAsDataURL(e.target.files[0]);
-    }
-  };
-
-  const onCropComplete = useCallback((area, pixels) => setCroppedAreaPixels(pixels), []);
-
-  const getCroppedImg = async (imageSrc, pixelCrop) => {
-    const image = new Image();
-    image.src = imageSrc;
-    await new Promise(r => image.onload = r);
-    const canvas = document.createElement('canvas');
-    canvas.width = pixelCrop.width; canvas.height = pixelCrop.height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(image, pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height, 0, 0, pixelCrop.width, pixelCrop.height);
-    return new Promise(r => canvas.toBlob(r, 'image/jpeg'));
-  };
-
-  const handleUpdateProfile = async () => {
-    if (!image || !croppedAreaPixels) return;
-    setIsUploading(true);
-    try {
-      const croppedBlob = await getCroppedImg(image, croppedAreaPixels);
-      const fileName = `profile_${user.id}_${Date.now()}.jpg`;
-      const { data: uploadData, error: uploadErr } = await supabase.storage.from('avatars').upload(fileName, croppedBlob);
-      if (uploadErr) throw uploadErr;
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
-      const { error: dbErr } = await supabase.from('empleados').update({ foto_url: publicUrl }).eq('id', user.id);
-      if (dbErr) throw dbErr;
-      updateUser({ foto_url: publicUrl });
-      setImage(null);
-      setShowProfileMenu(false);
-      alert("¡Foto de perfil actualizada!");
-    } catch (err) {
-      console.error(err);
-      alert("Error al subir foto: " + err.message);
-    } finally { setIsUploading(false); }
-  };
-
-  const getMenuOptions = () => {
-    if (!user?.role) return [];
-    const r = user.role.toLowerCase();
-    if (r.includes('admin')) return [ { label: 'Auditoría', path: '/logistica/admin', icon: 'assignment' }, { label: 'Matrices', path: '/logistica/recepcion', icon: 'check_circle' }, { label: 'Bitácora', path: '/logistica/bitacora', icon: 'fact_check' }, { label: 'Almacén', path: '/almacen/dashboard', icon: 'warehouse' } ];
-    if (r === 'quimico') return [ { label: 'Recepción Matriz', path: '/logistica/recepcion', icon: 'biotech' }, { label: 'Bitácora', path: '/logistica/bitacora', icon: 'fact_check' }, { label: 'Solicitar Insumos', path: '/almacen/solicitud', icon: 'add_shopping_cart' } ];
-    if (r === 'recepcion' || r === 'recepción') return [ { label: 'Preparar Envío', path: '/logistica/envio', icon: 'local_shipping' }, { label: 'Logística Sede', path: '/logistica/sede', icon: 'home_work' }, { label: 'Bitácora', path: '/logistica/bitacora', icon: 'fact_check' } ];
-    if (r === 'mensajero' || r === 'chofer') return [ { label: 'Mi Ruta', path: '/logistica/transporte', icon: 'route' }, { label: 'Bitácora', path: '/logistica/bitacora', icon: 'fact_check' } ];
-    if (r === 'captura') return [ { label: 'Subir Resultados', path: '/captura', icon: 'cloud_upload' }, { label: 'Lista Resultados', path: '/resultados', icon: 'list_alt' } ];
-    return [];
+  const markAllAsRead = () => {
+    // Lógica local para limpiar el badge
   };
 
   const deleteNotification = async (id) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
     await supabase.from('notificaciones').delete().eq('id', id);
+  };
+
+  const onCropComplete = useCallback((_croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const onFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => setImage(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    if (!croppedAreaPixels || !image) return;
+    setIsUploading(true);
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.src = image;
+      await new Promise(res => img.onload = res);
+      canvas.width = 200;
+      canvas.height = 200;
+      ctx.drawImage(img, croppedAreaPixels.x, croppedAreaPixels.y, croppedAreaPixels.width, croppedAreaPixels.height, 0, 0, 200, 200);
+      
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/webp', 0.8));
+      const fileName = `${user.id}_${Date.now()}.webp`;
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, blob);
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+      const { error: dbError } = await supabase.from('empleados').update({ foto_url: publicUrl }).eq('id', user.id);
+      if (dbError) throw dbError;
+
+      updateUser({ foto_url: publicUrl });
+      setImage(null);
+    } catch (error) {
+      console.error(error);
+      alert('Error al actualizar avatar');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const getMenuOptions = () => {
+    if (!user) return [];
+    const r = user.role?.toLowerCase();
+    if (r === 'admin' || r === 'administrador' || r === 'quimico' || r === 'químico') {
+      return [
+        { label: 'Recepción Matriz', path: '/logistica/recepcion', icon: 'lab_research' },
+        { label: 'Bitácora FO-DO-017', path: '/logistica/bitacora', icon: 'assignment' },
+        { label: 'Solicitar Insumos', path: '/almacen/solicitud', icon: 'shopping_cart' }
+      ];
+    }
+    if (r === 'recepcion' || r === 'recepción') {
+      return [
+        { label: 'Preparar Envío', path: '/logistica/envio', icon: 'local_shipping' },
+        { label: 'Mi Bitácora', path: '/logistica/bitacora', icon: 'assignment' },
+        { label: 'Estado Sede', path: '/logistica/sede', icon: 'store' }
+      ];
+    }
+    if (r === 'mensajero') return [ { label: 'Ruta de Transporte', path: '/logistica/transporte', icon: 'route' } ];
+    return [];
+  };
+
+  const handleSwipeStart = (e) => {
+    swipeStartX.current = e.touches ? e.touches[0].clientX : e.clientX;
+  };
+
+  const handleSwipeEnd = (e, notifId) => {
+    const endX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const deltaX = swipeStartX.current - endX;
+
+    if (deltaX > 50) { // Deslizamiento a la izquierda detectado
+      setSwipedNotifId(notifId);
+      
+      // Auto-reset después de 4 segundos
+      if (autoResetTimer.current) clearTimeout(autoResetTimer.current);
+      autoResetTimer.current = setTimeout(() => {
+        setSwipedNotifId(null);
+      }, 4000);
+    } else if (deltaX < -30) { // Deslizamiento a la derecha (Cerrar manual)
+      setSwipedNotifId(null);
+      if (autoResetTimer.current) clearTimeout(autoResetTimer.current);
+    }
   };
 
   const menuOptions = getMenuOptions();
@@ -160,22 +182,18 @@ export default function TopNavbar() {
   return (
     <nav className={styles.navbarContainer} ref={dropdownRef}>
       <div className={styles.topStripe}></div>
+      
       <div className={styles.navMain}>
-        <div className={styles.brand} onClick={() => navigate('/')}>
-          <div className={styles.logoCircle}><img src="/favicon.png" alt="L" /></div>
-          <span className={styles.brandName}>Solcan</span>
-        </div>
-
-        <div className={styles.navCenter}>
-           {menuOptions.map(o => (
-             <Link key={o.path} to={o.path} className={`${styles.navItem} ${location.pathname === o.path ? styles.active : ''}`}>
-               <span className="material-symbols-rounded">{o.icon}</span>{o.label}
-             </Link>
-           ))}
-        </div>
-
-        <div className={styles.navActionsRight}>
-          <div className={styles.notifArea}>
+        {/* IZQUIERDA: Logo + Notificaciones en PC */}
+        <div className={styles.navLeft}>
+          <div className={styles.brand} onClick={() => navigate('/')}>
+             <div className={styles.logoCircle}><img src="/favicon.png" alt="S" /></div>
+             <div className={styles.brandText}>
+                <span className={styles.brandName}>Solcan</span>
+             </div>
+          </div>
+          
+          <div className={styles.notifAreaPC}>
             <button className={styles.iconBtn} onClick={() => { setShowNotifMenu(!showNotifMenu); markAllAsRead(); }}>
               <span className="material-symbols-rounded">notifications</span>
               {unreadCount > 0 && <span className={styles.notifCircle}>{unreadCount}</span>}
@@ -183,22 +201,39 @@ export default function TopNavbar() {
             {showNotifMenu && (
               <div className={styles.notifDropdown}>
                 <div className={styles.notifHeader}>
-                   <h4>Notificaciones</h4>
-                   <button className={styles.clearBtn} onClick={() => setNotifications([])}>Limpiar Vista</button>
+                   <h4>Avisos de Hoy</h4>
+                   <button className={styles.clearBtn} onClick={() => setNotifications([])}>Limpiar</button>
                 </div>
                 <div className={styles.notifList}>
                   {notifications.map(n => (
-                    <div key={n.id} className={styles.notifItem}>
-                      <div className={styles.notifDot}></div>
-                      <div className={styles.notifTextContent}>
-                         <div className={styles.notifUpper}>
-                            <h4>{n.title}</h4>
-                            <span className={styles.notifTime}>{formatNotifDate(n.created_at)}</span>
-                         </div>
-                         <p>{n.message}</p>
-                         <button className={styles.deleteNotifBtn} onClick={() => deleteNotification(n.id)}>
-                            <span className="material-symbols-rounded">close</span>
-                         </button>
+                    <div key={n.id} className={styles.swipeNotifContainer}>
+                      {/* Botón de Borrar (Capa de Fondo) */}
+                      <button 
+                        className={styles.revealDeleteBtn} 
+                        onClick={() => { deleteNotification(n.id); setSwipedNotifId(null); }}
+                      >
+                        <span className="material-symbols-rounded">delete</span>
+                        <span>Borrar</span>
+                      </button>
+
+                      {/* Cuerpo de la Notificación (Capa Superior) */}
+                      <div 
+                        className={`${styles.notifItem} ${swipedNotifId === n.id ? styles.isSwiped : ''}`}
+                        onTouchStart={handleSwipeStart}
+                        onTouchEnd={(e) => handleSwipeEnd(e, n.id)}
+                        onMouseDown={handleSwipeStart}
+                        onMouseUp={(e) => handleSwipeEnd(e, n.id)}
+                      >
+                        <div className={styles.notifDot}></div>
+                        <div className={styles.notifTextContent}>
+                           <div className={styles.notifUpper}>
+                              <h4>{n.title}</h4>
+                              <div className={styles.notifMetaRight}>
+                                 <span className={styles.notifTime}>{formatNotifDate(n.created_at)}</span>
+                              </div>
+                           </div>
+                           <p>{n.message}</p>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -207,79 +242,123 @@ export default function TopNavbar() {
               </div>
             )}
           </div>
+        </div>
 
-          <div className={styles.profileArea}>
-             <div className={styles.avatarCircle} onClick={() => setShowProfileMenu(!showProfileMenu)}>
-                {user?.foto_url ? <img src={user.foto_url} alt="U" /> : <span>{user?.name?.charAt(0)}</span>}
-             </div>
-             {showProfileMenu && (
-               <div className={styles.profileDropdown}>
+        {/* CENTRO: Menú de Lectura Directa en PC */}
+        <div className={styles.navCenterPC}>
+           {menuOptions.map(o => (
+             <Link key={o.path} to={o.path} className={`${styles.navItemPC} ${location.pathname === o.path ? styles.activePC : ''}`}>
+               {o.label}
+             </Link>
+           ))}
+        </div>
+
+        {/* DERECHA: Datos de Usuario y Acciones Rápidas */}
+        <div className={styles.navActionsRight}>
+           <div className={styles.userInfoPC}>
+              <span className={styles.helloText}>Hola, {user?.name?.split(' ')[0] || 'Usuario'}</span>
+              <div className={styles.dividerPC}></div>
+              {(user?.sucursal || user?.branch) && (
+                <div className={styles.branchStatusPC}>
+                   <span className="material-symbols-rounded">location_on</span>
+                   <span>{user.sucursal || user.branch}</span>
+                </div>
+              )}
+           </div>
+
+           <div className={styles.profileArea}>
+              <div className={styles.avatarCircle} onClick={() => setShowProfileMenu(!showProfileMenu)}>
+                 {user?.foto_url ? <img src={user.foto_url} alt="U" /> : <span>{user?.name?.charAt(0)}</span>}
+              </div>
+              {showProfileMenu && (
+                <div className={styles.profileDropdown}>
                   <div className={styles.profileHeader}>
-                     <h4>{user?.name}</h4>
-                     <p>{user?.role}</p>
+                    <div className={styles.profileInfoRow}>
+                      <span className="material-symbols-rounded">person</span>
+                      <div className={styles.profileText}>
+                        <h4>{user?.name || 'Usuario'}</h4>
+                        <span className={styles.roleTag}>{user?.role || 'Personal'}</span>
+                      </div>
+                    </div>
                   </div>
                   <div className={styles.profileItems}>
-                     <label htmlFor="avatar-upload" className={styles.profileOption}>
-                        <span className="material-symbols-rounded">add_a_photo</span>
-                        Cambiar Foto de Perfil
-                        <input type="file" id="avatar-upload" hidden accept="image/*" onChange={onFileChange} />
-                     </label>
-                     <div className={styles.profileDivider}></div>
-                     <button onClick={logout} className={`${styles.profileOption} ${styles.logoutText}`}>
-                        <span className="material-symbols-rounded">logout</span>
-                        Cerrar Sesión
-                     </button>
+                    <button className={styles.profileOption} onClick={() => fileInputRef.current.click()}>
+                      <span className="material-symbols-rounded">add_a_photo</span>
+                      Cambiar Foto de Perfil
+                    </button>
+                    <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={onFileChange} />
                   </div>
-               </div>
-             )}
-          </div>
+                </div>
+              )}
+           </div>
 
-          <div className={styles.divider}></div>
-          <div className={styles.controlIcons}>
-            <button className={styles.iconBtn} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              <span className="material-symbols-rounded">{mobileMenuOpen ? 'close' : 'menu'}</span>
-            </button>
-          </div>
+           <div className={styles.controlIconsPC}>
+              <button className={styles.iconBtn}><span className="material-symbols-rounded">search</span></button>
+              <button className={styles.iconBtn} onClick={logout}><span className="material-symbols-rounded">logout</span></button>
+           </div>
+
+           <div className={styles.mobileOnly}>
+              <div className={styles.mobileNotif}>
+                 <button className={styles.iconBtn} onClick={() => setShowNotifMenu(!showNotifMenu)}>
+                    <span className="material-symbols-rounded">notifications</span>
+                    {unreadCount > 0 && <span className={styles.notifCircle}>{unreadCount}</span>}
+                 </button>
+              </div>
+              <button className={styles.iconBtn} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+                <span className="material-symbols-rounded">{mobileMenuOpen ? 'close' : 'menu'}</span>
+              </button>
+           </div>
         </div>
       </div>
 
-      {/* MODAL DE RECORTE (Cropper) */}
-      {image && (
-        <div className={styles.cropOverlay}>
-           <div className={styles.cropModal}>
-              <h3>Ajustar Foto</h3>
-              <div className={styles.cropContainer}>
-                <Cropper image={image} crop={crop} zoom={zoom} aspect={1} onCropChange={setCrop} onCropComplete={onCropComplete} onZoomChange={setZoom} />
-              </div>
-              <div className={styles.cropActions}>
-                 <button className={styles.cancelBtn} onClick={() => setImage(null)}>Cancelar</button>
-                 <button className={styles.saveBtn} onClick={handleUpdateProfile} disabled={isUploading}>
-                   {isUploading ? 'Gurdando...' : 'Establecer Foto'}
-                 </button>
-              </div>
-           </div>
-        </div>
-      )}
-
-      {/* MENÚ MÓVIL */}
+      {/* OVERLAY MÓVIL */}
       {mobileMenuOpen && (
         <div className={styles.mobileOverlay}>
            <div className={styles.mobileProfileHeader}>
               <div className={styles.mobileAvatarLarge}>
                  {user?.foto_url ? <img src={user.foto_url} alt="U" /> : <span>{user?.name?.charAt(0)}</span>}
               </div>
-              <div><h4>{user?.name}</h4><p>{user?.role}</p></div>
+              <h3>{user?.name}</h3>
+              <p>{user?.sucursal || user?.branch}</p>
            </div>
-           <div className={styles.mobileMenuList}>
-              {menuOptions.map(o => (
-                <Link key={o.path} to={o.path} className={styles.mobileItem} onClick={() => setMobileMenuOpen(false)}>
-                  <span className="material-symbols-rounded">{o.icon}</span>{o.label}
-                </Link>
-              ))}
-              <div className={styles.mobileDivider}></div>
-              <button onClick={logout} className={styles.mobileLogoutBtn}>
-                 <span className="material-symbols-rounded">logout</span>Cerrar Sesión
-              </button>
+           <nav className={styles.mobileNav}>
+             {menuOptions.map(o => (
+               <Link key={o.path} to={o.path} className={styles.mobileNavItem} onClick={() => setMobileMenuOpen(false)}>
+                 <span className="material-symbols-rounded">{o.icon}</span>
+                 {o.label}
+               </Link>
+             ))}
+             <button className={styles.mobileLogoutBtn} onClick={logout}>
+               <span className="material-symbols-rounded">logout</span> Cerrar Sesión
+             </button>
+           </nav>
+        </div>
+      )}
+
+      {/* CROP MODAL */}
+      {image && (
+        <div className={styles.cropOverlay}>
+           <div className={styles.cropModal}>
+              <h3>Ajustar Foto de Perfil</h3>
+              <div className={styles.cropContainer}>
+                <Cropper
+                  image={image}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  cropShape="round"
+                  showGrid={false}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                />
+              </div>
+              <div className={styles.cropActions}>
+                 <button className={styles.cancelBtn} onClick={() => setImage(null)}>Cancelar</button>
+                 <button className={styles.saveBtn} onClick={handleUpdateProfile} disabled={isUploading}>
+                    {isUploading ? 'Guardando...' : 'Establecer Foto'}
+                 </button>
+              </div>
            </div>
         </div>
       )}
