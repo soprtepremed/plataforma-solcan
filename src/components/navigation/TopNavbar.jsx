@@ -170,21 +170,13 @@ export default function TopNavbar() {
 
   const menuOptions = getMenuOptions();
 
-  const formatNotifDate = (dateStr) => {
-    const d = new Date(dateStr);
-    const now = new Date();
-    const isToday = d.toDateString() === now.toDateString();
-    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    if (isToday) return `Hoy, ${timeStr}`;
-    return `${d.toLocaleDateString([], { day: '2-digit', month: '2-digit' })} ${timeStr}`;
-  };
 
   return (
     <nav className={styles.navbarContainer} ref={dropdownRef}>
       <div className={styles.topStripe}></div>
       
       <div className={styles.navMain}>
-        {/* IZQUIERDA: Logo + Notificaciones en PC */}
+        {/* IZQUIERDA: Logo + Campana Móvil */}
         <div className={styles.navLeft}>
           <div className={styles.brand} onClick={() => navigate('/')}>
              <div className={styles.logoCircle}><img src="/favicon.png" alt="S" /></div>
@@ -193,7 +185,6 @@ export default function TopNavbar() {
              </div>
           </div>
 
-          {/* Campana Móvil junto al Logo */}
           <div className={styles.mobileNotifLeft}>
              <button className={styles.iconBtn} onClick={() => { setShowNotifMenu(!showNotifMenu); markAllAsRead(); }}>
                 <span className="material-symbols-rounded">notifications</span>
@@ -207,11 +198,6 @@ export default function TopNavbar() {
               {unreadCount > 0 && <span className={styles.notifCircle}>{unreadCount}</span>}
             </button>
           </div>
-
-          <div className={styles.notifAreaPC}>
-            <button className={styles.iconBtn} onClick={() => { setShowNotifMenu(!showNotifMenu); markAllAsRead(); }}>
-              <span className="material-symbols-rounded">notifications</span>
-              {unreadCount > 0 && <span className={styles.notifCircle}>{unreadCount}</span>}
         </div>
 
         {/* CENTRO: Menú de Lectura Directa en PC */}
@@ -372,3 +358,12 @@ export default function TopNavbar() {
     </nav>
   );
 }
+
+const formatNotifDate = (dateStr) => {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  if (isToday) return `Hoy, ${timeStr}`;
+  return `${d.toLocaleDateString([], { day: '2-digit', month: '2-digit' })} ${timeStr}`;
+};
