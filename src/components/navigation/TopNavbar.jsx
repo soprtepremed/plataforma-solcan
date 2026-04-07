@@ -192,56 +192,26 @@ export default function TopNavbar() {
                 <span className={styles.brandName}>Solcan</span>
              </div>
           </div>
+
+          {/* Campana Móvil junto al Logo */}
+          <div className={styles.mobileNotifLeft}>
+             <button className={styles.iconBtn} onClick={() => { setShowNotifMenu(!showNotifMenu); markAllAsRead(); }}>
+                <span className="material-symbols-rounded">notifications</span>
+                {unreadCount > 0 && <span className={styles.notifCircle}>{unreadCount}</span>}
+             </button>
+          </div>
           
           <div className={styles.notifAreaPC}>
             <button className={styles.iconBtn} onClick={() => { setShowNotifMenu(!showNotifMenu); markAllAsRead(); }}>
               <span className="material-symbols-rounded">notifications</span>
               {unreadCount > 0 && <span className={styles.notifCircle}>{unreadCount}</span>}
             </button>
-            {showNotifMenu && (
-              <div className={styles.notifDropdown}>
-                <div className={styles.notifHeader}>
-                   <h4>Avisos de Hoy</h4>
-                   <button className={styles.clearBtn} onClick={() => setNotifications([])}>Limpiar</button>
-                </div>
-                <div className={styles.notifList}>
-                  {notifications.map(n => (
-                    <div key={n.id} className={styles.swipeNotifContainer}>
-                      {/* Botón de Borrar (Capa de Fondo) */}
-                      <button 
-                        className={styles.revealDeleteBtn} 
-                        onClick={() => { deleteNotification(n.id); setSwipedNotifId(null); }}
-                      >
-                        <span className="material-symbols-rounded">delete</span>
-                        <span>Borrar</span>
-                      </button>
-
-                      {/* Cuerpo de la Notificación (Capa Superior) */}
-                      <div 
-                        className={`${styles.notifItem} ${swipedNotifId === n.id ? styles.isSwiped : ''}`}
-                        onTouchStart={handleSwipeStart}
-                        onTouchEnd={(e) => handleSwipeEnd(e, n.id)}
-                        onMouseDown={handleSwipeStart}
-                        onMouseUp={(e) => handleSwipeEnd(e, n.id)}
-                      >
-                        <div className={styles.notifDot}></div>
-                        <div className={styles.notifTextContent}>
-                           <div className={styles.notifUpper}>
-                              <h4>{n.title}</h4>
-                              <div className={styles.notifMetaRight}>
-                                 <span className={styles.notifTime}>{formatNotifDate(n.created_at)}</span>
-                              </div>
-                           </div>
-                           <p>{n.message}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {notifications.length === 0 && <p className={styles.emptyNotif}>Sin avisos para hoy</p>}
-                </div>
-              </div>
-            )}
           </div>
+
+          <div className={styles.notifAreaPC}>
+            <button className={styles.iconBtn} onClick={() => { setShowNotifMenu(!showNotifMenu); markAllAsRead(); }}>
+              <span className="material-symbols-rounded">notifications</span>
+              {unreadCount > 0 && <span className={styles.notifCircle}>{unreadCount}</span>}
         </div>
 
         {/* CENTRO: Menú de Lectura Directa en PC */}
@@ -298,18 +268,55 @@ export default function TopNavbar() {
            </div>
 
            <div className={styles.mobileOnly}>
-              <div className={styles.mobileNotif}>
-                 <button className={styles.iconBtn} onClick={() => setShowNotifMenu(!showNotifMenu)}>
-                    <span className="material-symbols-rounded">notifications</span>
-                    {unreadCount > 0 && <span className={styles.notifCircle}>{unreadCount}</span>}
-                 </button>
-              </div>
               <button className={styles.iconBtn} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
                 <span className="material-symbols-rounded">{mobileMenuOpen ? 'close' : 'menu'}</span>
               </button>
            </div>
         </div>
       </div>
+
+      {/* NOTIFICACIONES UNIVERSAL (Fuera de contenedores hijos para evitar ocultamiento) */}
+      {showNotifMenu && (
+        <div className={styles.notifDropdown}>
+          <div className={styles.notifHeader}>
+              <h4>Avisos de Hoy</h4>
+              <button className={styles.clearBtn} onClick={() => { setNotifications([]); setShowNotifMenu(false); }}>Limpiar</button>
+          </div>
+          <div className={styles.notifList}>
+            {notifications.map(n => (
+              <div key={n.id} className={styles.swipeNotifContainer}>
+                <button 
+                  className={styles.revealDeleteBtn} 
+                  onClick={() => { deleteNotification(n.id); setSwipedNotifId(null); }}
+                >
+                  <span className="material-symbols-rounded">delete</span>
+                  <span>Borrar</span>
+                </button>
+
+                <div 
+                  className={`${styles.notifItem} ${swipedNotifId === n.id ? styles.isSwiped : ''}`}
+                  onTouchStart={handleSwipeStart}
+                  onTouchEnd={(e) => handleSwipeEnd(e, n.id)}
+                  onMouseDown={handleSwipeStart}
+                  onMouseUp={(e) => handleSwipeEnd(e, n.id)}
+                >
+                  <div className={styles.notifDot}></div>
+                  <div className={styles.notifTextContent}>
+                      <div className={styles.notifUpper}>
+                        <h4>{n.title}</h4>
+                        <div className={styles.notifMetaRight}>
+                            <span className={styles.notifTime}>{formatNotifDate(n.created_at)}</span>
+                        </div>
+                      </div>
+                      <p>{n.message}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {notifications.length === 0 && <p className={styles.emptyNotif}>Sin avisos para hoy</p>}
+          </div>
+        </div>
+      )}
 
       {/* OVERLAY MÓVIL */}
       {mobileMenuOpen && (

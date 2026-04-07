@@ -312,20 +312,24 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: white;
+  background: #F8FAFC;
   color: #0BCECD;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 900;
   cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 0 15px rgba(11,206,205,0.15);
+  border: 1.5px solid #E2E8F0; /* Contorno gris sutil para contraste */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05), 0 0 0 4px rgba(255,255,255,1);
   overflow: hidden;
   transition: all 0.2s;
 }
 
-.avatarCircle:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(11,206,205,0.3); }
+.avatarCircle:hover { 
+  transform: scale(1.05); 
+  border-color: #0BCECD;
+  box-shadow: 0 4px 15px rgba(11,206,205,0.2); 
+}
 .avatarCircle img { width: 100%; height: 100%; object-fit: cover; }
 
 .profileDropdown {
@@ -448,9 +452,12 @@
 /* MOBILE */
 .mobileOnly { display: none; }
 
+.mobileNotifLeft { display: none; }
+
 @media (max-width: 1024px) {
   .navCenterPC, .userInfoPC, .controlIconsPC, .notifAreaPC { display: none; }
   .mobileOnly { display: flex; align-items: center; gap: 10px; }
+  .mobileNotifLeft { display: flex; margin-left: 5px; }
   .brandName { font-size: 1.4rem; }
   .navMain { height: 60px; padding: 0 15px; }
 }
@@ -478,9 +485,11 @@
 }
 
 .mobileAvatarLarge {
-  width: 90px; height: 90px; border-radius: 30px; background: #F7FAFC;
-  margin: 0 auto 15px; overflow: hidden; border: 3px solid #0BCECD;
+  width: 90px; height: 90px; border-radius: 30px; background: #F8FAFC;
+  margin: 0 auto 15px; overflow: hidden; 
+  border: 4px solid #E2E8F0; /* Gris de contraste */
   display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; color: #0BCECD;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
 }
 
 .mobileAvatarLarge img { width: 100%; height: 100%; object-fit: cover; }
