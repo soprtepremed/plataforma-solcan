@@ -59,8 +59,7 @@ export default function Captura() {
       const { error: dbError } = await supabase.from("resultados").insert({
         access_code: code,
         pdf_url: pdfUrl,
-        pdf_nombre: safeFileName,
-        sucursal: user?.sucursal || "Oficina Central" // corregido a sucursal
+        pdf_nombre: safeFileName
       });
 
       if (dbError) throw new Error(dbError.message);
