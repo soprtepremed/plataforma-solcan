@@ -118,7 +118,7 @@ export default function ResultadosLista() {
                         
                         <a 
                           href={`https://wa.me/?text=${encodeURIComponent(
-                            `🔬 *Solcan Lab - Resultados Disponibles*\n\nEstimado paciente, le informamos que sus resultados ya han sido liberados. Agradecemos su preferencia.\n\nConsúltelos aquí: https://plataforma-solcan.vercel.app/portal/${item.access_code}`
+                            `🔬 *Solcan Lab - Resultados Disponibles*\n\nEstimado paciente, le informamos que sus resultados ya han sido liberados. Agradecemos su preferencia.\n\n🌐 Portal: https://plataforma-solcan.vercel.app/portal\n🔑 Código de acceso: *${item.access_code}*`
                           )}`}
                           target="_blank"
                           rel="noreferrer"
