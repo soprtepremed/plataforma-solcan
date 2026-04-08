@@ -14,12 +14,12 @@ export default function ResultadosLista() {
     setLoading(true);
     
     // Construimos la query base
-    // Por ahora, traemos todos los resultados sin filtrar por sucursal
-    // para evitar el error de columna faltante
+    // Optimizamos: Pedimos solo columnas específicas y limitamos a los últimos 50 para velocidad punta
     const { data, error } = await supabase
       .from("resultados")
-      .select("*")
-      .order("created_at", { ascending: false });
+      .select("id, pdf_nombre, access_code, created_at, pdf_url")
+      .order("created_at", { ascending: false })
+      .limit(50);
  
     if (!error) {
       setResultados(data);
