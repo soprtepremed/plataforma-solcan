@@ -24,28 +24,38 @@ export default function PortalPaciente() {
   // Configurar y limpiar el escáner
   useEffect(() => {
     if (showScanner) {
-      const scanner = new Html5QrcodeScanner("reader", { 
-        fps: 10, 
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0
-      });
+      // Pequeño timeout para asegurar que el div "reader" ya esté en el DOM
+      const timer = setTimeout(() => {
+        const readerElement = document.getElementById("reader");
+        if (!readerElement) return;
 
-      scanner.render((decodedText) => {
-        // El QR de Solcan suele ser una URL completa: .../portal/XXXXXX
-        const extractedCode = decodedText.split('/').pop()?.toUpperCase();
-        if (extractedCode && extractedCode.length === 6) {
-          if (navigator.vibrate) navigator.vibrate(200);
-          setCode(extractedCode);
-          setShowScanner(false);
-          scanner.clear();
-          buscarResultado(extractedCode);
-        }
-      }, (err) => {
-        // Errores de escaneo silenciosos
-      });
+        const scanner = new Html5QrcodeScanner("reader", { 
+          fps: 10, 
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0
+        });
+
+        scanner.render((decodedText) => {
+          const extractedCode = decodedText.split('/').pop()?.toUpperCase();
+          if (extractedCode && extractedCode.length === 6) {
+            if (navigator.vibrate) navigator.vibrate(200);
+            setCode(extractedCode);
+            setShowScanner(false);
+            scanner.clear();
+            buscarResultado(extractedCode);
+          }
+        }, (err) => {
+          // Errores de escaneo silenciosos
+        });
+
+        scannerRef.current = scanner;
+      }, 100);
 
       return () => {
-        scanner.clear().catch(e => console.error(e));
+        clearTimeout(timer);
+        if (scannerRef.current) {
+          scannerRef.current.clear().catch(e => console.error("Error al cerrar scanner:", e));
+        }
       };
     }
   }, [showScanner]);
