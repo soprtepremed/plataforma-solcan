@@ -139,6 +139,7 @@ export default function TopNavbar() {
       return [
         { label: 'Recepción Matriz', path: '/logistica/recepcion', icon: 'lab_research' },
         { label: 'Bitácora FO-DO-017', path: '/logistica/bitacora', icon: 'assignment' },
+        { label: 'Gestionar Publicidad', path: '/admin/promociones', icon: 'campaign' },
         { label: 'Solicitar Insumos', path: '/almacen/solicitud', icon: 'shopping_cart' }
       ];
     }
