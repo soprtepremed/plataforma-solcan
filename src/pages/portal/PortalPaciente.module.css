@@ -7,10 +7,10 @@
   padding: 2rem 1.5rem;
   position: relative;
   overflow-x: hidden;
-  background-color: #05004E; /* Fondo base oscuro */
+  background-color: #020122; /* Azul marino extra profundo (Espacial) */
 }
 
-/* Fondo con efecto Mesh Gradient animado */
+/* Fondo con efecto Mesh Gradient refinado */
 .meshBackground {
   position: fixed;
   top: 0;
@@ -18,28 +18,29 @@
   right: 0;
   bottom: 0;
   z-index: 0;
-  background: radial-gradient(at 0% 0%, rgba(11, 206, 205, 0.15) 0px, transparent 50%),
-              radial-gradient(at 100% 0%, rgba(93, 38, 193, 0.15) 0px, transparent 50%),
-              radial-gradient(at 100% 100%, rgba(11, 206, 205, 0.1) 0px, transparent 50%),
-              radial-gradient(at 0% 100%, rgba(93, 38, 193, 0.1) 0px, transparent 50%);
-  filter: blur(80px);
+  background: radial-gradient(at 10% 10%, rgba(11, 206, 205, 0.2) 0px, transparent 50%),
+              radial-gradient(at 90% 10%, rgba(93, 38, 193, 0.2) 0px, transparent 50%),
+              radial-gradient(at 50% 100%, rgba(11, 206, 205, 0.15) 0px, transparent 50%);
+  filter: blur(100px);
 }
 
-/* GLASS CARD */
+/* GLASS CARD - ALTO CONTRASTE */
 .card {
   position: relative;
   z-index: 1;
   width: 100%;
   max-width: 480px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(25px) saturate(180%);
-  -webkit-backdrop-filter: blur(25px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 2.5rem;
-  padding: 3rem 2rem;
+  background: rgba(255, 255, 255, 0.12); /* Más opaco para contraste */
+  backdrop-filter: blur(30px) saturate(200%);
+  -webkit-backdrop-filter: blur(30px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.25); /* Borde diamante más notable */
+  border-radius: 2.8rem;
+  padding: 3.5rem 2.5rem;
   text-align: center;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  margin-top: 2vh;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    inset 0 0 20px rgba(255, 255, 255, 0.05); /* Brillo interno */
+  margin-top: 5vh;
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
