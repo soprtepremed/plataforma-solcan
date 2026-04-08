@@ -208,29 +208,29 @@
   display: none !important;
 }
 
-.floatingCloseBtn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  z-index: 10;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+.pillCloseBtn {
+  width: 100%;
+  padding: 1rem;
+  margin-top: 1rem;
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1.5rem;
   color: white;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-.floatingCloseBtn:hover {
-  background: rgba(255, 71, 87, 0.6);
-  transform: rotate(90deg);
+.pillCloseBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: var(--co-accent);
+  box-shadow: 0 8px 25px rgba(11, 206, 205, 0.3);
 }
 
 /* PDF SECTION GLASS */

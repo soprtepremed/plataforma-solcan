@@ -236,10 +236,6 @@ export default function PortalPaciente() {
             </>
           ) : (
             <div className={styles.scannerContainer}>
-              <button className={styles.floatingCloseBtn} onClick={handleStopScanner}>
-                <span className="material-symbols-rounded">close</span>
-              </button>
-
               {scannerLoading && (
                 <div className={styles.scannerPlaceholder}>
                   <span className="material-symbols-rounded" style={{fontSize:'48px', animation:'spin 2s linear infinite'}}>sync</span>
@@ -247,6 +243,11 @@ export default function PortalPaciente() {
                 </div>
               )}
               <div id="reader" className={styles.reader}></div>
+              
+              <button className={styles.pillCloseBtn} onClick={handleStopScanner}>
+                <span className="material-symbols-rounded">close</span>
+                Cerrar Cámara
+              </button>
             </div>
           )}
         </div>
