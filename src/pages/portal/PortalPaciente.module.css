@@ -1,162 +1,289 @@
-/* ======= PORTAL PACIENTE — Mobile First ======= */
-
 .page {
   min-height: 100vh;
-  background: var(--co-primary);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 2rem 1.5rem;
-  background-image: radial-gradient(circle at 80% 20%, rgba(11, 206, 205, 0.12) 0%, transparent 60%),
-                    radial-gradient(circle at 20% 80%, rgba(161, 20, 214, 0.12) 0%, transparent 60%);
+  position: relative;
+  overflow-x: hidden;
+  background-color: #05004E; /* Fondo base oscuro */
 }
 
+/* Fondo con efecto Mesh Gradient animado */
+.meshBackground {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  background: radial-gradient(at 0% 0%, rgba(11, 206, 205, 0.15) 0px, transparent 50%),
+              radial-gradient(at 100% 0%, rgba(93, 38, 193, 0.15) 0px, transparent 50%),
+              radial-gradient(at 100% 100%, rgba(11, 206, 205, 0.1) 0px, transparent 50%),
+              radial-gradient(at 0% 100%, rgba(93, 38, 193, 0.1) 0px, transparent 50%);
+  filter: blur(80px);
+}
+
+/* GLASS CARD */
 .card {
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 20px;
-  padding: 2.5rem 2rem;
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-width: 420px;
+  max-width: 480px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 2.5rem;
+  padding: 3rem 2rem;
   text-align: center;
-  color: white;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  margin-top: 2vh;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.logo {
-  height: 60px;
-  width: auto;
-  margin-bottom: 1rem;
-  filter: grayscale(1) invert(1) brightness(2); /* Forzamos a escala de grises, invertimos a blanco y subimos brillo */
-  mix-blend-mode: screen; /* Ocultamos el fondo negro resultante */
+.cardResults {
+  margin-top: 2rem;
+  padding: 2rem;
+}
+
+.logoWrapper {
+  margin-bottom: 2rem;
+  filter: drop-shadow(0 0 15px rgba(11, 206, 205, 0.4));
 }
 
 .title {
-  font-size: 1.6rem;
+  color: white;
+  font-size: 1.8rem;
   font-weight: 800;
+  margin-bottom: 1rem;
   letter-spacing: -0.5px;
-  margin-bottom: 0.5rem;
 }
 
 .subtitle {
-  font-size: 0.9rem;
-  opacity: 0.7;
-  margin-bottom: 2rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
   line-height: 1.5;
+  margin-bottom: 2.5rem;
 }
 
-/* Input de Código */
+/* INPUT DESIGN */
+.inputGroup {
+  margin-bottom: 1.5rem;
+}
+
 .codeInput {
   width: 100%;
-  font-size: 2rem;
-  font-weight: 800;
-  text-align: center;
-  letter-spacing: 8px;
-  text-transform: uppercase;
-  padding: 1rem;
-  border-radius: 12px;
-  border: 2px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.2rem;
+  padding: 1.2rem;
+  font-size: 1.8rem;
+  font-weight: 700;
   color: white;
-  outline: none;
-  font-family: inherit;
-  transition: border-color 0.2s ease;
-}
-
-.codeInput::placeholder {
-  letter-spacing: 4px;
-  opacity: 0.4;
-  font-size: 1.5rem;
+  text-align: center;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
 }
 
 .codeInput:focus {
+  outline: none;
   border-color: var(--co-accent);
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 30px rgba(11, 206, 205, 0.2);
 }
 
-.searchBtn {
+.codeInput::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+  letter-spacing: 2px;
+}
+
+/* BOTONES */
+.actionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.searchBtn, .scannerBtn {
   width: 100%;
-  margin-top: 1.25rem;
-  padding: 1rem;
-  border-radius: 12px;
+  padding: 1.2rem;
+  border-radius: 1.2rem;
   border: none;
-  background: var(--co-gradient);
-  color: white;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  transition: opacity 0.2s ease, transform 0.1s ease;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.searchBtn:hover { opacity: 0.9; }
-.searchBtn:active { transform: scale(0.98); }
-.searchBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+.searchBtn {
+  background: var(--co-gradient);
+  color: white;
+  box-shadow: 0 10px 20px -5px rgba(11, 206, 205, 0.4);
+}
 
-/* Error */
-.errorBox {
-  background: rgba(252, 129, 129, 0.15);
-  border: 1px solid rgba(252, 129, 129, 0.4);
-  border-radius: 10px;
-  padding: 12px;
-  margin-top: 1rem;
-  font-size: 0.9rem;
-  color: #FCA5A5;
+.searchBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px -5px rgba(11, 206, 205, 0.6);
+}
+
+.searchBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.scannerBtn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.scannerBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* SCANNER UI */
+.scannerContainer {
+  width: 100%;
+}
+
+.reader {
+  border-radius: 1.5rem;
+  overflow: hidden;
+  border: none !important;
+  margin-bottom: 1.5rem;
+}
+
+.reader video {
+  border-radius: 1.5rem;
+}
+
+.cancelBtn {
+  background: #ff4757;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 1rem;
   display: flex;
   align-items: center;
   gap: 8px;
+  margin: 0 auto;
+  cursor: pointer;
 }
 
-/* Visor PDF */
+/* PDF SECTION GLASS */
 .pdfSection {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 900px;
-  margin-top: 2rem;
-  animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-top: 3rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border-radius: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  animation: fadeIn 0.8s ease;
 }
 
 .pdfHeader {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 14px 14px 0 0;
-  padding: 1rem 1.5rem;
+  padding: 1.5rem 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.pdfInfo {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 15px;
+}
+
+.pdfName {
   color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.pdfDate {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
 }
 
 .downloadBtn {
-  background: var(--co-gradient);
-  color: white;
-  border: none;
-  padding: 8px 18px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.9rem;
+  background: white;
+  color: #05004E;
+  padding: 0.8rem 1.5rem;
+  border-radius: 1rem;
+  text-decoration: none;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 6px;
-  text-decoration: none;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.downloadBtn:hover {
+  transform: scale(1.05);
+  background: var(--co-accent);
+  color: white;
+}
+
+.frameContainer {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .pdfFrame {
   width: 100%;
-  height: 70vh;
+  height: 700px;
   border: none;
-  border-radius: 0 0 14px 14px;
+  border-radius: 1rem;
   background: white;
 }
 
-@keyframes fadeUp {
+.errorBox {
+  background: rgba(255, 71, 87, 0.15);
+  border: 1px solid rgba(255, 71, 87, 0.3);
+  color: #ff6b81;
+  padding: 1rem;
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.footer {
+  position: relative;
+  z-index: 1;
+  margin-top: 5rem;
+  padding-bottom: 2rem;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.85rem;
+}
+
+@keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .card { padding: 2.5rem 1.5rem; }
+  .title { font-size: 1.5rem; }
+  .pdfFrame { height: 500px; }
+  .pdfHeader { flex-direction: column; gap: 15px; align-items: flex-start; }
+  .downloadBtn { width: 100%; justify-content: center; }
 }
