@@ -331,20 +331,40 @@
   font-weight: 500;
 }
 
-/* SECCIONES DE INFORMACIÓN (OFERTAS Y OPINIONES) */
+/* SECCIÓN DE MARKETING FUERA DEL CARD */
+.marketingContainer {
+  width: 100%;
+  max-width: 1400px;
+  margin: 4rem auto;
+  padding: 0 1.5rem;
+}
+
 .infoSections {
-  margin-top: 3.5rem;
-  text-align: left;
+  display: flex;
+  flex-direction: column;
 }
 
 .sectionTitle {
   color: white;
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  letter-spacing: 0.5px;
+  font-size: 1.4rem;
+  font-weight: 800;
   text-transform: uppercase;
-  opacity: 0.9;
+  letter-spacing: 2px;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  position: relative;
+  display: inline-block;
+}
+
+.sectionTitle::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 50px;
+  height: 4px;
+  background: var(--co-gradient);
+  border-radius: 2px;
 }
 
 .offersGrid {

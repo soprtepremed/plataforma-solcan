@@ -201,38 +201,6 @@ export default function PortalPaciente() {
                   Escanear QR
                 </button>
               </div>
-
-              {/* SECCIÓN DE OFERTAS Y OPINIONES */}
-              <div className={styles.infoSections}>
-                <h4 className={styles.sectionTitle}>Ofertas Exclusivas</h4>
-                <div className={styles.offersGrid}>
-                  {promos.map(off => (
-                    <div key={off.id} className={styles.offerCard} style={{ '--accent': off.color_acento }}>
-                      <div className={styles.offerImage} style={{ backgroundImage: `url(${off.imagen_url})` }}></div>
-                      <div className={styles.offerBadge}>{off.precio_badge}</div>
-                      <div className={styles.offerContent}>
-                        <h5>{off.titulo}</h5>
-                        <p>{off.descripcion}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <h4 className={styles.sectionTitle}>Lo que dicen nuestros pacientes</h4>
-                <div className={styles.reviewsList}>
-                  {REVIEWS.map(rev => (
-                    <div key={rev.id} className={styles.reviewCard}>
-                      <div className={styles.stars}>
-                        {[...Array(rev.stars)].map((_, i) => (
-                          <span key={i} className="material-symbols-rounded">star</span>
-                        ))}
-                      </div>
-                      <p className={styles.reviewText}>"{rev.text}"</p>
-                      <p className={styles.reviewAuthor}>— {rev.name}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </>
           ) : (
             <div className={styles.scannerContainer}>
@@ -251,6 +219,42 @@ export default function PortalPaciente() {
             </div>
           )}
         </div>
+
+        {/* SECCIONES DE MARKETING - AHORA FUERA DEL CARD PARA MAYOR LIMPIEZA */}
+        {!resultado && !showScanner && (
+          <div className={styles.marketingContainer}>
+            <div className={styles.infoSections}>
+              <h4 className={styles.sectionTitle}>Ofertas Exclusivas</h4>
+              <div className={styles.offersGrid}>
+                {promos.map(off => (
+                  <div key={off.id} className={styles.offerCard} style={{ '--accent': off.color_acento }}>
+                    <div className={styles.offerImage} style={{ backgroundImage: `url(${off.imagen_url})` }}></div>
+                    <div className={styles.offerBadge}>{off.precio_badge}</div>
+                    <div className={styles.offerContent}>
+                      <h5>{off.titulo}</h5>
+                      <p>{off.descripcion}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <h4 className={styles.sectionTitle} style={{marginTop: '3.5rem'}}>Lo que dicen nuestros pacientes</h4>
+              <div className={styles.reviewsList}>
+                {REVIEWS.map(rev => (
+                  <div key={rev.id} className={styles.reviewCard}>
+                    <div className={styles.stars}>
+                      {[...Array(rev.stars)].map((_, i) => (
+                        <span key={i} className="material-symbols-rounded">star</span>
+                      ))}
+                    </div>
+                    <p className={styles.reviewText}>"{rev.text}"</p>
+                    <p className={styles.reviewAuthor}>— {rev.name}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
   
         {/* Visor de PDF (aparece cuando se encuentra el resultado) */}
         {resultado && (
