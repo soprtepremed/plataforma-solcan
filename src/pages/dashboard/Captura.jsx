@@ -165,6 +165,21 @@ export default function Captura() {
               El QR lleva al paciente directamente a sus resultados
             </p>
 
+            {/* Nuevo: Enlace para copiar */}
+            <div className={styles.urlCopyArea}>
+               <span className={styles.portalUrlText}>{portalURL}</span>
+               <button 
+                className={styles.copyBtn} 
+                onClick={() => {
+                  navigator.clipboard.writeText(portalURL);
+                  alert("¡Enlace copiado al portapapeles!");
+                }}
+               >
+                 <span className="material-symbols-rounded">content_copy</span>
+                 Copiar Enlace
+               </button>
+            </div>
+
             <button
               className={styles.resetBtn}
               onClick={() => setResultado(null)}
