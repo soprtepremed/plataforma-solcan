@@ -151,7 +151,7 @@ export default function TopNavbar() {
       ];
     }
     if (r === 'mensajero') return [ { label: 'Ruta de Transporte', path: '/logistica/transporte', icon: 'route' } ];
-    if (r === 'captura') {
+    if (r.includes('captura') || r.includes('técnico') || r.includes('tecnico')) {
       return [
         { label: 'Captura Resultados', path: '/captura', icon: 'add_task' },
         { label: 'Resultados Listos', path: '/resultados', icon: 'verified_user' },
