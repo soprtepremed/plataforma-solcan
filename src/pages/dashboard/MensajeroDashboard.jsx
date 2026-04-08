@@ -182,10 +182,10 @@ export default function MensajeroDashboard() {
                   </div>
 
                   <div className={styles.samplesSummary}>
-                     {envio.s_dorado > 0 && <span className={styles.sampleTag}><strong>{envio.s_dorado}</strong> Dorados</span>}
-                     {envio.s_rojo > 0 && <span className={styles.sampleTag}><strong>{envio.s_rojo}</strong> Rojos</span>}
+                     {envio.s_rojo > 0 && <span className={styles.sampleTag} style={{borderLeft: '4px solid #FF0000'}}><strong>{envio.s_rojo}</strong> Rojos</span>}
+                     {envio.s_dorado > 0 && <span className={styles.sampleTag} style={{borderLeft: '4px solid #FFD700'}}><strong>{envio.s_dorado}</strong> Dorados</span>}
                      {envio.s_lila > 0 && <span className={styles.sampleTag}><strong>{envio.s_lila}</strong> Lilas</span>}
-                     {envio.s_suero > 0 && <span className={styles.sampleTag}><strong>{envio.s_suero}</strong> Sueros</span>}
+                     {envio.s_celeste > 0 && <span className={styles.sampleTag}><strong>{envio.s_celeste}</strong> Celestes</span>}
                   </div>
 
                   {photos.length > 0 && (

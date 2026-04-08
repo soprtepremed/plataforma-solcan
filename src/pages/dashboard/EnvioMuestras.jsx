@@ -136,7 +136,7 @@ export default function EnvioMuestras() {
       const fileName = `${sucursal.replace(/ /g, "_")}/${new Date().toISOString().split("T")[0]}/envio_${Date.now()}_${index + 1}.${fileExt}`;
       const { error } = await supabase.storage.from("evidencia-envios").upload(fileName, file, { cacheControl: "3600", upsert: true });
       if (error) throw error;
-      const publicUrl = `https://ybhfsvkwpmhzwuboynre.supabase.co/storage/v1/object/public/evidencia-envios/${fileName}`;
+      const { data: { publicUrl } } = supabase.storage.from("evidencia-envios").getPublicUrl(fileName);
       uploadedUrls.push(publicUrl);
     }
     return uploadedUrls.join("|");

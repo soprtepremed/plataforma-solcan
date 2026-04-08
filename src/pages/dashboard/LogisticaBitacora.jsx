@@ -84,8 +84,10 @@ export default function LogisticaBitacora() {
   const fetchLogs = async () => {
     setLoading(true);
     // Usamos el formato YYYY-MM-DD literal para evitar desfases de zona horaria
-    const startOfDay = `${selectedDate}T00:00:00.000Z`;
-    const endOfDay = `${selectedDate}T23:59:59.999Z`;
+    // Calculamos el inicio y fin del día en la zona horaria LOCAL del navegador
+    const [year, month, day] = selectedDate.split('-').map(Number);
+    const startOfDay = new Date(year, month - 1, day, 0, 0, 0, 0).toISOString();
+    const endOfDay = new Date(year, month - 1, day, 23, 59, 59, 999).toISOString();
 
     let query = supabase
       .from("logistica_envios")

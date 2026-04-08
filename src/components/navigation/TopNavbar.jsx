@@ -62,6 +62,7 @@ export default function TopNavbar() {
         const nuevo = payload.new;
         if (nuevo.role === user.role || nuevo.user_id === user.id) {
            setNotifications(prev => [nuevo, ...prev]);
+           playNotificationSound();
         }
       })
       .subscribe();
@@ -69,10 +70,16 @@ export default function TopNavbar() {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  const unreadCount = notifications.length;
+  const unreadCount = notifications.filter(n => !n.read).length;
 
-  const markAllAsRead = () => {
-    // Lógica local para limpiar el badge
+  const markAllAsRead = async () => {
+    if (unreadCount === 0) return;
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    await supabase
+      .from('notificaciones')
+      .update({ read: true })
+      .or(`role.eq.${user.role},user_id.eq.${user.id}`)
+      .eq('read', false);
   };
 
   const deleteNotification = async (id) => {
@@ -357,6 +364,35 @@ export default function TopNavbar() {
     </nav>
   );
 }
+
+
+const playNotificationSound = () => {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const playNote = (freq, start, duration) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+      gain.gain.setValueAtTime(0, ctx.currentTime + start);
+      gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + start + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + start + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + start);
+      osc.stop(ctx.currentTime + start + duration);
+    };
+
+    // Tono iOS-Style (Double Ding)
+    playNote(1567.98, 0, 0.4); // Sol 6
+    playNote(1174.66, 0.12, 0.5); // Re 6
+    
+    // Auto-close context para liberar recursos
+    setTimeout(() => ctx.close(), 1000);
+  } catch (err) {
+    console.warn("Audio blocked by browser policy:", err);
+  }
+};
 
 const formatNotifDate = (dateStr) => {
   const d = new Date(dateStr);
