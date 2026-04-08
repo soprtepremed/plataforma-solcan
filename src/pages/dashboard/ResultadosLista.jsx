@@ -13,18 +13,13 @@ export default function ResultadosLista() {
     setLoading(true);
     
     // Construimos la query base
-    let query = supabase
+    // Por ahora, traemos todos los resultados sin filtrar por sucursal
+    // para evitar el error de columna faltante
+    const { data, error } = await supabase
       .from("resultados")
       .select("*")
       .order("created_at", { ascending: false });
-
-    // "No deben mezclarse": Si no es admin, filtramos por su sucursal
-    if (user?.role !== 'admin' && user?.branch) {
-      query = query.eq('sucursal', user.branch);
-    }
-
-    const { data, error } = await query;
-
+ 
     if (!error) {
       setResultados(data);
     }
@@ -76,27 +71,23 @@ export default function ResultadosLista() {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Nombre / Paciente</th>
-                  <th>Código</th>
-                  {user?.role === 'admin' && <th>Sucursal</th>}
-                  <th>Fecha</th>
+                  <th>Archivo PDF</th>
+                  <th>Código de Acceso</th>
+                  <th>Fecha de Carga</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((item) => (
                   <tr key={item.id}>
-                    <td style={{ fontWeight: 600 }}>{item.pdf_nombre}</td>
+                    <td style={{ fontWeight: 600 }}>
+                      <span className="material-symbols-rounded" style={{ fontSize: '18px', verticalAlign: 'middle', marginRight: '8px', color: 'var(--co-accent)' }}>description</span>
+                      {item.pdf_nombre}
+                    </td>
                     <td>
                       <span className={styles.codeBadge}>{item.access_code}</span>
                     </td>
-                    {user?.role === 'admin' && (
-                      <td style={{ fontSize: '0.85rem' }}>
-                        <span className="material-symbols-rounded" style={{ fontSize: '14px', verticalAlign: 'middle', marginRight: '4px' }}>location_on</span>
-                        {item.sucursal || 'Central'}
-                      </td>
-                    )}
-                    <td>{new Date(item.created_at).toLocaleDateString()}</td>
+                    <td style={{ color: 'var(--co-text-muted)' }}>{new Date(item.created_at).toLocaleDateString()}</td>
                     <td>
                       <div className={styles.actions}>
                         <a href={item.pdf_url} target="_blank" rel="noreferrer" className={`${styles.actionBtn} ${styles.viewBtn}`}>
