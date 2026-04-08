@@ -153,7 +153,8 @@ export default function TopNavbar() {
     if (r === 'captura') {
       return [
         { label: 'Captura Resultados', path: '/captura', icon: 'add_task' },
-        { label: 'Resultados Listos', path: '/resultados', icon: 'verified_user' }
+        { label: 'Resultados Listos', path: '/resultados', icon: 'verified_user' },
+        { label: 'Ver Portal Público', path: '/portal', icon: 'open_in_new' }
       ];
     }
     return [];
