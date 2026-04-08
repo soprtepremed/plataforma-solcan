@@ -327,6 +327,112 @@
   font-weight: 500;
 }
 
+/* SECCIONES DE INFORMACIÓN (OFERTAS Y OPINIONES) */
+.infoSections {
+  margin-top: 3.5rem;
+  text-align: left;
+}
+
+.sectionTitle {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.offersGrid {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  margin-bottom: 2.5rem;
+  scrollbar-width: none;
+}
+
+.offersGrid::-webkit-scrollbar { display: none; }
+
+.offerCard {
+  min-width: 220px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 4px solid var(--accent);
+  border-radius: 1.2rem;
+  padding: 1.5rem;
+  position: relative;
+  transition: transform 0.3s;
+}
+
+.offerCard:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.offerBadge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: var(--accent);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.offerCard h5 {
+  color: white;
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
+}
+
+.offerCard p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.reviewsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.reviewCard {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1.2rem;
+  padding: 1.2rem;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.stars span {
+  font-size: 16px;
+  color: #FFD700;
+}
+
+.reviewText {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.9rem;
+  font-style: italic;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.reviewAuthor {
+  color: var(--co-accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: right;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -338,4 +444,5 @@
   .pdfFrame { height: 500px; }
   .pdfHeader { flex-direction: column; gap: 15px; align-items: flex-start; }
   .downloadBtn { width: 100%; justify-content: center; }
+  .offerCard { min-width: 180px; }
 }

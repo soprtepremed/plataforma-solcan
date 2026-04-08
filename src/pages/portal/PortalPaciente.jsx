@@ -5,6 +5,16 @@ import { supabase } from "../../lib/supabaseClient";
 import Logo from "../../components/common/Logo";
 import styles from "./PortalPaciente.module.css";
 
+const OFFERS = [
+  { id: 1, title: 'Check-up Básico', desc: 'Q.C. de 6 elementos + EGO', price: '$450', color: '#0BCECD' },
+  { id: 2, title: 'Perfil Hormonal', desc: 'Especial para mujeres', price: '20% OFF', color: '#5D26C1' },
+];
+
+const REVIEWS = [
+  { id: 1, name: 'María G.', text: 'Excelente atención y los resultados me llegaron muy rápido al celular.', stars: 5 },
+  { id: 2, name: 'Roberto J.', text: 'El portal es facilísimo de usar, descargué mi PDF en segundos.', stars: 5 },
+];
+
 export default function PortalPaciente() {
   const { code: codeParam } = useParams();
   const [code, setCode] = useState(codeParam || "");
@@ -181,6 +191,35 @@ export default function PortalPaciente() {
                   <span className="material-symbols-rounded">qr_code_scanner</span>
                   Escanear QR
                 </button>
+              </div>
+
+              {/* SECCIÓN DE OFERTAS Y OPINIONES */}
+              <div className={styles.infoSections}>
+                <h4 className={styles.sectionTitle}>Ofertas Exclusivas</h4>
+                <div className={styles.offersGrid}>
+                  {OFFERS.map(off => (
+                    <div key={off.id} className={styles.offerCard} style={{ '--accent': off.color }}>
+                      <div className={styles.offerBadge}>{off.price}</div>
+                      <h5>{off.title}</h5>
+                      <p>{off.desc}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <h4 className={styles.sectionTitle}>Lo que dicen nuestros pacientes</h4>
+                <div className={styles.reviewsList}>
+                  {REVIEWS.map(rev => (
+                    <div key={rev.id} className={styles.reviewCard}>
+                      <div className={styles.stars}>
+                        {[...Array(rev.stars)].map((_, i) => (
+                          <span key={i} className="material-symbols-rounded">star</span>
+                        ))}
+                      </div>
+                      <p className={styles.reviewText}>"{rev.text}"</p>
+                      <p className={styles.reviewAuthor}>— {rev.name}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </>
           ) : (
