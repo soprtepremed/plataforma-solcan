@@ -8,6 +8,7 @@ export default function ResultadosLista() {
   const [resultados, setResultados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const fetchResultados = async () => {
     setLoading(true);
@@ -43,6 +44,23 @@ export default function ResultadosLista() {
 
   return (
     <div className={styles.container}>
+      {/* Modal de Previsualización */}
+      {previewUrl && (
+        <div className={styles.modalOverlay} onClick={() => setPreviewUrl(null)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Vista Previa del Resultado</h3>
+              <button className={styles.closeModal} onClick={() => setPreviewUrl(null)}>
+                <span className="material-symbols-rounded">close</span>
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <iframe src={previewUrl} className={styles.pdfIframe} title="Vista previa" />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>Historial: {user?.role === 'admin' ? 'Global' : user?.branch}</h1>
@@ -90,9 +108,13 @@ export default function ResultadosLista() {
                     <td style={{ color: 'var(--co-text-muted)' }}>{new Date(item.created_at).toLocaleDateString()}</td>
                     <td>
                       <div className={styles.actions}>
-                        <a href={item.pdf_url} target="_blank" rel="noreferrer" className={`${styles.actionBtn} ${styles.viewBtn}`}>
+                        <button 
+                          className={`${styles.actionBtn} ${styles.viewBtn}`}
+                          onClick={() => setPreviewUrl(item.pdf_url)}
+                          title="Vista rápida"
+                        >
                           <span className="material-symbols-rounded">visibility</span>
-                        </a>
+                        </button>
                         <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={() => handleEliminar(item.id)}>
                           <span className="material-symbols-rounded">delete</span>
                         </button>
