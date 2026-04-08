@@ -160,23 +160,75 @@
   overflow: hidden;
   border: none !important;
   margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.reader video {
-  border-radius: 1.5rem;
+/* Sobreescribiendo estilos internos de html5-qrcode */
+.reader :global(#reader__status_span) {
+  color: white !important;
+  font-size: 0.9rem;
+}
+
+.reader :global(#reader__dashboard_section_csr button) {
+  background: var(--co-gradient) !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  margin: 10px 0 !important;
+}
+
+.reader :global(select) {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  padding: 8px !important;
+  border-radius: 8px !important;
+  outline: none !important;
+  width: 80% !important;
+  margin-bottom: 1rem !important;
+}
+
+.reader :global(option) {
+  background: #020122 !important;
+  color: white !important;
+}
+
+.reader :global(img[alt="Info icon"]) {
+  display: none !important; /* Ocultar el icono de info feo */
+}
+
+.reader :global(img[alt="Camera menu icon"]) {
+  display: none !important;
+}
+
+.reader :global(#reader__dashboard_section_csr span) {
+  color: rgba(255, 255, 255, 0.7) !important;
+  display: block;
+  margin-bottom: 5px;
 }
 
 .cancelBtn {
-  background: #ff4757;
-  color: white;
-  border: none;
-  padding: 0.8rem 1.5rem;
-  border-radius: 1rem;
+  background: rgba(255, 71, 87, 0.2);
+  color: #ff4757;
+  border: 1px solid rgba(255, 71, 87, 0.3);
+  padding: 1rem 2rem;
+  border-radius: 1.2rem;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   margin: 0 auto;
   cursor: pointer;
+  font-weight: 700;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.cancelBtn:hover {
+  background: rgba(255, 71, 87, 0.3);
 }
 
 /* PDF SECTION GLASS */
