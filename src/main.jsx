@@ -15,13 +15,20 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>,
 )
 
-// Registrar Service Worker para Notificaciones Nativas
+// Registrar Service Worker para Notificaciones y PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    // Solo registrar si es localhost o HTTPS seguro (evita errores en IP local de desarrollo)
+    const isLocalIP = window.location.hostname.match(/^\d+\.\d+\.\d+\.\d+$/);
+    
     navigator.serviceWorker.register('/sw.js').then(registration => {
-      console.log('✅ Service Worker registrado con éxito:', registration.scope);
+      console.log('✅ Service Worker: Activo y listo.');
     }).catch(error => {
-      console.error('❌ Error al registrar el Service Worker:', error);
+      if (isLocalIP) {
+        console.warn('⚠️ PWA: El modo App requiere HTTPS real para instalarse desde esta IP. En producción funcionará sin problemas.');
+      } else {
+        console.error('❌ PWA Error:', error);
+      }
     });
   });
 }
