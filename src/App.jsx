@@ -14,6 +14,7 @@ import AlmacenDashboard from './pages/dashboard/AlmacenDashboard';
 import SolicitudMaterial from './pages/dashboard/SolicitudMaterial';
 import ImpresionEtiquetas from './pages/dashboard/ImpresionEtiquetas';
 import PortalPaciente from './pages/portal/PortalPaciente';
+import AdminPromociones from './pages/dashboard/AdminPromociones';
 import Sucursales from './pages/Sucursales';
 import { useAuth } from './context/AuthContext';
 import './App.css';
@@ -78,6 +79,7 @@ function App() {
         <Route path="/almacen" element={<Navigate to="/almacen/dashboard" replace />} />
         <Route path="/almacen/dashboard" element={<PrivateRoute><DashboardLayout><AlmacenDashboard /></DashboardLayout></PrivateRoute>} />
         <Route path="/almacen/solicitud" element={<PrivateRoute><DashboardLayout><SolicitudMaterial /></DashboardLayout></PrivateRoute>} />
+        <Route path="/admin/promociones" element={<PrivateRoute><DashboardLayout><AdminPromociones /></DashboardLayout></PrivateRoute>} />
 
         {/* Portal Público del Paciente (sin login) */}
         <Route path="/portal" element={<PortalPaciente />} />
