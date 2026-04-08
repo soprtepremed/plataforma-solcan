@@ -389,7 +389,7 @@ const playNotificationSound = () => {
     
     // Vibración (Solo funciona en Android y con interacción previa)
     if (navigator.vibrate) {
-      navigator.vibrate([100, 50, 100]);
+      navigator.vibrate([500, 200, 500]);
     }
     
     // Auto-close context para liberar recursos
