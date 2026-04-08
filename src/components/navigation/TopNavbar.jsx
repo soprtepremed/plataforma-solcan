@@ -150,6 +150,12 @@ export default function TopNavbar() {
       ];
     }
     if (r === 'mensajero') return [ { label: 'Ruta de Transporte', path: '/logistica/transporte', icon: 'route' } ];
+    if (r === 'captura') {
+      return [
+        { label: 'Captura Resultados', path: '/logistica/captura', icon: 'add_task' },
+        { label: 'Resultados Listos', path: '/logistica/resultados', icon: 'verified_user' }
+      ];
+    }
     return [];
   };
 
