@@ -161,6 +161,22 @@
   border: none !important;
   margin-bottom: 1.5rem;
   background: rgba(255, 255, 255, 0.05);
+  min-height: 250px;
+}
+
+.scannerPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: white;
+  gap: 15px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Sobreescribiendo estilos internos de html5-qrcode */

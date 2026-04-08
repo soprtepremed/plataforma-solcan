@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { Html5QrcodeScanner } from "html5-qrcode";
+import { Html5Qrcode } from "html5-qrcode";
 import { supabase } from "../../lib/supabaseClient";
 import Logo from "../../components/common/Logo";
 import styles from "./PortalPaciente.module.css";
@@ -12,6 +12,7 @@ export default function PortalPaciente() {
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState(null);
   const [showScanner, setShowScanner] = useState(false);
+  const [scannerLoading, setScannerLoading] = useState(false);
   const scannerRef = useRef(null);
 
   // Efecto para buscar automáticamente si llega el código por URL (QR)
@@ -21,44 +22,57 @@ export default function PortalPaciente() {
     }
   }, [codeParam]);
 
-  // Configurar y limpiar el escáner
+  // Configurar y limpiar el escáner de encendido directo
   useEffect(() => {
     if (showScanner) {
-      // Pequeño timeout para asegurar que el div "reader" ya esté en el DOM
-      const timer = setTimeout(() => {
-        const readerElement = document.getElementById("reader");
-        if (!readerElement) return;
+      setScannerLoading(true);
+      const html5QrCode = new Html5Qrcode("reader");
+      scannerRef.current = html5QrCode;
 
-        const scanner = new Html5QrcodeScanner("reader", { 
-          fps: 10, 
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0
-        });
+      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-        scanner.render((decodedText) => {
+      // Iniciamos directamente con la cámara trasera (environment)
+      html5QrCode.start(
+        { facingMode: "environment" }, 
+        config, 
+        (decodedText) => {
           const extractedCode = decodedText.split('/').pop()?.toUpperCase();
           if (extractedCode && extractedCode.length === 6) {
             if (navigator.vibrate) navigator.vibrate(200);
             setCode(extractedCode);
-            setShowScanner(false);
-            scanner.clear();
+            handleStopScanner();
             buscarResultado(extractedCode);
           }
-        }, (err) => {
-          // Errores de escaneo silenciosos
-        });
-
-        scannerRef.current = scanner;
-      }, 100);
+        }
+      ).then(() => {
+        setScannerLoading(false);
+      }).catch(err => {
+        console.error("Error al iniciar cámara:", err);
+        setScannerLoading(false);
+        setError("No pudimos acceder a tu cámara. Asegúrate de dar los permisos.");
+        setShowScanner(false);
+      });
 
       return () => {
-        clearTimeout(timer);
-        if (scannerRef.current) {
-          scannerRef.current.clear().catch(e => console.error("Error al cerrar scanner:", e));
+        if (scannerRef.current && scannerRef.current.isScanning) {
+          scannerRef.current.stop().catch(e => console.error(e));
         }
       };
     }
   }, [showScanner]);
+
+  const handleStopScanner = async () => {
+    if (scannerRef.current) {
+      try {
+        if (scannerRef.current.isScanning) {
+          await scannerRef.current.stop();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    setShowScanner(false);
+  };
 
   const buscarResultado = async (overrideCode) => {
     const targetCode = (overrideCode || code).trim().toUpperCase();
@@ -171,8 +185,14 @@ export default function PortalPaciente() {
             </>
           ) : (
             <div className={styles.scannerContainer}>
+              {scannerLoading && (
+                <div className={styles.scannerPlaceholder}>
+                  <span className="material-symbols-rounded" style={{fontSize:'48px', animation:'spin 2s linear infinite'}}>sync</span>
+                  <p>Iniciando cámara...</p>
+                </div>
+              )}
               <div id="reader" className={styles.reader}></div>
-              <button className={styles.cancelBtn} onClick={() => setShowScanner(false)}>
+              <button className={styles.cancelBtn} onClick={handleStopScanner}>
                 <span className="material-symbols-rounded">close</span>
                 Cerrar Cámara
               </button>
