@@ -106,6 +106,10 @@ export default function PortalPaciente() {
       }
     };
 
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter") buscarResultado();
+    };
+
     return (
       <div className={styles.page}>
         <div className={styles.meshBackground}></div>
