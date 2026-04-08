@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "mobile": "vite --host --port 5173 --strictPort",
+    "expo": "expo start --web --tunnel",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@expo/ngrok": "^4.1.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
@@ -32,6 +34,7 @@
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "expo": "^55.0.12",
     "globals": "^17.4.0",
     "html2pdf.js": "^0.14.0",
     "vite": "^8.0.1"

@@ -8,15 +8,15 @@ async function testPush() {
     console.log('🚀 Iniciando envio de prueba...');
     
     const testShipment = {
-        sucursal: 'San Andrés (SA)',
+        sucursal: 'Mercado Central (MC)',
         status: 'Pendiente',
-        s_rojo: 7,
-        s_dorado: 14,
-        s_lila: 4,
+        s_rojo: 15,
+        s_dorado: 5,
+        s_lila: 20,
         s_celeste: 0,
-        temp_sale_amb: 25.1,
-        temp_sale_ref: 4.8,
-        observaciones_sucursal: '📦 CUARTO ENVIO DE PRUEBA - SAN ANDRES - VERIFICAR AUDIO'
+        temp_sale_amb: 26.2,
+        temp_sale_ref: 4.1,
+        observaciones_sucursal: '📦 PRUEBA FINAL - MERCADO CENTRAL - DEBE SONAR EN MOVIL'
     };
 
     const { data: shipment, error: shipError } = await supabase
