@@ -76,114 +76,127 @@ export default function PortalPaciente() {
     setResultado(data);
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") buscarResultado();
-  };
+    const handleDownload = async (e) => {
+      e.preventDefault();
+      try {
+        const response = await fetch(resultado.pdf_url);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = resultado.pdf_nombre || "Resultado_Solcan.pdf";
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (err) {
+        console.error("Error al descargar:", err);
+        // Fallback si el fetch falla (CORS)
+        window.open(resultado.pdf_url, '_blank');
+      }
+    };
 
-  return (
-    <div className={styles.page}>
-      <div className={styles.meshBackground}></div>
-      
-      {/* Tarjeta central de búsqueda - GLOSS DESIGN */}
-      <div className={`${styles.card} ${resultado ? styles.cardResults : ""}`}>
-        <div className={styles.logoWrapper}>
-          <Logo variant="white" size="lg" />
+    return (
+      <div className={styles.page}>
+        <div className={styles.meshBackground}></div>
+        
+        {/* Tarjeta central de búsqueda - GLOSS DESIGN */}
+        <div className={`${styles.card} ${resultado ? styles.cardResults : ""}`}>
+          <div className={styles.logoWrapper}>
+            <Logo variant="white" size="lg" />
+          </div>
+          
+          <h1 className={styles.title}>Resultados de Laboratorio</h1>
+          
+          {!showScanner ? (
+            <>
+              <p className={styles.subtitle}>
+                Ingresa tu código de 6 dígitos o escanea el QR de tu comprobante.
+              </p>
+  
+              <div className={styles.inputGroup}>
+                <input
+                  className={styles.codeInput}
+                  type="text"
+                  maxLength={6}
+                  placeholder="CÓDIGO"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  onKeyDown={handleKeyDown}
+                  autoFocus
+                />
+              </div>
+  
+              {error && (
+                <div className={styles.errorBox}>
+                  <span className="material-symbols-rounded">error</span>
+                  {error}
+                </div>
+              )}
+  
+              <div className={styles.actionButtons}>
+                <button
+                  className={styles.searchBtn}
+                  onClick={() => buscarResultado()}
+                  disabled={loading || code.length < 6}
+                >
+                  <span className="material-symbols-rounded">
+                    {loading ? "sync" : "manage_search"}
+                  </span>
+                  {loading ? "Buscando..." : "Consultar"}
+                </button>
+  
+                <button
+                  className={styles.scannerBtn}
+                  onClick={() => setShowScanner(true)}
+                >
+                  <span className="material-symbols-rounded">qr_code_scanner</span>
+                  Escanear QR
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className={styles.scannerContainer}>
+              <div id="reader" className={styles.reader}></div>
+              <button className={styles.cancelBtn} onClick={() => setShowScanner(false)}>
+                <span className="material-symbols-rounded">close</span>
+                Cerrar Cámara
+              </button>
+            </div>
+          )}
         </div>
-        
-        <h1 className={styles.title}>Resultados de Laboratorio</h1>
-        
-        {!showScanner ? (
-          <>
-            <p className={styles.subtitle}>
-              Ingresa tu código de 6 dígitos o escanea el QR de tu comprobante.
-            </p>
-
-            <div className={styles.inputGroup}>
-              <input
-                className={styles.codeInput}
-                type="text"
-                maxLength={6}
-                placeholder="CÓDIGO"
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                onKeyDown={handleKeyDown}
-                autoFocus
+  
+        {/* Visor de PDF (aparece cuando se encuentra el resultado) */}
+        {resultado && (
+          <div className={styles.pdfSection}>
+            <div className={styles.pdfHeader}>
+              <div className={styles.pdfInfo}>
+                <span className="material-symbols-rounded" style={{color:'var(--co-accent)'}}>description</span>
+                <div>
+                  <p className={styles.pdfName}>{resultado.pdf_nombre}</p>
+                  <p className={styles.pdfDate}>
+                    Emitido el {new Date(resultado.created_at).toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" })}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleDownload}
+                className={styles.downloadBtn}
+              >
+                <span className="material-symbols-rounded">download</span>
+                Descargar
+              </button>
+            </div>
+  
+            <div className={styles.frameContainer}>
+              <iframe
+                src={resultado.pdf_url}
+                className={styles.pdfFrame}
+                title="Resultado de laboratorio"
               />
             </div>
-
-            {error && (
-              <div className={styles.errorBox}>
-                <span className="material-symbols-rounded">error</span>
-                {error}
-              </div>
-            )}
-
-            <div className={styles.actionButtons}>
-              <button
-                className={styles.searchBtn}
-                onClick={() => buscarResultado()}
-                disabled={loading || code.length < 6}
-              >
-                <span className="material-symbols-rounded">
-                  {loading ? "sync" : "manage_search"}
-                </span>
-                {loading ? "Buscando..." : "Consultar"}
-              </button>
-
-              <button
-                className={styles.scannerBtn}
-                onClick={() => setShowScanner(true)}
-              >
-                <span className="material-symbols-rounded">qr_code_scanner</span>
-                Escanear QR
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className={styles.scannerContainer}>
-            <div id="reader" className={styles.reader}></div>
-            <button className={styles.cancelBtn} onClick={() => setShowScanner(false)}>
-              <span className="material-symbols-rounded">close</span>
-              Cerrar Cámara
-            </button>
           </div>
         )}
-      </div>
-
-      {/* Visor de PDF (aparece cuando se encuentra el resultado) */}
-      {resultado && (
-        <div className={styles.pdfSection}>
-          <div className={styles.pdfHeader}>
-            <div className={styles.pdfInfo}>
-              <span className="material-symbols-rounded" style={{color:'var(--co-accent)'}}>description</span>
-              <div>
-                <p className={styles.pdfName}>{resultado.pdf_nombre}</p>
-                <p className={styles.pdfDate}>
-                  Emitido el {new Date(resultado.created_at).toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" })}
-                </p>
-              </div>
-            </div>
-            <a
-              href={resultado.pdf_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.downloadBtn}
-              download
-            >
-              <span className="material-symbols-rounded">download</span>
-              Descargar
-            </a>
-          </div>
-
-          <div className={styles.frameContainer}>
-            <iframe
-              src={resultado.pdf_url}
-              className={styles.pdfFrame}
-              title="Resultado de laboratorio"
-            />
-          </div>
-        </div>
-      )}
       
       <footer className={styles.footer}>
         © {new Date().getFullYear()} Solcan Lab. Todos los derechos reservados.
