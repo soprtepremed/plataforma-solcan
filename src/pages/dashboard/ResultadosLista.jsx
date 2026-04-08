@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./ResultadosLista.module.css";
+// v1.1.2 - FORCE DEPLOY: Restaurar botones de WhatsApp y Copiar
 
 export default function ResultadosLista() {
   const { user } = useAuth();
