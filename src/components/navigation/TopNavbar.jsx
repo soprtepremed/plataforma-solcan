@@ -193,14 +193,22 @@ export default function TopNavbar() {
           </div>
 
           <div className={styles.mobileNotifLeft}>
-             <button className={styles.iconBtn} onClick={() => { setShowNotifMenu(!showNotifMenu); markAllAsRead(); }}>
+             <button className={styles.iconBtn} onClick={() => { 
+               if (navigator.vibrate) navigator.vibrate(50);
+               setShowNotifMenu(!showNotifMenu); 
+               markAllAsRead(); 
+             }}>
                 <span className="material-symbols-rounded">notifications</span>
                 {unreadCount > 0 && <span className={styles.notifCircle}>{unreadCount}</span>}
              </button>
           </div>
           
           <div className={styles.notifAreaPC}>
-            <button className={styles.iconBtn} onClick={() => { setShowNotifMenu(!showNotifMenu); markAllAsRead(); }}>
+            <button className={styles.iconBtn} onClick={() => { 
+              if (navigator.vibrate) navigator.vibrate(50);
+              setShowNotifMenu(!showNotifMenu); 
+              markAllAsRead(); 
+            }}>
               <span className="material-symbols-rounded">notifications</span>
               {unreadCount > 0 && <span className={styles.notifCircle}>{unreadCount}</span>}
             </button>
