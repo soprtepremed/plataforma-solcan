@@ -387,9 +387,9 @@ const playNotificationSound = () => {
     playNote(1567.98, 0, 0.4); // Sol 6
     playNote(1174.66, 0.12, 0.5); // Re 6
     
-    // Vibración (Solo funciona en Android y con interacción previa)
+    // Vibración (Larga de 1 segundo para prueba definitiva)
     if (navigator.vibrate) {
-      navigator.vibrate([500, 200, 500]);
+      navigator.vibrate(1000);
     }
     
     // Auto-close context para liberar recursos
