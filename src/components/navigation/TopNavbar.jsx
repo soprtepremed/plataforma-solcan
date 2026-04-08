@@ -135,30 +135,31 @@ export default function TopNavbar() {
   const getMenuOptions = () => {
     if (!user) return [];
     const r = user.role?.toLowerCase();
-    if (r === 'admin' || r === 'administrador' || r === 'quimico' || r === 'químico') {
-      return [
-        { label: 'Recepción Matriz', path: '/logistica/recepcion', icon: 'lab_research' },
-        { label: 'Bitácora FO-DO-017', path: '/logistica/bitacora', icon: 'assignment' },
-        { label: 'Gestionar Publicidad', path: '/admin/promociones', icon: 'campaign' },
-        { label: 'Solicitar Insumos', path: '/almacen/solicitud', icon: 'shopping_cart' }
-      ];
+    const options = [{ label: 'Inicio', path: '/', icon: 'home' }];
+    
+    // Casos por rol (Sincronizado con Sucursales.jsx)
+    if (r === 'admin' || r === 'captura' || r.includes('técnico') || r.includes('tecnico')) {
+      options.push({ label: 'Captura Resultados', path: '/captura', icon: 'add_task' });
+      options.push({ label: 'Resultados Listos', path: '/resultados', icon: 'verified_user' });
+      options.push({ label: 'Ver Portal', path: '/portal', icon: 'open_in_new' });
     }
-    if (r === 'recepcion' || r === 'recepción') {
-      return [
-        { label: 'Preparar Envío', path: '/logistica/envio', icon: 'local_shipping' },
-        { label: 'Mi Bitácora', path: '/logistica/bitacora', icon: 'assignment' },
-        { label: 'Estado Sede', path: '/logistica/sede', icon: 'store' }
-      ];
+
+    if (r === 'admin' || r === 'quimico' || r === 'químico') {
+      options.push({ label: 'Recepción Matriz', path: '/logistica/recepcion', icon: 'lab_research' });
+      options.push({ label: 'Bitácora FO-DO-017', path: '/logistica/bitacora', icon: 'assignment' });
+      options.push({ label: 'Gestionar Publicidad', path: '/admin/promociones', icon: 'campaign' });
     }
-    if (r === 'mensajero') return [ { label: 'Ruta de Transporte', path: '/logistica/transporte', icon: 'route' } ];
-    if (r.includes('captura') || r.includes('técnico') || r.includes('tecnico')) {
-      return [
-        { label: 'Captura Resultados', path: '/captura', icon: 'add_task' },
-        { label: 'Resultados Listos', path: '/resultados', icon: 'verified_user' },
-        { label: 'Ver Portal Público', path: '/portal', icon: 'open_in_new' }
-      ];
+
+    if (r === 'admin' || r === 'recepcion' || r === 'recepción') {
+      options.push({ label: 'Mi Bitácora', path: '/logistica/bitacora', icon: 'assignment' });
+      options.push({ label: 'Estado Sede', path: '/logistica/sede', icon: 'store' });
     }
-    return [];
+
+    if (r === 'mensajero') {
+      options.push({ label: 'Ruta de Transporte', path: '/logistica/transporte', icon: 'route' });
+    }
+
+    return options;
   };
 
   const handleSwipeStart = (e) => {
