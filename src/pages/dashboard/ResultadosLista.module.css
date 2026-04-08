@@ -120,6 +120,24 @@
 
 .actionBtn:hover { transform: scale(1.05); opacity: 0.8; }
 
+.copyBtn {
+  background: none;
+  border: none;
+  color: var(--co-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.copyBtn:hover {
+  background: #EDF2F7;
+  color: var(--co-accent);
+}
+
 /* Modal de Previsualización */
 .modalOverlay {
   position: fixed;

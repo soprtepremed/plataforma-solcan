@@ -103,7 +103,19 @@ export default function ResultadosLista() {
                       {item.pdf_nombre}
                     </td>
                     <td>
-                      <span className={styles.codeBadge}>{item.access_code}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className={styles.codeBadge}>{item.access_code}</span>
+                        <button 
+                          className={styles.copyBtn} 
+                          onClick={() => {
+                            navigator.clipboard.writeText(item.access_code);
+                            alert("Código copiado: " + item.access_code);
+                          }}
+                          title="Copiar código"
+                        >
+                          <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>content_copy</span>
+                        </button>
+                      </div>
                     </td>
                     <td style={{ color: 'var(--co-text-muted)' }}>{new Date(item.created_at).toLocaleDateString()}</td>
                     <td>
