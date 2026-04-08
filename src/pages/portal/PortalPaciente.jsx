@@ -23,7 +23,16 @@ export default function PortalPaciente() {
   const [error, setError] = useState(null);
   const [showScanner, setShowScanner] = useState(false);
   const [scannerLoading, setScannerLoading] = useState(false);
+  const [promos, setPromos] = useState([]);
   const scannerRef = useRef(null);
+
+  useEffect(() => {
+    const fetchPromos = async () => {
+      const { data } = await supabase.from('promociones').select('*').order('created_at', { ascending: false });
+      if (data) setPromos(data);
+    };
+    fetchPromos();
+  }, []);
 
   // Efecto para buscar automáticamente si llega el código por URL (QR)
   useEffect(() => {
@@ -197,11 +206,14 @@ export default function PortalPaciente() {
               <div className={styles.infoSections}>
                 <h4 className={styles.sectionTitle}>Ofertas Exclusivas</h4>
                 <div className={styles.offersGrid}>
-                  {OFFERS.map(off => (
-                    <div key={off.id} className={styles.offerCard} style={{ '--accent': off.color }}>
-                      <div className={styles.offerBadge}>{off.price}</div>
-                      <h5>{off.title}</h5>
-                      <p>{off.desc}</p>
+                  {promos.map(off => (
+                    <div key={off.id} className={styles.offerCard} style={{ '--accent': off.color_acento }}>
+                      <div className={styles.offerImage} style={{ backgroundImage: `url(${off.imagen_url})` }}></div>
+                      <div className={styles.offerBadge}>{off.precio_badge}</div>
+                      <div className={styles.offerContent}>
+                        <h5>{off.titulo}</h5>
+                        <p>{off.descripcion}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
