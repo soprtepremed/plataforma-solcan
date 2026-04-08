@@ -115,6 +115,19 @@ export default function ResultadosLista() {
                         >
                           <span className="material-symbols-rounded">visibility</span>
                         </button>
+                        
+                        <a 
+                          href={`https://wa.me/?text=${encodeURIComponent(
+                            `🔬 *Solcan Lab - Resultados Disponibles*\n\nEstimado paciente, le informamos que sus resultados ya han sido liberados. Agradecemos su preferencia.\n\nConsúltelos aquí: https://plataforma-solcan.vercel.app/portal/${item.access_code}`
+                          )}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={`${styles.actionBtn} ${styles.whatsappBtn}`}
+                          title="Enviar a WhatsApp"
+                        >
+                          <span className="material-symbols-rounded">share</span>
+                        </a>
+
                         <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={() => handleEliminar(item.id)}>
                           <span className="material-symbols-rounded">delete</span>
                         </button>

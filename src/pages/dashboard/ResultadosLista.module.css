@@ -115,6 +115,7 @@
 }
 
 .viewBtn { background: #E2E8F0; color: #4A5568; }
+.whatsappBtn { background: #E8F5E9; color: #2E7D32; }
 .deleteBtn { background: #FFF5F5; color: #C53030; }
 
 .actionBtn:hover { transform: scale(1.05); opacity: 0.8; }
