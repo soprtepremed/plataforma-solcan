@@ -37,28 +37,30 @@ export default function Captura() {
 
     try {
       const code = generateCode();
-      const filePath = `${code}/${selectedFile.name}`;
-
+      // Limpiar el nombre del archivo de espacios y caracteres especiales para evitar error 400
+      const safeFileName = selectedFile.name.replace(/\s+/g, '_').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const filePath = `${code}/${safeFileName}`;
+ 
       // 1. Subir PDF al bucket de Supabase Storage
       const { error: storageError } = await supabase.storage
         .from("resultados-pdf")
         .upload(filePath, selectedFile, { contentType: "application/pdf" });
-
+ 
       if (storageError) throw new Error(storageError.message);
-
+ 
       // 2. Obtener la URL pública del PDF
       const { data: urlData } = supabase.storage
         .from("resultados-pdf")
         .getPublicUrl(filePath);
-
+ 
       const pdfUrl = urlData.publicUrl;
-
+ 
       // 3. Guardar el registro en la tabla "resultados"
       const { error: dbError } = await supabase.from("resultados").insert({
         access_code: code,
         pdf_url: pdfUrl,
-        pdf_nombre: selectedFile.name,
-        sucursal: user?.branch || "Oficina Central" // Etiqueta de sucursal
+        pdf_nombre: safeFileName,
+        sucursal: user?.sucursal || "Oficina Central" // corregido a sucursal
       });
 
       if (dbError) throw new Error(dbError.message);
