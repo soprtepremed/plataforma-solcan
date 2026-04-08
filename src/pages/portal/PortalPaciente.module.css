@@ -164,54 +164,36 @@
 }
 
 /* Sobreescribiendo estilos internos de html5-qrcode */
+.reader :global(select), .reader :global(span), .reader :global(#reader__dashboard_section_csr span) {
+  display: none !important; /* Ocultar selector de cámara y textos de ayuda */
+}
+
 .reader :global(#reader__status_span) {
   color: white !important;
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .reader :global(#reader__dashboard_section_csr button) {
   background: var(--co-gradient) !important;
   color: white !important;
   border: none !important;
-  padding: 10px 20px !important;
-  border-radius: 10px !important;
-  font-weight: 600 !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   cursor: pointer !important;
   margin: 10px 0 !important;
+  box-shadow: 0 10px 20px rgba(11, 206, 205, 0.3);
 }
 
-.reader :global(select) {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: white !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  padding: 8px !important;
-  border-radius: 8px !important;
-  outline: none !important;
-  width: 80% !important;
-  margin-bottom: 1rem !important;
-}
-
-.reader :global(option) {
-  background: #020122 !important;
-  color: white !important;
-}
-
-.reader :global(img[alt="Info icon"]) {
-  display: none !important; /* Ocultar el icono de info feo */
-}
-
-.reader :global(img[alt="Camera menu icon"]) {
+.reader :global(img[alt="Info icon"]), .reader :global(img[alt="Camera menu icon"]) {
   display: none !important;
 }
 
-.reader :global(#reader__dashboard_section_csr span) {
-  color: rgba(255, 255, 255, 0.7) !important;
-  display: block;
-  margin-bottom: 5px;
-}
-
 .cancelBtn {
-  background: rgba(255, 71, 87, 0.2);
+  background: rgba(255, 71, 87, 0.15);
   color: #ff4757;
   border: 1px solid rgba(255, 71, 87, 0.3);
   padding: 1rem 2rem;
@@ -220,7 +202,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin: 0 auto;
+  margin: 1rem auto 0 auto;
   cursor: pointer;
   font-weight: 700;
   transition: all 0.2s;
