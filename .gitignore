@@ -14,6 +14,34 @@ dist-ssr
 .env.*
 *.local
 
+# Scripts de diagnóstico con credenciales
+tmp/
+scripts/
+*.sql
+*.sql.txt
+audit_columns.js
+crear_quimico.js
+crear_quimicos_batch.js
+diagnostico_carlos.js
+exec_fix_reception.js
+init_bucket.js
+mapeo_total.js
+migrar_inventario_siss.js
+migrate_formats_fix.js
+reparar_carlos.js
+run_migration.js
+seed_materiales.js
+seed_unidades.js
+test_rpc.js
+verificar_tabla.js
+verify_supabase.js
+clear_bitacora.js
+server.log
+lista_usuarios.txt
+all_models.txt
+build_output.txt
+Credenciales*.txt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
