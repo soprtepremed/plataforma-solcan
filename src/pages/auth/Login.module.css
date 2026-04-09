@@ -49,23 +49,25 @@
 }
 
 .subtitle {
-  color: var(--co-text-muted);
+  color: #1e293b; /* Azul muy oscuro para contraste */
   font-size: 0.95rem;
   margin-bottom: 2rem;
   line-height: 1.4;
+  font-weight: 500;
 }
 
 /* Selector de Sucursal (Reutilizado para inputs) */
 .branchSelect {
   width: 100%;
   padding: 1rem;
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid #cbd5e1;
   border-radius: 12px;
   font-family: inherit;
   font-size: 1rem;
   outline: none;
-  background-color: #F8FAFC;
+  background-color: rgba(248, 250, 252, 0.9);
   transition: all 0.2s;
+  color: #000000;
 }
 
 .branchSelect:focus {
@@ -83,10 +85,11 @@
   display: block;
   font-size: 0.75rem; 
   font-weight: 800; 
-  color: var(--co-text-muted); 
+  color: #000000; /* Negro para labels */
   margin-left: 4px;
   margin-bottom: 6px;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .errorBanner {
@@ -113,8 +116,8 @@
   padding-left: 28px;
   cursor: pointer;
   font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--co-text-main);
+  font-weight: 700;
+  color: #000000;
   user-select: none;
 }
 
@@ -197,8 +200,9 @@
   display: block;
   margin-top: 2rem;
   font-size: 0.75rem;
-  color: #CBD5E0;
+  color: #1e293b;
   letter-spacing: 1px;
+  font-weight: 600;
 }
 
 .pinWrapper {

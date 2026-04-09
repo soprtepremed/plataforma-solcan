@@ -6,7 +6,7 @@ import { sendPushNotification } from "../../lib/pushNotifications";
 import styles from "./MensajeroDashboard.module.css";
 
 const MESSENGERS = [
-  { id: "ALBERT", name: "Albert", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Albert" },
+  { id: "ALBERT", name: "Alberth", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alberth" },
   { id: "EDWARD", name: "Edward", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Edward" },
   { id: "ALEJANDRO", name: "Alejandro", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alejandro" },
   { id: "BULMARO", name: "Bulmaro", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Bulmaro" },
