@@ -4,9 +4,24 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Plataforma Solcan</title>
+    <!-- CEREBRO PWA DUAL: Cambia la identidad según la ruta -->
+    <script>
+      (function() {
+        const isPortal = window.location.pathname.includes('/portal');
+        const manifest = isPortal ? '/manifest-paciente.json' : '/manifest-admin.json';
+        const title = isPortal ? 'Portal del Paciente | Solcan Lab' : 'Plataforma Solcan | Logística';
+        
+        // Cambiar título inicial
+        document.title = title;
+        
+        // Inyectar manifiesto dinámico
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifest;
+        document.head.appendChild(link);
+      })();
+    </script>
 
-    <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#020122" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
