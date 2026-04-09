@@ -66,7 +66,7 @@ export function AuthProvider({ children }) {
     if (!user) return;
 
     let timeoutId;
-    const TIMEOUT_MS = 240000; // 4 minutos
+    const TIMEOUT_MS = 240000; // 4 minutos (OFICIAL)
 
     const resetTimer = () => {
       if (timeoutId) clearTimeout(timeoutId);
