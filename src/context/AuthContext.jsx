@@ -61,6 +61,37 @@ export function AuthProvider({ children }) {
     navigate('/login');
   };
 
+  // 🛡️ Lógica de Inactividad (4 minutos)
+  useEffect(() => {
+    if (!user) return;
+
+    let timeoutId;
+    const TIMEOUT_MS = 240000; // 4 minutos
+
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        console.warn("🚪 Sesión cerrada por inactividad (4 minutos)");
+        logout();
+      }, TIMEOUT_MS);
+    };
+
+    // Eventos que representan "actividad"
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    
+    // Registrar escuchadores
+    events.forEach(event => window.addEventListener(event, resetTimer));
+
+    // Iniciar el conteo inicial
+    resetTimer();
+
+    // Limpieza al desmontar o cambiar de usuario
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      events.forEach(event => window.removeEventListener(event, resetTimer));
+    };
+  }, [user]);
+
   return (
     <AuthContext.Provider value={{ user, login, logout, updateUser }}>
       {children}
