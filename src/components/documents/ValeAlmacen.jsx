@@ -112,6 +112,6 @@ const ValeAlmacen = React.forwardRef(({ vale, items, solicitante, sucursalStock 
       </footer>
     </div>
   );
-};
+});
 
 export default ValeAlmacen;

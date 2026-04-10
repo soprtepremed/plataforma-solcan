@@ -130,6 +130,8 @@ export default function SolicitudesSurtido() {
         } finally {
             setLoading(false);
         }
+    };
+
     const handleDownloadPDF = () => {
         if (!voucherRef.current || !selectedVale) return;
 
