@@ -147,6 +147,9 @@ export default function TopNavbar() {
       options.push({ label: 'Recepción Matriz', path: '/logistica/recepcion', icon: 'lab_research' });
       options.push({ label: 'Bitácora FO-DO-017', path: '/logistica/bitacora', icon: 'assignment' });
       options.push({ label: 'Solicitud Insumos', path: '/almacen/nueva-solicitud', icon: 'shopping_cart' });
+    }
+
+    if (r === 'admin') {
       options.push({ label: 'Gestionar Publicidad', path: '/admin/promociones', icon: 'campaign' });
     }
 

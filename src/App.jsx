@@ -80,7 +80,11 @@ function App() {
         <Route path="/almacen/materiales" element={<PrivateRoute><DashboardLayout><MaterialesCatalogo /></DashboardLayout></PrivateRoute>} />
         <Route path="/almacen/solicitudes" element={<PrivateRoute><DashboardLayout><SolicitudesSurtido /></DashboardLayout></PrivateRoute>} />
         <Route path="/almacen/nueva-solicitud" element={<PrivateRoute><DashboardLayout><SolicitudMaterial /></DashboardLayout></PrivateRoute>} />
-        <Route path="/admin/promociones" element={<PrivateRoute><DashboardLayout><AdminPromociones /></DashboardLayout></PrivateRoute>} />
+        <Route path="/admin/promociones" element={
+          <PrivateRoute>
+            {user?.role?.toLowerCase() === 'admin' ? <DashboardLayout><AdminPromociones /></DashboardLayout> : <Navigate to="/" replace />}
+          </PrivateRoute>
+        } />
 
       </Routes>
     </div>
