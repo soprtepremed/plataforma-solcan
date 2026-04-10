@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import styles from './SolicitudesSurtido.module.css';
 import ValeAlmacen from '../../components/documents/ValeAlmacen';
 import html2pdf from 'html2pdf.js';
-import { useRef } from 'react';
 
 export default function SolicitudesSurtido() {
     const [loading, setLoading] = useState(true);
