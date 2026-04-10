@@ -110,12 +110,12 @@ export default function AlmacenDashboard() {
             
             if (finalErr) throw finalErr;
 
-            alert('✅ Vale surtido con éxito e inventario actualizado.');
+            alert('Vale surtido con éxito e inventario actualizado.');
             setShowDetail(false);
             fetchVales();
         } catch (err) {
             console.error('Error al surtir:', err);
-            alert('❌ Error al procesar el surtido: ' + err.message);
+            alert('Error al procesar el surtido: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -125,12 +125,17 @@ export default function AlmacenDashboard() {
         <div className={styles.container}>
             <header className={styles.header}>
                 <div className={styles.titleArea}>
-                    <h1>📦 Centro de Almacén</h1>
+                    <h1><span className="material-symbols-rounded" style={{verticalAlign: 'middle', marginRight: '8px', fontSize: '28px'}}>inventory_2</span> Centro de Almacén</h1>
                     <p>Gestión centralizada de solicitudes y vales de materiales</p>
                 </div>
-                <button className={styles.confirmBtn} onClick={fetchVales}>
-                    <span className="material-symbols-rounded">refresh</span>
-                </button>
+                <div className={styles.headerActions}>
+                    <button className={styles.secondaryBtn} onClick={() => navigate('/almacen/registro')}>
+                        <span className="material-symbols-rounded">add_box</span> Registrar Entrada
+                    </button>
+                    <button className={styles.confirmBtn} onClick={fetchVales}>
+                        <span className="material-symbols-rounded">refresh</span>
+                    </button>
+                </div>
             </header>
 
             <div className={styles.statsGrid}>
@@ -176,14 +181,14 @@ export default function AlmacenDashboard() {
                                 <div className={styles.valeMainInfo}>
                                     <h4>{vale.folio} - {vale.solicitante?.nombre}</h4>
                                     <div className={styles.valeMeta}>
-                                        <span>📍 {vale.area_destino}</span>
-                                        <span>📅 {new Date(vale.created_at).toLocaleDateString()}</span>
-                                        <span>🏷️ {vale.items?.length || 0} items</span>
+                                        <span><span className="material-symbols-rounded" style={{fontSize: '14px', verticalAlign: 'middle'}}>location_on</span> {vale.area_destino}</span>
+                                        <span><span className="material-symbols-rounded" style={{fontSize: '14px', verticalAlign: 'middle'}}>calendar_today</span> {new Date(vale.created_at).toLocaleDateString()}</span>
+                                        <span><span className="material-symbols-rounded" style={{fontSize: '14px', verticalAlign: 'middle'}}>sell</span> {vale.items?.length || 0} items</span>
                                     </div>
                                 </div>
                                 <div className={styles.valeActions}>
                                     <span className={`${styles.badge} ${styles['badge-' + (vale.prioridad === 'Urgente' ? 'urgente' : vale.estatus.toLowerCase().replace(' ', '-'))]}`}>
-                                        {vale.estatus} {vale.prioridad === 'Urgente' && '🔥'}
+                                        {vale.estatus} {vale.prioridad === 'Urgente' && <span className="material-symbols-rounded" style={{fontSize: '16px', verticalAlign: 'middle', color: '#f59e0b'}}>local_fire_department</span>}
                                     </span>
                                 </div>
                             </div>
@@ -202,13 +207,13 @@ export default function AlmacenDashboard() {
                             )}
                             {lowStock.map((item, idx) => (
                                 <div key={`low-${idx}`} className={styles.stockAlert}>
-                                    <strong>⚠️ Stock Bajo</strong>
+                                    <strong><span className="material-symbols-rounded" style={{fontSize: '18px', verticalAlign: 'middle', marginRight: '4px'}}>warning</span> Stock Bajo</strong>
                                     <p>{item.nombre} está bajo el mínimo ({item.actual}/{item.minimo}).</p>
                                 </div>
                             ))}
                             {expiringItems.map((item, idx) => (
                                 <div key={`exp-${idx}`} className={styles.stockAlert} style={{background: '#fef2f2', borderColor: '#ef4444'}}>
-                                    <strong>🚨 Caducidad Próxima</strong>
+                                    <strong><span className="material-symbols-rounded" style={{fontSize: '18px', verticalAlign: 'middle', marginRight: '4px'}}>notifications_active</span> Caducidad Próxima</strong>
                                     <p>{item.nombre} vence el {new Date(item.caducidad).toLocaleDateString()}.</p>
                                 </div>
                             ))}

@@ -61,17 +61,17 @@ export function AuthProvider({ children }) {
     navigate('/login');
   };
 
-  // 🛡️ Lógica de Inactividad (4 minutos)
+  // Lógica de Inactividad (4 minutos)
   useEffect(() => {
     if (!user) return;
 
     let timeoutId;
-    const TIMEOUT_MS = 240000; // 4 minutos (OFICIAL)
+    const TIMEOUT_MS = 900000; // 15 minutos (Aumentado para estabilidad en pruebas)
 
     const resetTimer = () => {
       if (timeoutId) clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        console.warn("🚪 Sesión cerrada por inactividad (4 minutos)");
+        console.warn("Sesión cerrada por inactividad (4 minutos)");
         logout();
       }, TIMEOUT_MS);
     };

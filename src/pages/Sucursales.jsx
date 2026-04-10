@@ -6,6 +6,13 @@ const Sucursales = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
 
+    // Fecha actual formateada para el Hero
+    const today = new Date().toLocaleDateString('es-MX', { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long' 
+    });
+
     // Definición de acciones rápidas por rol
     const getQuickActions = () => {
         if (!user) return [];
@@ -15,7 +22,7 @@ const Sucursales = () => {
         if (user.role === 'admin' || user.role === 'recepcion') {
             actions.push({
                 title: 'Logística de Sucursal',
-                desc: 'Gestionar envíos de muestras y hieleras.',
+                desc: 'Gestionar envíos de muestras y hieleras en tiempo real.',
                 icon: 'local_shipping',
                 path: '/logistica/sede'
             });
@@ -24,16 +31,13 @@ const Sucursales = () => {
         if (user.role === 'admin' || user.role === 'captura') {
             actions.push({
                 title: 'Subir Resultados',
-                desc: 'Cargar archivos PDF y validar resultados.',
+                desc: 'Cargar archivos PDF y validar resultados clínicos.',
                 icon: 'upload_file',
                 path: '/captura'
             });
-        }
-
-        if (user.role === 'admin' || user.role === 'captura') {
             actions.push({
                 title: 'Historial Clínico',
-                desc: 'Búsqueda y consulta de resultados anteriores.',
+                desc: 'Búsqueda y consulta de resultados anteriores de pacientes.',
                 icon: 'history',
                 path: '/resultados'
             });
@@ -53,10 +57,10 @@ const Sucursales = () => {
                 path: '/logistica/bitacora'
             });
             actions.push({
-                title: 'Gestión de Materiales',
-                desc: 'Control de reactivos e insumos por área técnica.',
-                icon: 'inventory_2',
-                path: '/logistica/materiales'
+                title: 'Solicitud de Insumos',
+                desc: 'Solicitar reactivos y materiales eligiendo lotes específicos.',
+                icon: 'shopping_cart',
+                path: '/almacen/nueva-solicitud'
             });
         }
 
@@ -66,6 +70,27 @@ const Sucursales = () => {
                 desc: 'Seguimiento global de la cadena de custodia.',
                 icon: 'analytics',
                 path: '/logistica/admin'
+            });
+        }
+
+        if (user.role === 'admin' || user.role === 'almacen') {
+            actions.push({
+                title: 'Inventario General',
+                desc: 'Control de stock, alertas y cantidades totales por categoría.',
+                icon: 'grid_view',
+                path: '/almacen/inventario'
+            });
+            actions.push({
+                title: 'Materiales',
+                desc: 'Gestión de catálogo, alta de nuevos insumos e importación masiva.',
+                icon: 'category',
+                path: '/almacen/materiales'
+            });
+            actions.push({
+                title: 'Solicitudes de Material',
+                desc: 'Surtido y despacho de vales pendientes para las sedes.',
+                icon: 'assignment_turned_in',
+                path: '/almacen/solicitudes'
             });
         }
 
@@ -86,14 +111,15 @@ const Sucursales = () => {
     return (
         <div className={styles.homeContainer}>
             <header className={styles.welcomeHeader}>
+                <div className={styles.dateLabel}>{today}</div>
                 <h1>¡Hola, {user?.sucursal || user?.branch || user?.name.split(' ')[0]}!</h1>
                 <p>Bienvenido al Panel de Control de <strong>Solcan Lab</strong>. ¿En qué trabajaremos hoy?</p>
             </header>
 
             <div className={styles.cardGrid}>
-                {quickActions.map((action, i) => (
+                {quickActions.map((action) => (
                     <div 
-                        key={i} 
+                        key={action.path} 
                         className={styles.actionCard} 
                         onClick={() => navigate(action.path)}
                     >
@@ -105,7 +131,7 @@ const Sucursales = () => {
                             <p>{action.desc}</p>
                         </div>
                         <div className={styles.cardArrow}>
-                            Acceder <span className="material-symbols-rounded" style={{fontSize: '16px'}}>arrow_forward_ios</span>
+                            Explorar <span className="material-symbols-rounded">arrow_forward</span>
                         </div>
                     </div>
                 ))}
@@ -113,10 +139,10 @@ const Sucursales = () => {
 
             <footer className={styles.supportFooter}>
                 <div className={styles.supportInfo}>
-                    <span className="material-symbols-rounded">help_outline</span>
+                    <span className="material-symbols-rounded">support_agent</span>
                     <div className={styles.supportMsg}>
                         <h4>¿Necesitas asistencia técnica?</h4>
-                        <p>Nuestro equipo de soporte está disponible para ayudarte con el uso de la plataforma.</p>
+                        <p>Nuestro equipo de expertos está disponible para guiarte.</p>
                     </div>
                 </div>
                 <button 

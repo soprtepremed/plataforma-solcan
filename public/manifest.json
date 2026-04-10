@@ -1,21 +1,17 @@
 {
-  "name": "Solcan Lab Platform",
-  "short_name": "Solcan",
-  "description": "Plataforma de Bio-Logística Solcan",
+  "name": "Solcan Logística",
+  "short_name": "Solcan Admin",
+  "description": "Sistema de Gestión y Bio-Logística Solcan Lab",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0BCECD",
+  "background_color": "#0F172A",
+  "theme_color": "#0F172A",
   "icons": [
     {
-      "src": "/favicon.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/favicon.png",
+      "src": "pwa-icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

@@ -90,14 +90,14 @@ export default function MensajeroDashboard() {
       // Notificar a otros choferes
       await supabase.from("notificaciones").insert([{
         role: "mensajero",
-        title: "🆗 Recolección Atendida",
+        title: "Recolección Atendida",
         message: `${selectedMessenger?.name || 'Un compañero'} ya recolectó en ${envio?.sucursal}.`,
         type: "success"
       }]);
 
       // Notificar a la SUCURSAL
       await supabase.from("notificaciones").insert([{
-        title: "🚚 Chofer en Camino",
+        title: "Chofer en Camino",
         message: `${selectedMessenger?.name} ha iniciado la recolección de tus muestras.`,
         type: "info",
         metadata: { sucursal: envio?.sucursal }
@@ -106,7 +106,7 @@ export default function MensajeroDashboard() {
       // BYPASS: Push directo sin depender del trigger de BD
       sendPushNotification({
         role: "mensajero",
-        title: "🆗 Recolección Atendida",
+        title: "Recolección Atendida",
         message: `${selectedMessenger?.name || 'Un chofer'} ya recolectó en ${envio?.sucursal}.`,
         metadata: { url: '/logistica/mensajero' }
       });

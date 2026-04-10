@@ -9,11 +9,11 @@ import LogisticaAdmin from './pages/dashboard/LogisticaAdmin';
 import MensajeroDashboard from './pages/dashboard/MensajeroDashboard';
 import VerificacionMatriz from './pages/dashboard/VerificacionMatriz';
 import LogisticaBitacora from './pages/dashboard/LogisticaBitacora';
-import GestionMateriales from './pages/dashboard/GestionMateriales';
-import AlmacenDashboard from './pages/dashboard/AlmacenDashboard';
+import InventarioGeneral from './pages/dashboard/InventarioGeneral';
+import MaterialesCatalogo from './pages/dashboard/MaterialesCatalogo';
+import SolicitudesSurtido from './pages/dashboard/SolicitudesSurtido';
 import SolicitudMaterial from './pages/dashboard/SolicitudMaterial';
 import ImpresionEtiquetas from './pages/dashboard/ImpresionEtiquetas';
-import PortalPaciente from './pages/portal/PortalPaciente';
 import AdminPromociones from './pages/dashboard/AdminPromociones';
 import Sucursales from './pages/Sucursales';
 import { useAuth } from './context/AuthContext';
@@ -70,20 +70,18 @@ function App() {
         <Route path="/logistica/transporte" element={<PrivateRoute><DashboardLayout><MensajeroDashboard /></DashboardLayout></PrivateRoute>} />
         <Route path="/logistica/recepcion" element={<PrivateRoute><DashboardLayout><VerificacionMatriz /></DashboardLayout></PrivateRoute>} />
         <Route path="/logistica/bitacora" element={<PrivateRoute><DashboardLayout><LogisticaBitacora /></DashboardLayout></PrivateRoute>} />
-        <Route path="/logistica/materiales" element={<PrivateRoute><DashboardLayout><GestionMateriales /></DashboardLayout></PrivateRoute>} />
         <Route path="/logistica/impresion" element={<PrivateRoute><DashboardLayout><ImpresionEtiquetas /></DashboardLayout></PrivateRoute>} />
         
         <Route path="/pacientes" element={<PrivateRoute><DashboardLayout><h2 style={{padding: '3rem', textAlign: 'center', color:'var(--co-primary)'}}>Módulo de Recepción y Pacientes</h2></DashboardLayout></PrivateRoute>} />
         
-        {/* Almacén e Inventario */}
-        <Route path="/almacen" element={<Navigate to="/almacen/dashboard" replace />} />
-        <Route path="/almacen/dashboard" element={<PrivateRoute><DashboardLayout><AlmacenDashboard /></DashboardLayout></PrivateRoute>} />
-        <Route path="/almacen/solicitud" element={<PrivateRoute><DashboardLayout><SolicitudMaterial /></DashboardLayout></PrivateRoute>} />
+        {/* Almacén e Inventario (Reestructurado) */}
+        <Route path="/almacen" element={<Navigate to="/almacen/inventario" replace />} />
+        <Route path="/almacen/inventario" element={<PrivateRoute><DashboardLayout><InventarioGeneral /></DashboardLayout></PrivateRoute>} />
+        <Route path="/almacen/materiales" element={<PrivateRoute><DashboardLayout><MaterialesCatalogo /></DashboardLayout></PrivateRoute>} />
+        <Route path="/almacen/solicitudes" element={<PrivateRoute><DashboardLayout><SolicitudesSurtido /></DashboardLayout></PrivateRoute>} />
+        <Route path="/almacen/nueva-solicitud" element={<PrivateRoute><DashboardLayout><SolicitudMaterial /></DashboardLayout></PrivateRoute>} />
         <Route path="/admin/promociones" element={<PrivateRoute><DashboardLayout><AdminPromociones /></DashboardLayout></PrivateRoute>} />
 
-        {/* Portal Público del Paciente (sin login) */}
-        <Route path="/portal" element={<PortalPaciente />} />
-        <Route path="/portal/:code" element={<PortalPaciente />} />
       </Routes>
     </div>
   );

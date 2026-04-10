@@ -113,12 +113,12 @@ export default function LogisticaBitacora() {
       query = query.eq("sucursal", selectedSucursal);
     }
 
-    console.log("🔍 Consultando bitácora:", { startOfDay, endOfDay, branch: user?.branch });
+    console.log("Consultando bitácora:", { startOfDay, endOfDay, branch: user?.branch });
     
     const { data: logs, error } = await query.order("created_at", { ascending: true });
     
     if (error) {
-      console.error("❌ Error de Supabase:", error);
+      console.error("Error de Supabase:", error);
     } else {
       setData(logs || []);
     }

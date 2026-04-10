@@ -141,18 +141,24 @@ export default function TopNavbar() {
     if (r === 'admin' || r === 'captura' || r.includes('técnico') || r.includes('tecnico')) {
       options.push({ label: 'Captura Resultados', path: '/captura', icon: 'add_task' });
       options.push({ label: 'Resultados Listos', path: '/resultados', icon: 'verified_user' });
-      options.push({ label: 'Ver Portal', path: '/portal', icon: 'open_in_new' });
     }
 
     if (r === 'admin' || r === 'quimico' || r === 'químico') {
       options.push({ label: 'Recepción Matriz', path: '/logistica/recepcion', icon: 'lab_research' });
       options.push({ label: 'Bitácora FO-DO-017', path: '/logistica/bitacora', icon: 'assignment' });
+      options.push({ label: 'Solicitud Insumos', path: '/almacen/nueva-solicitud', icon: 'shopping_cart' });
       options.push({ label: 'Gestionar Publicidad', path: '/admin/promociones', icon: 'campaign' });
     }
 
     if (r === 'admin' || r === 'recepcion' || r === 'recepción') {
       options.push({ label: 'Mi Bitácora', path: '/logistica/bitacora', icon: 'assignment' });
       options.push({ label: 'Estado Sede', path: '/logistica/sede', icon: 'store' });
+    }
+
+    if (r === 'admin' || r === 'almacen') {
+      options.push({ label: 'Inventario General', path: '/almacen/inventario', icon: 'grid_view' });
+      options.push({ label: 'Materiales', path: '/almacen/materiales', icon: 'category' });
+      options.push({ label: 'Solicitudes de Material', path: '/almacen/solicitudes', icon: 'assignment_turned_in' });
     }
 
     if (r === 'mensajero') {

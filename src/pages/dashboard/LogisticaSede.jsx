@@ -63,7 +63,7 @@ export default function LogisticaSede() {
       <header className={styles.header}>
         <div className={styles.title}>
           <h1>Logística de Sucursal</h1>
-          <p>📍 {user?.branch} • Gestión de Cadena de Custodia</p>
+          <p><span className="material-symbols-rounded" style={{fontSize: '1em', verticalAlign: 'middle', marginRight: '4px'}}>location_on</span> {user?.branch} • Gestión de Cadena de Custodia</p>
         </div>
         <button className={styles.newBtn} onClick={() => navigate('/logistica/envio')}>
           <span className="material-symbols-rounded">add_circle</span>

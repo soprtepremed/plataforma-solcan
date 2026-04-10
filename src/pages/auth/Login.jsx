@@ -45,6 +45,7 @@ export default function Login() {
       }
     } else {
       setErrorMsg("Credenciales incorrectas. Verifica tu usuario y PIN.");
+      setPin(""); // Limpiar PIN para evitar concatenaciones
       setLoading(false);
     }
   };

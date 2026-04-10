@@ -23,6 +23,33 @@
     box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
 }
 
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.secondaryBtn {
+    background: white;
+    color: var(--co-primary);
+    border: 1px solid #e2e8f0;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.secondaryBtn:hover {
+    background: #f8fafc;
+    border-color: var(--co-accent);
+    transform: translateY(-1px);
+}
+
 .titleArea h1 {
     font-size: 1.8rem;
     color: var(--co-primary);

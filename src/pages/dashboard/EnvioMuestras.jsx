@@ -178,7 +178,7 @@ export default function EnvioMuestras() {
       // Notificar a Mensajeros (UI + Push en segundo plano)
       await supabase.from("notificaciones").insert([{
         role: "mensajero",
-        title: "📦 Nueva Recolección en " + sucursal,
+        title: "Nueva Recolección en " + sucursal,
         message: `Se ha registrado un nuevo envío. Favor de acudir a recolectar.`,
         type: "info",
         metadata: { sucursal }
@@ -186,14 +186,14 @@ export default function EnvioMuestras() {
       // BYPASS: Disparar Push directamente sin depender del trigger de BD
       sendPushNotification({
         role: "mensajero",
-        title: "📦 Nueva Recolección en " + sucursal,
+        title: "Nueva Recolección en " + sucursal,
         message: `Sucursal ${sucursal} registró un envío. Favor de acudir a recolectar.`,
         metadata: { sucursal, url: '/logistica/mensajero' }
       });
 
       // Autonotificar a la sucursal
       await supabase.from("notificaciones").insert([{
-        title: "📑 Envío Registrado",
+        title: "Envío Registrado",
         message: `Has generado un nuevo envío para ${sucursal}. El chofer ya ha sido notificado.`,
         type: "success",
         metadata: { sucursal }
@@ -201,7 +201,7 @@ export default function EnvioMuestras() {
 
       setSentSuccess(true);
     } catch (err) {
-      alert("❌ Error: " + err.message);
+      alert("Error: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -239,7 +239,7 @@ export default function EnvioMuestras() {
               <input type="number" step="0.1" value={tempAmb} onChange={(e) => setTempAmb(parseFloat(e.target.value))} />
               <button className={styles.stepperBtn} onClick={() => setTempAmb(prev => parseFloat((prev + 0.5).toFixed(1)))}>+</button>
             </div>
-            {isAmbAlert && <small>⚠️ Fuera de rango</small>}
+            {isAmbAlert && <small>Fuera de rango</small>}
           </div>
           <div className={`${styles.tempBox} ${isRefAlert ? styles.alert : ''}`}>
             <label><span className="material-symbols-rounded">ac_unit</span> T. Refrigerada (°C)</label>
@@ -248,7 +248,7 @@ export default function EnvioMuestras() {
               <input type="number" step="0.1" value={tempRef} onChange={(e) => setTempRef(parseFloat(e.target.value))} />
               <button className={styles.stepperBtn} onClick={() => setTempRef(prev => parseFloat((prev + 0.5).toFixed(1)))}>+</button>
             </div>
-            {isRefAlert && <small>⚠️ Crítico: Verificar Gel</small>}
+            {isRefAlert && <small>Crítico: Verificar Gel</small>}
           </div>
         </div>
 
@@ -346,7 +346,7 @@ export default function EnvioMuestras() {
 
         <textarea className={styles.inputField} placeholder="¿Alguna incidencia o reporte?" value={observaciones} onChange={(e) => setObservaciones(e.target.value)} />
         <button className={styles.submitBtn} onClick={handleSend} disabled={loading || isAmbAlert || isRefAlert}>
-          {loading ? 'Sincronizando...' : '🚀 Finalizar Solicitud FO-DO-017'}
+          {loading ? 'Sincronizando...' : 'Finalizar Solicitud FO-DO-017'}
         </button>
       </div>
 

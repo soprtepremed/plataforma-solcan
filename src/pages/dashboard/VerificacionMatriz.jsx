@@ -287,7 +287,7 @@ export default function VerificacionMatriz() {
       if (envio.mensajero_id) {
         await supabase.from("notificaciones").insert([{
           role: "mensajero",
-          title: "✅ Área Recibida en Matriz",
+          title: "Área Recibida en Matriz",
           message: `El área de ${AREAS_SOLCAN.find(a => a.key === areaRecibe)?.label} ha aceptado tu entrega de ${envio.sucursal}.`,
           type: "success"
         }]);
@@ -330,7 +330,7 @@ export default function VerificacionMatriz() {
       if (envio.mensajero_id) {
         await supabase.from("notificaciones").insert([{
           role: "mensajero",
-          title: "🏆 Envío Recibido en Matriz",
+          title: "Envío Recibido en Matriz",
           message: `Tu entrega de la sucursal ${envio.sucursal} ha sido cerrada y aceptada globalmente por ${user?.name}.`,
           type: "success"
         }]);
@@ -425,8 +425,8 @@ export default function VerificacionMatriz() {
                 {isRecibido && !expandedIds.includes(envio.id) && (
                   <div className={styles.collapsedSummary} onClick={() => toggleExpand(envio.id)}>
                     <div className={styles.summaryInfo}>
-                      <span>📅 {new Date(envio.hora_recepcion || envio.created_at).toLocaleDateString()} <span style={{marginLeft:'5px', color:'var(--co-accent)'}}>🕒 {new Date(envio.hora_recepcion || envio.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span></span>
-                      <span>👤 {envio.recibido_por || 'Sistema'}</span>
+                      <span><span className="material-symbols-rounded" style={{fontSize: '14px', verticalAlign: 'middle', marginRight: '4px'}}>calendar_today</span> {new Date(envio.hora_recepcion || envio.created_at).toLocaleDateString()} <span style={{marginLeft:'5px', color:'var(--co-accent)'}}><span className="material-symbols-rounded" style={{fontSize: '14px', verticalAlign: 'middle', marginRight: '4px'}}>schedule</span> {new Date(envio.hora_recepcion || envio.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span></span>
+                      <span><span className="material-symbols-rounded" style={{fontSize: '14px', verticalAlign: 'middle', marginRight: '4px'}}>person</span> {envio.recibido_por || 'Sistema'}</span>
                     </div>
                   </div>
                 )}
@@ -437,8 +437,8 @@ export default function VerificacionMatriz() {
                     <div className={styles.transitSummary}>
                       {envio.status === 'Pendiente' ? (
                         <>
-                          <p>🚛 <strong>Esperando Recolección</strong> • Sucursal solicitó transporte</p>
-                          <div className={styles.waitingNotice}>📍 No se puede recibir en Matriz hasta que un chofer lo recolecte.</div>
+                          <p><span className="material-symbols-rounded" style={{fontSize: '18px', verticalAlign: 'middle', marginRight: '4px'}}>local_shipping</span> <strong>Esperando Recolección</strong> • Sucursal solicitó transporte</p>
+                          <div className={styles.waitingNotice}><span className="material-symbols-rounded" style={{fontSize: '16px', verticalAlign: 'middle', marginRight: '4px'}}>location_on</span> No se puede recibir en Matriz hasta que un chofer lo recolecte.</div>
                         </>
                       ) : envio[`a_${areaRecibe}_user`] ? (
                         <div className={styles.areaAlreadyDone}>
@@ -462,8 +462,8 @@ export default function VerificacionMatriz() {
                         </div>
                       ) : (
                         <>
-                          <p>🚚 Muestras en camino • Chofer: <strong>{envio.mensajero_id}</strong></p>
-                          <button className={styles.startBtn} onClick={() => setActiveReceptionId(envio.id)}>📦 Iniciar Recepción Física</button>
+                          <p><span className="material-symbols-rounded" style={{fontSize: '18px', verticalAlign: 'middle', marginRight: '4px'}}>local_shipping</span> Muestras en camino • Chofer: <strong>{envio.mensajero_id}</strong></p>
+                          <button className={styles.startBtn} onClick={() => setActiveReceptionId(envio.id)}><span className="material-symbols-rounded" style={{marginRight: '8px'}}>inventory_2</span> Iniciar Recepción Física</button>
                         </>
                       )}
                     </div>
@@ -472,7 +472,7 @@ export default function VerificacionMatriz() {
                       <div className={styles.receptionHeader}>
                          {envio.observaciones_sucursal && (
                            <div className={styles.branchObsNoticeInline}>
-                              <strong>⚠️ Observación de Origen:</strong> {envio.observaciones_sucursal}
+                              <strong>Observación de Origen:</strong> {envio.observaciones_sucursal}
                            </div>
                          )}
                          <div className={styles.evidenceSection}>
@@ -483,7 +483,7 @@ export default function VerificacionMatriz() {
                       </div>
 
                       <div className={styles.areaSelectorBox}>
-                        <label>📍 ¿Para qué área técnica recibe?</label>
+                        <label><span className="material-symbols-rounded" style={{fontSize: '18px', verticalAlign: 'middle', marginRight: '4px'}}>location_on</span> ¿Para qué área técnica recibe?</label>
                         <div className={styles.areaQuickSelect}>
                           {AREAS_SOLCAN.map(a => (
                             <button 

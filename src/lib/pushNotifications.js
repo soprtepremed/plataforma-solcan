@@ -17,7 +17,7 @@ import { supabase } from './supabaseClient';
  */
 export async function sendPushNotification({ role, user_id, title, message, metadata = {} }) {
   try {
-    console.log('📡 Intentando enviar notificación Push...', { role, user_id, title });
+    console.log('Intentando enviar notificación Push...', { role, user_id, title });
     const { data, error } = await supabase.functions.invoke('push-notifications', {
       body: {
         record: { 
@@ -30,10 +30,10 @@ export async function sendPushNotification({ role, user_id, title, message, meta
       }
     });
     
-    if (error) console.error('❌ Error en Push:', error.message);
-    else console.log('✅ Push enviado con éxito:', data);
+    if (error) console.error('Error en Push:', error.message);
+    else console.log('Push enviado con éxito:', data);
   } catch (err) {
-    console.warn('⚠️ Push silencioso (no crítico):', err.message);
+    console.warn('Push silencioso (no crítico):', err.message);
   }
 }
 

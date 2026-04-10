@@ -83,13 +83,13 @@ export default function GestionMateriales() {
             .single();
 
         if (error || !data) {
-            alert('❌ Código no encontrado o inválido.');
+            alert('Código no encontrado o inválido.');
             setScanValue('');
             return;
         }
 
         if (data.estatus !== 'Almacenado') {
-            alert(`⚠️ Esta unidad ya está en estatus: ${data.estatus}`);
+            alert(`Esta unidad ya está en estatus: ${data.estatus}`);
             setScanValue('');
             return;
         }
@@ -103,11 +103,11 @@ export default function GestionMateriales() {
             .eq('id', data.id);
 
         if (!updErr) {
-            alert(`✅ Unidad ${scanValue} abierta con éxito.`);
+            alert(`Unidad ${scanValue} abierta con éxito.`);
             setScanValue('');
             fetchData();
         } else {
-            alert('❌ Error al procesar apertura.');
+            alert('Error al procesar apertura.');
         }
     };
 
@@ -119,11 +119,11 @@ export default function GestionMateriales() {
                 .eq('id', unitId);
             
             if (error) throw error;
-            alert('✅ Material dado de baja correctamente.');
+            alert('Material dado de baja correctamente.');
             fetchData();
         } catch (err) {
             console.error('Error al finalizar material:', err);
-            alert('❌ Error al dar de baja el material: ' + err.message);
+            alert('Error al dar de baja el material: ' + err.message);
         }
     };
 
@@ -142,13 +142,13 @@ export default function GestionMateriales() {
 
             if (error) throw error;
 
-            alert('✅ Material registrado en catálogo correctamente.');
+            alert('Material registrado en catálogo correctamente.');
             setShowCatalogModal(false);
             setCatalogForm({ nombre: '', prefijo: '', unidad: 'Pieza', stock_minimo: 10 });
             fetchData();
         } catch (err) {
             console.error('Error catálogo:', err);
-            alert('❌ Error al registrar en catálogo: ' + err.message);
+            alert('Error al registrar en catálogo: ' + err.message);
         }
     };
 
@@ -180,13 +180,13 @@ export default function GestionMateriales() {
 
             if (error) throw error;
 
-            alert(`✅ ${stockForm.cantidad} unidades ingresadas a stock correctamente.`);
+            alert(`${stockForm.cantidad} unidades ingresadas a stock correctamente.`);
             setShowStockModal(false);
             setStockForm({ catalogo_id: '', lote: '', caducidad: '', cantidad: 1 });
             fetchData();
         } catch (err) {
             console.error('Error stock:', err);
-            alert('❌ Error al registrar entrada de stock: ' + err.message);
+            alert('Error al registrar entrada de stock: ' + err.message);
         }
     };
 
@@ -198,7 +198,7 @@ export default function GestionMateriales() {
             {showCatalogModal && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modalContent}>
-                        <h2>➕ Nuevo Material en Catálogo</h2>
+                        <h2><span className="material-symbols-rounded" style={{verticalAlign: 'middle', marginRight: '8px'}}>add_circle</span> Nuevo Material en Catálogo</h2>
                         <form onSubmit={saveNewCatalogItem} className={styles.modalForm}>
                             <div className={styles.formGroup}>
                                 <label>Nombre del Material</label>
@@ -236,7 +236,7 @@ export default function GestionMateriales() {
             {showStockModal && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modalContent}>
-                        <h2>📥 Entrada de Almacén (Stock)</h2>
+                        <h2><span className="material-symbols-rounded" style={{verticalAlign: 'middle', marginRight: '8px'}}>inbox</span> Entrada de Almacén (Stock)</h2>
                         <form onSubmit={saveStockEntry} className={styles.modalForm}>
                             <div className={styles.formGroup}>
                                 <label>Seleccionar Material</label>
@@ -270,7 +270,7 @@ export default function GestionMateriales() {
 
             <header className={styles.header}>
                 <div className={styles.titleArea}>
-                    <h1>📦 Inventario de Materiales</h1>
+                    <h1><span className="material-symbols-rounded" style={{verticalAlign: 'middle', marginRight: '8px', fontSize: '28px'}}>inventory_2</span> Inventario de Materiales</h1>
                     <p>Control centralizado de reactivos e insumos biológicos</p>
                 </div>
 
@@ -334,7 +334,7 @@ export default function GestionMateriales() {
             <main className={styles.inventoryMain}>
                 <div className={styles.tableWrapper}>
                     <div className={styles.panelHeader}>
-                        <h3>🧾 Catálogo de Existencias - {AREAS_LAB.find(a=>a.key===activeArea)?.label}</h3>
+                        <h3><span className="material-symbols-rounded" style={{verticalAlign: 'middle', marginRight: '6px', fontSize: '20px'}}>receipt_long</span> Catálogo de Existencias - {AREAS_LAB.find(a=>a.key===activeArea)?.label}</h3>
                         <div className={styles.searchBox}>
                              <span className="material-symbols-rounded">search</span>
                              <input type="text" placeholder="Filtrar por nombre..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
@@ -394,7 +394,7 @@ export default function GestionMateriales() {
 
                 <aside className={styles.sidePanel}>
                     <div className={styles.sideHeader}>
-                        <h3>🔓 Insumos en Uso</h3>
+                        <h3><span className="material-symbols-rounded" style={{fontSize: '1em', verticalAlign: 'middle', marginRight: '6px'}}>lock_open</span> Insumos en Uso</h3>
                         <span className={styles.countTag}>{unidades.filter(u => u.estatus === 'En Uso').length}</span>
                     </div>
                     <div className={styles.unitsList}>

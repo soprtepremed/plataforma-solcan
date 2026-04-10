@@ -22,12 +22,12 @@ if ('serviceWorker' in navigator) {
     const isLocalIP = window.location.hostname.match(/^\d+\.\d+\.\d+\.\d+$/);
     
     navigator.serviceWorker.register('/sw.js').then(registration => {
-      console.log('✅ Service Worker: Activo y listo.');
+      console.log('Service Worker: Activo y listo.');
     }).catch(error => {
       if (isLocalIP) {
-        console.warn('⚠️ PWA: El modo App requiere HTTPS real para instalarse desde esta IP. En producción funcionará sin problemas.');
+        console.warn('PWA: El modo App requiere HTTPS real para instalarse desde esta IP. En producción funcionará sin problemas.');
       } else {
-        console.error('❌ PWA Error:', error);
+        console.error('PWA Error:', error);
       }
     });
   });
