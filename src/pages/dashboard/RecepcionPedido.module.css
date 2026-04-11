@@ -1,0 +1,257 @@
+.container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    margin-bottom: 2rem;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    padding-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.titleArea h1 {
+    font-size: 1.8rem;
+    color: var(--co-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Nuevos Estilos para Filtros (Pills) */
+.filtersRow {
+    display: flex;
+    gap: 0.5rem;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 12px;
+}
+
+.pillBtn {
+    background: transparent;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: #64748b;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pillBtn:hover {
+    background: rgba(255,255,255,0.5);
+    color: var(--co-primary);
+}
+
+.pillActive {
+    background: white;
+    color: var(--co-primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.contentWrapper {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.searchSection {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.searchBox {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    flex: 1;
+}
+
+.searchBox input {
+    border: none;
+    outline: none;
+    margin-left: 0.5rem;
+    width: 100%;
+}
+
+.primaryBtn {
+    background: var(--co-gradient);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.primaryBtn:hover {
+    box-shadow: 0 4px 15px rgba(11, 206, 205, 0.3);
+    transform: translateY(-1px);
+}
+
+.secondaryBtn {
+    background: white;
+    color: var(--co-primary);
+    border: 1px solid var(--co-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* Tabla Principal de Pedidos */
+.mainTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mainTable th {
+    background: #f8fafc;
+    color: #475569;
+    padding: 1rem;
+    text-align: left;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.mainTable td {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    color: #334155;
+}
+
+.mainTable tr:hover {
+    background: #f8fafc;
+}
+
+.actionBtn {
+    background: white;
+    border: 1px solid #cbd5e1;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--co-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.actionBtn:hover {
+    background: var(--co-primary);
+    color: white;
+    border-color: var(--co-primary);
+}
+
+
+/* Tabla de Recepción (Detalles) */
+.recepcionTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.recepcionTable th {
+    background: #f1f5f9;
+    padding: 1rem;
+    text-align: left;
+    color: #475569;
+}
+
+.recepcionTable td {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+}
+
+.qtyInput {
+    width: 80px;
+    padding: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.statusIndicator {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.statusOk {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.statusWarning {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.statusDanger {
+    background: #fee2e2;
+    color: #e11d48;
+}
+
+.footerActions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 1rem;
+}
+
+.pedidoInfoBanner {
+    background: #e0e7ff;
+    border-left: 4px solid var(--co-primary);
+    padding: 1rem;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.topBarDetalle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.btnBack {
+    background: none;
+    border: none;
+    color: #64748b;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 8px 0;
+}
+.btnBack:hover {
+    color: var(--co-primary);
+}

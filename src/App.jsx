@@ -14,6 +14,8 @@ import MaterialesCatalogo from './pages/dashboard/MaterialesCatalogo';
 import SolicitudesSurtido from './pages/dashboard/SolicitudesSurtido';
 import SolicitudMaterial from './pages/dashboard/SolicitudMaterial';
 import ImpresionEtiquetas from './pages/dashboard/ImpresionEtiquetas';
+import Proveedores from './pages/dashboard/Proveedores';
+import RecepcionPedido from './pages/dashboard/RecepcionPedido';
 import AdminPromociones from './pages/dashboard/AdminPromociones';
 import Sucursales from './pages/Sucursales';
 import { useAuth } from './context/AuthContext';
@@ -80,6 +82,8 @@ function App() {
         <Route path="/almacen/materiales" element={<PrivateRoute><DashboardLayout><MaterialesCatalogo /></DashboardLayout></PrivateRoute>} />
         <Route path="/almacen/solicitudes" element={<PrivateRoute><DashboardLayout><SolicitudesSurtido /></DashboardLayout></PrivateRoute>} />
         <Route path="/almacen/nueva-solicitud" element={<PrivateRoute><DashboardLayout><SolicitudMaterial /></DashboardLayout></PrivateRoute>} />
+        <Route path="/almacen/proveedores" element={<PrivateRoute><DashboardLayout><Proveedores /></DashboardLayout></PrivateRoute>} />
+        <Route path="/almacen/recepcion" element={<PrivateRoute><DashboardLayout><RecepcionPedido /></DashboardLayout></PrivateRoute>} />
         <Route path="/admin/promociones" element={
           <PrivateRoute>
             {user?.role?.toLowerCase() === 'admin' ? <DashboardLayout><AdminPromociones /></DashboardLayout> : <Navigate to="/" replace />}

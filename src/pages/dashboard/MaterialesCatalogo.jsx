@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
+import SupplierPicker from '../../components/shared/SupplierPicker';
 import styles from './MaterialesCatalogo.module.css';
 
 export default function MaterialesCatalogo() {
@@ -24,6 +25,7 @@ export default function MaterialesCatalogo() {
         categoria: 'Consumibles',
         marca: '',
         proveedor: '',
+        proveedor_id: '',
         costo_unitario: 0,
         presentacion: 'Pieza',
         requiere_frio: false,
@@ -101,6 +103,7 @@ export default function MaterialesCatalogo() {
             categoria: item.categoria || 'Consumibles',
             marca: item.marca || '',
             proveedor: item.proveedor || '',
+            proveedor_id: item.proveedor_id || '',
             costo_unitario: item.costo_unitario || 0,
             presentacion: item.presentacion || 'Pieza',
             requiere_frio: item.requiere_frio || false,
@@ -387,8 +390,11 @@ export default function MaterialesCatalogo() {
                                 <section className={styles.formSection}>
                                     <h4><span className="material-symbols-rounded">payments</span> Comercial</h4>
                                     <div className={styles.fieldGroup}>
-                                        <label>Proveedor</label>
-                                        <input placeholder="Nombre del Distribuidor" value={form.proveedor} onChange={e=>setForm({...form, proveedor: e.target.value})} />
+                                        <label>Proveedor Preferido</label>
+                                        <SupplierPicker 
+                                              value={form.proveedor_id} 
+                                              onChange={(val) => setForm({...form, proveedor_id: val})} 
+                                        />
                                     </div>
                                     <div className={styles.row}>
                                         <div className={styles.fieldGroup}>

@@ -169,6 +169,16 @@ export default function TopNavbar() {
           { label: 'Solicitudes Material', path: '/almacen/solicitudes', icon: 'assignment_turned_in' },
         ]
       });
+
+      options.push({
+        label: 'Proveedores',
+        path: '/almacen/proveedores',
+        icon: 'local_shipping',
+        children: [
+          { label: 'Directorio', path: '/almacen/proveedores', icon: 'contact_page' },
+          { label: 'Recepción de Pedidos', path: '/almacen/recepcion', icon: 'inventory' }
+        ]
+      });
     }
 
     if (r === 'mensajero') {
@@ -245,7 +255,7 @@ export default function TopNavbar() {
           {menuOptions.map(o => (
             o.children ? (
               <div key={o.label} className={styles.dropdownParent}>
-                <button className={`${styles.navItemPC} ${location.pathname.startsWith(o.path) ? styles.activePC : ''}`} style={{background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                <button className={`${styles.navItemPC} ${o.children.some(child => location.pathname.startsWith(child.path) || location.pathname === child.path) ? styles.activePC : ''}`} style={{background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'}}>
                   {o.label}
                   <span className="material-symbols-rounded" style={{fontSize: '18px'}}>expand_more</span>
                 </button>

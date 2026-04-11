@@ -1,0 +1,335 @@
+.container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    padding-bottom: 1rem;
+}
+
+.titleArea h1 {
+    font-size: 1.8rem;
+    color: var(--co-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.titleArea p {
+    color: #64748b;
+    margin: 5px 0 0 0;
+    font-size: 0.95rem;
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.searchBox {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    width: 300px;
+}
+
+.searchBox input {
+    border: none;
+    outline: none;
+    margin-left: 0.5rem;
+    width: 100%;
+}
+
+.primaryBtn {
+    background: var(--co-gradient);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.primaryBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.secondaryBtn {
+    background: white;
+    color: var(--co-primary);
+    border: 1px solid var(--co-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Modal form */
+.modalOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #64748b;
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.fullWidth {
+    grid-column: 1 / -1;
+}
+
+.fieldGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.fieldGroup label {
+    font-weight: 600;
+    color: #334155;
+    font-size: 0.9rem;
+}
+
+.fieldGroup input, .fieldGroup textarea {
+    padding: 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-family: inherit;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.cancelBtn {
+    background: #f1f5f9;
+    color: #475569;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Grid de Provs */
+.mainLayout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+    align-items: start;
+}
+
+.tableWrapper {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.provTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.provTable th {
+    background: #f8fafc;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #475569;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.provTable td {
+    padding: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.provTable tr.activeRow {
+    background: #f0fdf4;
+    border-left: 4px solid var(--co-accent);
+}
+
+.provTable tr:hover {
+    background: #f8fafc;
+    cursor: pointer;
+}
+
+.contactBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #25D366;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.contactBadge.empty {
+    background: #e2e8f0;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.actionBtn {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+}
+.actionBtn:hover {
+    background: #f1f5f9;
+    color: var(--co-primary);
+}
+
+/* Expediente Aside */
+.expedienteSide {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    position: sticky;
+    top: 120px;
+}
+
+.emptyState {
+    text-align: center;
+    color: #94a3b8;
+    padding: 3rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.emptyState span {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.expedienteHeader {
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+.expedienteHeader h3 {
+    margin: 0;
+    color: var(--co-primary);
+    font-size: 1.4rem;
+}
+
+.expedienteHeader p {
+    color: #64748b;
+    margin: 4px 0 1rem 0;
+}
+
+.detailRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 0.8rem;
+    color: #334155;
+    font-size: 0.95rem;
+}
+
+.detailRow span:first-child {
+    color: var(--co-accent);
+}
+
+.pedidosList {
+    margin-top: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 1rem;
+}
+
+.pedidoCard {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.8rem;
+}
+
+.pedidoHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.badgePendiente { color: #d97706; background: #fef3c7; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;}
+.badgeSurtido { color: #059669; background: #d1fae5; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;}
+.badgeParcial { color: #2563eb; background: #dbeafe; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;}
+.badgeCancelado { color: #e11d48; background: #ffe4e6; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;}
+
+.btnBlock {
+    width: 100%;
+    margin-top: 1rem;
+    justify-content: center;
+}
+
+@media (max-width: 1024px) {
+    .mainLayout {
+        grid-template-columns: 1fr;
+    }
+}
