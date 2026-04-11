@@ -6,8 +6,8 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    // Intentar recuperar el usuario guardado
-    const savedUser = localStorage.getItem('solcan_user');
+    // Intentar recuperar el usuario guardado de la sesión actual
+    const savedUser = sessionStorage.getItem('solcan_user');
     return savedUser ? JSON.parse(savedUser) : null;
   });
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ export function AuthProvider({ children }) {
       };
 
       setUser(userData);
-      localStorage.setItem('solcan_user', JSON.stringify(userData));
+      sessionStorage.setItem('solcan_user', JSON.stringify(userData));
       navigate('/');
       return { success: true };
     } catch (err) {
@@ -51,14 +51,14 @@ export function AuthProvider({ children }) {
   const updateUser = (newData) => {
     setUser(prev => {
       const updated = { ...prev, ...newData };
-      localStorage.setItem('solcan_user', JSON.stringify(updated));
+      sessionStorage.setItem('solcan_user', JSON.stringify(updated));
       return updated;
     });
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('solcan_user');
+    sessionStorage.removeItem('solcan_user');
     navigate('/login');
   };
 
