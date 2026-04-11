@@ -24,48 +24,46 @@ function urlBase64ToUint8Array(base64String) {
  */
 export async function subscribeUserToPush(userId) {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    console.warn('Este navegador no soporta Notificaciones Push.');
-    return;
+    alert('❌ Este navegador NO soporta notificaciones Push.');
+    return false;
   }
 
   try {
-    // 1. Obtener registro del Service Worker
+    alert('🔍 Paso 1: Buscando Service Worker...');
     const registration = await navigator.serviceWorker.ready;
 
-    // 2. Solicitar permiso
+    alert('🔔 Paso 2: Solicitando permiso al sistema...');
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
-      console.warn('Permiso de notificaciones denegado.');
-      return;
+      alert('⚠️ Permiso denegado. Actívalo en los ajustes de tu navegador.');
+      return false;
     }
 
-    // 3. Suscribirse al servicio de Push
+    alert('📡 Paso 3: Generando suscripción (VAPID)...');
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
     });
 
-    console.log('Suscripción generada con éxito:', subscription);
-
-    // 4. Guardar en Supabase (Upsert por suscripción para evitar duplicados en el mismo navegador)
+    alert('☁️ Paso 4: Sincronizando con Solcan...');
     const { error } = await supabase
       .from('push_subscriptions')
       .upsert({
         user_id: userId,
-        subscription: subscription, // Supabase guardará este objeto JSON directamente
+        subscription: subscription, 
         device_name: `${navigator.userAgent} [Ref. ${new Date().toLocaleTimeString()}]`
       }, { onConflict: 'subscription' });
 
     if (error) {
-      console.error('Error al guardar suscripción en Supabase:', error);
+      alert('❌ Error al guardar en base de datos: ' + error.message);
       return false;
     } else {
-      console.log('Dispositivo registrado en la nube de Solcan.');
+      alert('✅ ¡ÉXITO! Suscripción confirmada.');
       return true;
     }
 
   } catch (error) {
-    console.error('Error durante el registro de Push:', error);
+    alert('🚨 ERROR: ' + error.message);
     return false;
   }
 }
