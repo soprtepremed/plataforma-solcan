@@ -53,3 +53,9 @@ Credenciales*.txt
 *.sln
 *.sw?
 
+# Bases de Datos y Scripts temporales
+*.xlsx
+~$*.xlsx
+scratch/
+.agents/
+
