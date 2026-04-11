@@ -53,7 +53,7 @@ export async function subscribeUserToPush(userId) {
       .upsert({
         user_id: userId,
         subscription: subscription, // Supabase guardará este objeto JSON directamente
-        device_name: navigator.userAgent
+        device_name: `${navigator.userAgent} [Ref. ${new Date().toLocaleTimeString()}]`
       }, { onConflict: 'subscription' });
 
     if (error) {
