@@ -162,7 +162,8 @@
   width: fit-content;
 }
 
-.status-Pendiente { background: #FEF3C7; color: #D97706; }
+.status-Pendiente { background: #F1F5F9; color: #64748B; }
+.status-EnCamino { background: #FEF3C7; color: #D97706; }
 .status-EnTránsito { background: #DBEAFE; color: #2563EB; }
 .status-Recibido { background: #D1FAE5; color: #059669; }
 

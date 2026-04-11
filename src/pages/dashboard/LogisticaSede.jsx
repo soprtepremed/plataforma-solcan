@@ -54,6 +54,7 @@ export default function LogisticaSede() {
 
   const stats = {
     pendientes: envios.filter(e => e.status === 'Pendiente').length,
+    enCamino: envios.filter(e => e.status === 'En Camino').length,
     transito: envios.filter(e => e.status === 'En Tránsito').length,
     recibidos: envios.filter(e => e.status === 'Recibido').length,
   };
@@ -73,12 +74,21 @@ export default function LogisticaSede() {
 
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
-          <div className={`${styles.statIcon}`} style={{background: '#FEF3C7', color: '#D97706'}}>
+          <div className={`${styles.statIcon}`} style={{background: '#F1F5F9', color: '#64748B'}}>
             <span className="material-symbols-rounded">inventory</span>
           </div>
           <div className={styles.statInfo}>
             <h3>{stats.pendientes}</h3>
             <p>Hieleras Pendientes</p>
+          </div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={`${styles.statIcon}`} style={{background: '#FEF3C7', color: '#D97706'}}>
+            <span className="material-symbols-rounded">sync</span>
+          </div>
+          <div className={styles.statInfo}>
+            <h3>{stats.enCamino}</h3>
+            <p>Chofer en Camino</p>
           </div>
         </div>
         <div className={styles.statCard}>
@@ -124,6 +134,7 @@ export default function LogisticaSede() {
                   <div className={`${styles.statusBadge} ${styles['status-' + envio.status.replace(/ /g, '')]}`}>
                     <span className="material-symbols-rounded">
                       {envio.status === 'Pendiente' ? 'schedule' : 
+                       envio.status === 'En Camino' ? 'sync' : 
                        envio.status === 'En Tránsito' ? 'local_shipping' : 'verified'}
                     </span>
                     {envio.status}

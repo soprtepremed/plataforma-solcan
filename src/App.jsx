@@ -18,6 +18,18 @@ import Proveedores from './pages/dashboard/Proveedores';
 import RecepcionPedido from './pages/dashboard/RecepcionPedido';
 import AdminPromociones from './pages/dashboard/AdminPromociones';
 import Sucursales from './pages/Sucursales';
+
+// Áreas Modulares
+import HematologiaDashboard from './pages/dashboard/areas/HematologiaDashboard';
+import UrianalisisDashboard from './pages/dashboard/areas/UrianalisisDashboard';
+import MicrobiologiaDashboard from './pages/dashboard/areas/MicrobiologiaDashboard';
+import TomaMuestraDashboard from './pages/dashboard/areas/TomaMuestraDashboard';
+import RecepcionDashboard from './pages/dashboard/areas/RecepcionDashboard';
+import DireccionOperativaDashboard from './pages/dashboard/areas/DireccionOperativaDashboard';
+import RRHHDashboard from './pages/dashboard/areas/RRHHDashboard';
+import ContabilidadDashboard from './pages/dashboard/areas/ContabilidadDashboard';
+import QuimicaClinicaDashboard from './pages/dashboard/areas/QuimicaClinicaDashboard';
+
 import { useAuth } from './context/AuthContext';
 import './App.css';
 
@@ -89,6 +101,17 @@ function App() {
             {user?.role?.toLowerCase() === 'admin' ? <DashboardLayout><AdminPromociones /></DashboardLayout> : <Navigate to="/" replace />}
           </PrivateRoute>
         } />
+
+        {/* Áreas Modulares */}
+        <Route path="/area/hematologia" element={<PrivateRoute><DashboardLayout><HematologiaDashboard /></DashboardLayout></PrivateRoute>} />
+        <Route path="/area/urianalisis" element={<PrivateRoute><DashboardLayout><UrianalisisDashboard /></DashboardLayout></PrivateRoute>} />
+        <Route path="/area/microbiologia" element={<PrivateRoute><DashboardLayout><MicrobiologiaDashboard /></DashboardLayout></PrivateRoute>} />
+        <Route path="/area/toma-muestra" element={<PrivateRoute><DashboardLayout><TomaMuestraDashboard /></DashboardLayout></PrivateRoute>} />
+        <Route path="/area/recepcion" element={<PrivateRoute><DashboardLayout><RecepcionDashboard /></DashboardLayout></PrivateRoute>} />
+        <Route path="/area/direccion-operativa" element={<PrivateRoute><DashboardLayout><DireccionOperativaDashboard /></DashboardLayout></PrivateRoute>} />
+        <Route path="/area/recursos-humanos" element={<PrivateRoute><DashboardLayout><RRHHDashboard /></DashboardLayout></PrivateRoute>} />
+        <Route path="/area/contabilidad" element={<PrivateRoute><DashboardLayout><ContabilidadDashboard /></DashboardLayout></PrivateRoute>} />
+        <Route path="/area/quimica-clinica" element={<PrivateRoute><DashboardLayout><QuimicaClinicaDashboard /></DashboardLayout></PrivateRoute>} />
 
       </Routes>
     </div>

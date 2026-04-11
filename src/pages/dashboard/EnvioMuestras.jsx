@@ -193,7 +193,8 @@ export default function EnvioMuestras() {
 
       // Autonotificar a la sucursal
       await supabase.from("notificaciones").insert([{
-        title: "Envío Registrado",
+        sucursal: sucursal,
+        title: "📦 Envío Registrado",
         message: `Has generado un nuevo envío para ${sucursal}. El chofer ya ha sido notificado.`,
         type: "success",
         metadata: { sucursal }

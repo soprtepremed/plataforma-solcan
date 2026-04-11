@@ -24,10 +24,11 @@ export default function MensajeroDashboard() {
 
   const fetchPendientes = async () => {
     setLoading(true);
+    // Ahora traemos Pendientes (libre) y En Camino (asignadas)
     const { data, error } = await supabase
       .from("logistica_envios")
       .select("*")
-      .eq("status", "Pendiente")
+      .in("status", ["Pendiente", "En Camino"])
       .order("created_at", { ascending: true });
 
     if (!error) setPendientes(data);
@@ -48,17 +49,9 @@ export default function MensajeroDashboard() {
     const channel = supabase
       .channel('recolecciones-nuevas')
       .on('postgres_changes', 
-        { event: 'INSERT', schema: 'public', table: 'logistica_envios' }, 
+        { event: '*', schema: 'public', table: 'logistica_envios' }, 
         (payload) => {
           fetchPendientes();
-        }
-      )
-      .on('postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'logistica_envios' },
-        (payload) => {
-          if (payload.new.status !== 'Pendiente') {
-            fetchPendientes();
-          }
         }
       )
       .subscribe();
@@ -68,17 +61,59 @@ export default function MensajeroDashboard() {
     };
   }, []);
 
-  const handleRecolectar = async (envioId) => {
+  // PASO 1: Aceptar el pedido (ponerlo En Camino)
+  const handleAceptar = async (envio) => {
     if (!activeId) {
-      alert("Por favor selecciona tu ID de mensajero antes de recolectar.");
+      alert("Por favor selecciona tu ID de mensajero antes de aceptar.");
       return;
     }
 
     const { error } = await supabase
       .from("logistica_envios")
       .update({
+        status: "En Camino",
+        mensajero_id: activeId
+      })
+      .eq("id", envio.id);
+
+    if (error) {
+      alert("Error: " + error.message);
+    } else {
+      // Notificar a otros choferes
+      await supabase.from("notificaciones").insert([{
+        role: "mensajero",
+        title: "Recolección Atendida",
+        message: `${selectedMessenger?.name || 'Un compañero'} va por el material de ${envio.sucursal}.`,
+        type: "success"
+      }]);
+
+      // Notificar a la SUCURSAL
+      await supabase.from("notificaciones").insert([{
+        sucursal: envio.sucursal,
+        title: "🚐 Chofer en Camino",
+        message: `${selectedMessenger?.name} ha iniciado el trayecto hacia tu sucursal para recolectar las muestras.`,
+        type: "info",
+        metadata: { sucursal: envio.sucursal }
+      }]);
+
+      // Push directo
+      sendPushNotification({
+        role: "mensajero",
+        title: "Recolección Atendida",
+        message: `${selectedMessenger?.name || 'Un chofer'} ya aceptó en ${envio.sucursal}.`,
+        metadata: { url: '/logistica/mensajero' }
+      });
+      
+      fetchPendientes();
+    }
+  };
+
+  // PASO 2: Recolectar físicamente el paquete
+  const handleRecolectar = async (envioId) => {
+    const { error } = await supabase
+      .from("logistica_envios")
+      .update({
         status: "En Tránsito",
-        mensajero_id: activeId,
         hora_recoleccion: new Date().toISOString()
       })
       .eq("id", envioId);
@@ -86,33 +121,8 @@ export default function MensajeroDashboard() {
     if (error) {
       alert("Error: " + error.message);
     } else {
-      const envio = pendientes.find(e => e.id === envioId);
-      // Notificar a otros choferes
-      await supabase.from("notificaciones").insert([{
-        role: "mensajero",
-        title: "Recolección Atendida",
-        message: `${selectedMessenger?.name || 'Un compañero'} ya recolectó en ${envio?.sucursal}.`,
-        type: "success"
-      }]);
-
-      // Notificar a la SUCURSAL
-      await supabase.from("notificaciones").insert([{
-        title: "Chofer en Camino",
-        message: `${selectedMessenger?.name} ha iniciado la recolección de tus muestras.`,
-        type: "info",
-        metadata: { sucursal: envio?.sucursal }
-      }]);
-
-      // BYPASS: Push directo sin depender del trigger de BD
-      sendPushNotification({
-        role: "mensajero",
-        title: "Recolección Atendida",
-        message: `${selectedMessenger?.name || 'Un chofer'} ya recolectó en ${envio?.sucursal}.`,
-        metadata: { url: '/logistica/mensajero' }
-      });
-
-      setPendientes(prev => prev.filter(e => e.id !== envioId));
       setShowSuccess(true);
+      fetchPendientes();
     }
   };
 
@@ -151,7 +161,7 @@ export default function MensajeroDashboard() {
       <div className={styles.listArea}>
         <h3 className={styles.listTitle}>
           <span className="material-symbols-rounded">pending_actions</span>
-          Hieleras Pendientes por Recolección
+          Hoja de Ruta: Recolecciones Pendientes
           {selectedMessenger && <small className={styles.activeTag}>Operando como: {selectedMessenger.name}</small>}
         </h3>
 
@@ -160,6 +170,12 @@ export default function MensajeroDashboard() {
         ) : pendientes.length > 0 ? (
           pendientes.map(envio => {
             const photos = envio.img_url ? envio.img_url.split('|') : [];
+            const isAssignedToMe = envio.mensajero_id === activeId;
+            const isFree = envio.status === 'Pendiente';
+
+            // Si está asignado a otro, no lo mostramos en la lista activa de este mensajero (opcional, por ahora lo dejamos para transparencia si aún no se refresca)
+            if (envio.status === 'En Camino' && !isAssignedToMe) return null;
+
             return (
               <div key={envio.id} className={styles.envioCard}>
                 <div className={styles.envioInfo}>
@@ -169,16 +185,23 @@ export default function MensajeroDashboard() {
                       <h4>Sucursal: {envio.sucursal}</h4>
                       <p className={styles.timestamp}>
                         <span className="material-symbols-rounded">schedule</span>
-                        Listo hace: {new Date(envio.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+                        Registrado: {new Date(envio.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
                       </p>
                     </div>
                   </div>
                   
                   <div className={styles.envioMeta}>
-                    <span className={`${styles.badge} ${styles.pendBadge}`}>
-                      <span className="material-symbols-rounded">check_circle</span>
-                      LISTO PARA RECOLECCIÓN
-                    </span>
+                    {isFree ? (
+                      <span className={`${styles.badge} ${styles.pendBadge}`}>
+                        <span className="material-symbols-rounded">notifications_active</span>
+                        NUEVA SOLICITUD
+                      </span>
+                    ) : (
+                      <span className={`${styles.badge}`} style={{background: '#FEF3C7', color: '#D97706'}}>
+                        <span className="material-symbols-rounded spin">sync</span>
+                        VAS EN CAMINO
+                      </span>
+                    )}
                   </div>
 
                   <div className={styles.samplesSummary}>
@@ -203,13 +226,24 @@ export default function MensajeroDashboard() {
                 </div>
                 
                 <div className={styles.actionArea}>
-                  <button 
-                    className={styles.acceptBtn}
-                    onClick={() => handleRecolectar(envio.id)}
-                  >
-                    <span className="material-symbols-rounded">local_shipping</span>
-                    Confirmar Recolección
-                  </button>
+                  {isFree ? (
+                    <button 
+                      className={styles.acceptBtn}
+                      onClick={() => handleAceptar(envio)}
+                    >
+                      <span className="material-symbols-rounded">check_circle</span>
+                      Aceptar Pedido
+                    </button>
+                  ) : (
+                    <button 
+                      className={styles.acceptBtn}
+                      style={{background: 'var(--co-gradient)'}}
+                      onClick={() => handleRecolectar(envio.id)}
+                    >
+                      <span className="material-symbols-rounded">hail</span>
+                      Confirmar Recogida
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -217,8 +251,8 @@ export default function MensajeroDashboard() {
         ) : (
           <div className={styles.empty}>
             <span className="material-symbols-rounded" style={{ fontSize: '64px', marginBottom: '15px' }}>task_alt</span>
-            <h3>Rutas al día</h3>
-            <p>No hay hieleras pendientes en este sector.</p>
+            <h3>Sin tareas pendientes</h3>
+            <p>Todas las hieleras han sido recolectadas o asignadas.</p>
           </div>
         )}
       </div>
@@ -227,9 +261,9 @@ export default function MensajeroDashboard() {
         <div className={styles.successOverlay}>
           <div className={styles.successCard}>
              <div className={styles.successIcon}><span className="material-symbols-rounded">local_shipping</span></div>
-             <h2>¡Recolección Exitosa!</h2>
-             <p>El envío ha sido marcado "En Tránsito". Ya puedes dirigirte al laboratorio matriz.</p>
-             <button onClick={() => setShowSuccess(false)} className={styles.successBtn}>Aceptar</button>
+             <h2>¡Muestras Recolectadas!</h2>
+             <p>El envío ahora está oficialmente "En Tránsito". Dirígete con precaución al laboratorio matriz.</p>
+             <button onClick={() => setShowSuccess(false)} className={styles.successBtn}>Entendido</button>
           </div>
         </div>
       )}

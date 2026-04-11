@@ -293,6 +293,14 @@ export default function VerificacionMatriz() {
         }]);
       }
 
+      // Notificar a la SUCURSAL de origen
+      await supabase.from("notificaciones").insert([{
+        sucursal: envio.sucursal,
+        title: "🔬 Muestras en Proceso Técnica",
+        message: `Tu material de ${envio.sucursal} ya fue recibido y firmado por el área de ${AREAS_SOLCAN.find(a => a.key === areaRecibe)?.label}.`,
+        type: "info"
+      }]);
+
       setActiveReceptionId(null); 
       if (filter !== 'Todos') setEnvios(prev => prev.filter(e => e.id !== envio.id));
       setShowSuccess(true);
@@ -335,6 +343,14 @@ export default function VerificacionMatriz() {
           type: "success"
         }]);
       }
+
+      // Notificar a la SUCURSAL de origen (Cierre Total)
+      await supabase.from("notificaciones").insert([{
+        sucursal: envio.sucursal,
+        title: "✅ Recepción de Hielera Completa",
+        message: `Todo tu material enviado desde ${envio.sucursal} ha sido recibido exitosamente en el Laboratorio Matriz.`,
+        type: "success"
+      }]);
 
       setActiveReceptionId(null); 
       setEnvios(prev => prev.filter(e => e.id !== envio.id));

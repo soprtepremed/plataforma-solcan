@@ -41,17 +41,23 @@ export default function TopNavbar() {
   // Cargar notificaciones (Solo hoy)
   useEffect(() => {
     if (!user) return;
+    const isAdmin = user.role?.toLowerCase() === 'admin' || user.role?.toLowerCase() === 'administrador';
+
     const fetchNotifications = async () => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const startOfToday = today.toISOString();
 
-      const { data } = await supabase
-        .from('notificaciones')
-        .select('*')
-        .or(`role.eq.${user.role},user_id.eq.${user.id}`)
+      let query = supabase.from('notificaciones').select('*');
+      
+      if (!isAdmin) {
+        query = query.or(`role.eq.${user.role},user_id.eq.${user.id},sucursal.eq.${user.sucursal || user.branch}`);
+      }
+
+      const { data } = await query
         .gte('created_at', startOfToday)
         .order('created_at', { ascending: false });
+        
       if (data) setNotifications(data);
     };
     fetchNotifications();
@@ -60,7 +66,10 @@ export default function TopNavbar() {
       .channel('notificaciones_navbar')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notificaciones' }, payload => {
         const nuevo = payload.new;
-        if (nuevo.role === user.role || nuevo.user_id === user.id) {
+        const userBranch = user.sucursal || user.branch;
+        
+        // ADMIN ve todo. Otros solo lo propio o su sede.
+        if (isAdmin || nuevo.role === user.role || nuevo.user_id === user.id || (nuevo.sucursal && nuevo.sucursal === userBranch)) {
           setNotifications(prev => [nuevo, ...prev]);
           playNotificationSound();
         }
@@ -78,7 +87,7 @@ export default function TopNavbar() {
     await supabase
       .from('notificaciones')
       .update({ read: true })
-      .or(`role.eq.${user.role},user_id.eq.${user.id}`)
+      .or(`role.eq.${user.role},user_id.eq.${user.id},sucursal.eq.${user.sucursal || user.branch}`)
       .eq('read', false);
   };
 
@@ -183,6 +192,34 @@ export default function TopNavbar() {
 
     if (r === 'mensajero') {
       options.push({ label: 'Ruta de Transporte', path: '/logistica/transporte', icon: 'route' });
+    }
+
+    // Rutas de las nuevas Áreas
+    const areasConfig = {
+      'hematologia': { label: 'Hematología', path: '/area/hematologia', icon: 'bloodtype' },
+      'urianalisis': { label: 'Urianálisis', path: '/area/urianalisis', icon: 'science' },
+      'microbiologia': { label: 'Microbiología', path: '/area/microbiologia', icon: 'biotech' },
+      'quimica_clinica': { label: 'Química Clínica', path: '/area/quimica-clinica', icon: 'experiment' },
+      'toma_de_muestra': { label: 'Toma de Muestra', path: '/area/toma-muestra', icon: 'vaccines' },
+      'recepcion_area': { label: 'Recepción', path: '/area/recepcion', icon: 'person_add' },
+      'direccion_operativa': { label: 'Dir. Operativa', path: '/area/direccion-operativa', icon: 'query_stats' },
+      'recursos_humanos': { label: 'Recursos Humanos', path: '/area/recursos-humanos', icon: 'badge' },
+      'contabilidad': { label: 'Contabilidad', path: '/area/contabilidad', icon: 'account_balance' },
+    };
+
+    // Si el rol exacto coincide con la clave del área, darle su acceso principal
+    if (areasConfig[r]) {
+      options.push(areasConfig[r]);
+    }
+
+    // Acceso universal a las aplicaciones de área si eres Admin
+    if (r === 'admin') {
+      options.push({
+        label: 'App de Áreas',
+        path: '/area/hematologia',
+        icon: 'apps',
+        children: Object.values(areasConfig)
+      });
     }
 
     return options;

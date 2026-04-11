@@ -271,8 +271,9 @@
 }
 
 .status_En_Tránsito { background: #DBEAFE; color: #1E40AF; }
+.status_En_Camino { background: #FEF3C7; color: #D97706; }
 .status_Recibido { background: #D1FAE5; color: #065F46; }
-.status_Pendiente { background: #FEF3C7; color: #92400E; }
+.status_Pendiente { background: #F1F5F9; color: #64748B; }
 
 :global(.spin) {
   display: inline-block;

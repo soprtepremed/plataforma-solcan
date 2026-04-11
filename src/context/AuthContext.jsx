@@ -33,6 +33,7 @@ export function AuthProvider({ children }) {
         name: data.nombre,
         role: selectedRole || data.role,
         branch: isMatrixAccess ? "Tuxtla Gutierrez" : (selectedBranch || data.sucursal),
+        sucursal: isMatrixAccess ? "Tuxtla Gutierrez" : (selectedBranch || data.sucursal),
         username: data.username,
         foto_url: data.foto_url
       };
