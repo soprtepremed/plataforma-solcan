@@ -253,3 +253,207 @@
   }
   .supportInfo { flex-direction: column; gap: 1rem; }
 }
+
+/* DASHBOARD DE INVENTARIO */
+.inventoryDashboard {
+    background: white;
+    border-radius: 24px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
+    animation: dashFadeIn 0.5s ease-out;
+}
+
+@keyframes dashFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dashHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.dashTitle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dashTitle span {
+    font-size: 2rem;
+    color: #0BCECD;
+    background: #effffb;
+    padding: 10px;
+    border-radius: 12px;
+}
+
+.dashTitle h2 {
+    margin: 0 !important;
+    font-size: 1.25rem !important;
+    font-weight: 900 !important;
+    color: #1a202c !important;
+}
+
+.dashTitle p {
+    margin: 0 !important;
+    font-size: 0.85rem !important;
+    color: #718096 !important;
+    font-weight: 700 !important;
+}
+
+.dashFilters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.areaPill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 750;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.areaPill:hover {
+    background: #f8fafc;
+    border-color: #0BCECD;
+}
+
+.areaPillActive {
+    background: #0BCECD !important;
+    color: white !important;
+    border-color: #0BCECD !important;
+    box-shadow: 0 4px 10px rgba(11, 206, 205, 0.3);
+}
+
+.alertCards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.alertCard {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 1.2rem;
+    border-radius: 20px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    transition: all 0.3s;
+}
+
+.critical {
+    background: #fff5f5 !important;
+    border-color: #feb2b2 !important;
+}
+
+.warning {
+    background: #fffaf0 !important;
+    border-color: #fbd38d !important;
+}
+
+.alertIcon span {
+    font-size: 2.2rem;
+}
+
+.critical .alertIcon span { color: #f56565; }
+.warning .alertIcon span { color: #ed8936; }
+
+.alertInfo h3 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.critical .alertInfo h3 { color: #c53030; }
+.warning .alertInfo h3 { color: #9c4221; }
+
+.alertInfo p {
+    margin: 4px 0 0;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #718096;
+}
+
+.alertDetails {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+    background: #fdfdfd;
+    border-radius: 16px;
+}
+
+.alertListSection h4 {
+    margin: 0 0 10px 0;
+    font-size: 0.85rem;
+    font-weight: 850;
+    color: #4a5568;
+}
+
+.miniAlertList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.miniAlertItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #f1f5f9;
+}
+
+.miniText {
+    display: flex;
+    flex-direction: column;
+}
+
+.miniText strong {
+    font-size: 0.85rem;
+    color: #2d3748;
+}
+
+.miniText span {
+    font-size: 0.75rem;
+    color: #a0aec0;
+}
+
+.moreLink {
+    font-size: 0.75rem;
+    color: #0BCECD;
+    font-weight: 800;
+    cursor: pointer;
+    text-align: right;
+    display: block;
+    margin-top: 4px;
+}
+
+.allCorrect {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    color: #48bb78;
+}
+
+.allCorrect span { font-size: 3rem; margin-bottom: 0.5rem; }
+.allCorrect p { font-weight: 800; font-size: 1rem; }

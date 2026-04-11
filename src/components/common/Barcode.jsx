@@ -24,37 +24,52 @@ const Code128B = {
 const START_B = '11010010000';
 const STOP = '1100011101011';
 
-export default function Barcode({ value, width = 1.5, height = 30 }) {
+export default function Barcode({ value, width = 1.2, height = 35 }) {
     if (!value) return null;
 
-    // A very simple Code 128 generator for demonstration
-    // Note: This is an illustrative SVG rendering. 
-    // For production-grade high-volume scanning, react-barcode is usually preferred.
-    // However, we will use a CSS-based approach for maximum lightness and "literal" look.
+    // Generador real de barras basado en el diccionario Code128B superior
+    const generateBars = () => {
+        let bars = START_B;
+        for (let char of value) {
+            bars += Code128B[char] || '';
+        }
+        bars += STOP;
+        return bars;
+    };
+
+    const barPattern = generateBars();
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div 
-                style={{ 
-                    display: 'flex', 
-                    height: `${height}px`, 
-                    background: '#000', 
-                    width: '120px', 
-                    opacity: 0.85,
-                    borderRadius: '2px',
-                    position: 'relative',
-                    overflow: 'hidden'
-                }}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+            <svg 
+                width="100%" 
+                height={height} 
+                viewBox={`0 0 ${barPattern.length} 100`} 
+                preserveAspectRatio="none"
+                style={{ display: 'block' }}
             >
-                {/* Visual "Barcode" Texture for the UI feeling */}
-                <div style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'repeating-linear-gradient(90deg, #000 0px, #000 2px, #fff 2px, #fff 4px, #000 4px, #000 5px, #fff 5px, #fff 8px)',
-                    mixBlendMode: 'screen'
-                }}></div>
-            </div>
-            <code style={{ fontSize: '10px', marginTop: '4px', color: '#64748b', fontWeight: 'bold' }}>{value}</code>
+                {barPattern.split('').map((bit, i) => (
+                    bit === '1' && (
+                        <rect 
+                            key={i} 
+                            x={i} 
+                            y="0" 
+                            width="1" 
+                            height="100" 
+                            fill="#000" 
+                        />
+                    )
+                ))}
+            </svg>
+            <code style={{ 
+                fontSize: '9px', 
+                marginTop: '2px', 
+                color: '#000', 
+                fontWeight: 'bold',
+                fontFamily: 'monospace' 
+            }}>
+                {value}
+            </code>
         </div>
     );
 }

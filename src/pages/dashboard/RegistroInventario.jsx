@@ -19,12 +19,39 @@ export default function RegistroInventario() {
         lote: '',
         caducidad: '',
         cantidad_cajas: 1,
-        piezas_por_caja: 1
+        piezas_por_caja: 1,
+        // Datos de Catálogo (opcionales para edición rápida)
+        nombre_nuevo: '',
+        prefijo_nuevo: '',
+        marca: '',
+        clase: '',
+        costo_unitario: 0,
+        precio1: 0,
+        area_tecnica: 'HEMATOLOGÍA',
+        unidad: 'Pieza',
+        es_nuevo_material: false,
+        editar_catalogo: false
     });
 
     useEffect(() => {
         fetchCatalogo();
     }, []);
+
+    useEffect(() => {
+        if (manualForm.catalogo_id && !manualForm.es_nuevo_material) {
+            const item = catalogo.find(c => c.id === manualForm.catalogo_id);
+            if (item) {
+                setManualForm(prev => ({
+                    ...prev,
+                    marca: item.marca || '',
+                    clase: item.clase || '',
+                    costo_unitario: item.costo_unitario || 0,
+                    precio1: item.precio1 || 0,
+                    area_tecnica: item.area_tecnica || 'HEMATOLOGÍA'
+                }));
+            }
+        }
+    }, [manualForm.catalogo_id, catalogo, manualForm.es_nuevo_material]);
 
     const fetchCatalogo = async () => {
         const { data, error } = await supabase
@@ -61,10 +88,48 @@ export default function RegistroInventario() {
         e.preventDefault();
         setLoading(true);
         try {
-            const item = catalogo.find(c => c.id === manualForm.catalogo_id);
-            const totalUnits = manualForm.cantidad_cajas * manualForm.piezas_por_caja;
+            let item;
             const year = new Date().getFullYear().toString().slice(-2);
 
+            if (manualForm.es_nuevo_material) {
+                // 1. Crear nuevo registro en catálogo
+                const { data: newCat, error: catError } = await supabase
+                    .from('materiales_catalogo')
+                    .insert([{
+                        nombre: manualForm.nombre_nuevo,
+                        prefijo: manualForm.prefijo_nuevo || manualForm.nombre_nuevo.substring(0, 3).toUpperCase(),
+                        marca: manualForm.marca,
+                        clase: manualForm.clase,
+                        costo_unitario: manualForm.costo_unitario,
+                        precio1: manualForm.precio1,
+                        area_tecnica: manualForm.area_tecnica,
+                        unidad: manualForm.unidad || 'Pieza', // Dinámico desde el form
+                        categoria: 'Insumos'
+                    }])
+                    .select()
+                    .single();
+                
+                if (catError) throw catError;
+                item = newCat;
+            } else {
+                item = catalogo.find(c => c.id === manualForm.catalogo_id);
+                // 2. Actualizar catálogo si se editó
+                if (manualForm.editar_catalogo) {
+                    const { error: updateError } = await supabase
+                        .from('materiales_catalogo')
+                        .update({
+                            marca: manualForm.marca,
+                            clase: manualForm.clase,
+                            costo_unitario: manualForm.costo_unitario,
+                            precio1: manualForm.precio1,
+                            area_tecnica: manualForm.area_tecnica
+                        })
+                        .eq('id', item.id);
+                    if (updateError) throw updateError;
+                }
+            }
+
+            const totalUnits = manualForm.cantidad_cajas * manualForm.piezas_por_caja;
             let newUnits = [];
             for (let i = 1; i <= totalUnits; i++) {
                 newUnits.push({
@@ -80,7 +145,7 @@ export default function RegistroInventario() {
             const { error } = await supabase.from('materiales_unidades').insert(newUnits);
             if (error) throw error;
 
-            alert(`Éxito: Se han registrado ${totalUnits} unidades en el inventario.`);
+            alert(`Éxito: Se han registrado ${totalUnits} unidades y actualizado el catálogo.`);
             navigate('/almacen/dashboard');
         } catch (err) {
             alert('Error: ' + err.message);
@@ -217,18 +282,127 @@ export default function RegistroInventario() {
                     <p className={styles.cardDesc}>Ingreso rápido de un solo lote por material.</p>
                     
                     <form onSubmit={processManualEntry} className={styles.manualForm}>
-                        <div className={styles.formGroup}>
-                            <label>Material</label>
-                            <select 
-                                required 
-                                value={manualForm.catalogo_id} 
-                                onChange={e => setManualForm({...manualForm, catalogo_id: e.target.value})}
-                            >
-                                <option value="">Selecciona un material...</option>
-                                {catalogo.map(item => (
-                                    <option key={item.id} value={item.id}>{item.nombre} ({item.prefijo})</option>
-                                ))}
-                            </select>
+                        <div className={styles.sectionHeader}>
+                            <h4>1. Definición de Material</h4>
+                            <label className={styles.checkboxLabel}>
+                                <input 
+                                    type="checkbox" 
+                                    checked={manualForm.es_nuevo_material} 
+                                    onChange={e => setManualForm({...manualForm, es_nuevo_material: e.target.checked, catalogo_id: ''})} 
+                                />
+                                Material Nuevo
+                            </label>
+                        </div>
+
+                        {manualForm.es_nuevo_material ? (
+                            <div className={styles.editableSection}>
+                                <div className={styles.formGroup}>
+                                    <label>Nombre del Material nuevo</label>
+                                    <input 
+                                        required 
+                                        placeholder="Ej: Reactivo Hematología B" 
+                                        value={manualForm.nombre_nuevo}
+                                        onChange={e => setManualForm({...manualForm, nombre_nuevo: e.target.value})}
+                                    />
+                                </div>
+                                <div className={styles.subgrid}>
+                                    <div className={styles.formGroup}>
+                                        <label>Prefijo (Cód)</label>
+                                        <input 
+                                            placeholder="RHB" 
+                                            maxLength="4"
+                                            value={manualForm.prefijo_nuevo}
+                                            onChange={e => setManualForm({...manualForm, prefijo_nuevo: e.target.value.toUpperCase()})}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label>Unidad de Medida</label>
+                                        <input 
+                                            list="unidades-list"
+                                            placeholder="Pza, Caja, ml..." 
+                                            value={manualForm.unidad}
+                                            onChange={e => setManualForm({...manualForm, unidad: e.target.value})}
+                                        />
+                                        <datalist id="unidades-list">
+                                            <option value="Pieza" />
+                                            <option value="Caja" />
+                                            <option value="Frasco" />
+                                            <option value="ml" />
+                                            <option value="Litro" />
+                                            <option value="Paquete" />
+                                            <option value="Kit" />
+                                        </datalist>
+                                    </div>
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label>Área Técnica</label>
+                                    <select value={manualForm.area_tecnica} onChange={e => setManualForm({...manualForm, area_tecnica: e.target.value})}>
+                                        <option value="HEMATOLOGÍA">Hematología</option>
+                                        <option value="QUÍMICA CLÍNICA">Química Clínica</option>
+                                        <option value="UROANÁLISIS">Uroanálisis</option>
+                                        <option value="MICROBIOLOGÍA">Microbiología</option>
+                                        <option value="PAPELERÍA">Papelería</option>
+                                        <option value="OTROS">Otros</option>
+                                    </select>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className={styles.formGroup}>
+                                <label>Seleccionar Material</label>
+                                <select 
+                                    required 
+                                    value={manualForm.catalogo_id} 
+                                    onChange={e => setManualForm({...manualForm, catalogo_id: e.target.value})}
+                                >
+                                    <option value="">Selecciona un material existente...</option>
+                                    {catalogo.map(item => (
+                                        <option key={item.id} value={item.id}>{item.nombre} ({item.prefijo})</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
+                        <div className={styles.sectionHeader}>
+                            <h4>2. Datos de Referencia (Catálogo)</h4>
+                            {!manualForm.es_nuevo_material && (
+                                <label className={styles.checkboxLabel}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={manualForm.editar_catalogo} 
+                                        onChange={e => setManualForm({...manualForm, editar_catalogo: e.target.checked})} 
+                                    />
+                                    Editar Info
+                                </label>
+                            )}
+                        </div>
+
+                        {(manualForm.es_nuevo_material || manualForm.editar_catalogo) && (
+                            <div className={styles.editableSection}>
+                                <div className={styles.subgrid}>
+                                    <div className={styles.formGroup}>
+                                        <label>Marca</label>
+                                        <input placeholder="Ej: Roche" value={manualForm.marca} onChange={e => setManualForm({...manualForm, marca: e.target.value})} />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label>Clase</label>
+                                        <input placeholder="Ej: Artículo" value={manualForm.clase} onChange={e => setManualForm({...manualForm, clase: e.target.value})} />
+                                    </div>
+                                </div>
+                                <div className={styles.subgrid}>
+                                    <div className={styles.formGroup}>
+                                        <label>Costo ($)</label>
+                                        <input type="number" step="0.01" value={manualForm.costo_unitario} onChange={e => setManualForm({...manualForm, costo_unitario: parseFloat(e.target.value)})} />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label>Precio Venta ($)</label>
+                                        <input type="number" step="0.01" value={manualForm.precio1} onChange={e => setManualForm({...manualForm, precio1: parseFloat(e.target.value)})} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className={styles.sectionHeader}>
+                            <h4>3. Detalles del Lote</h4>
                         </div>
 
                         <div className={styles.row}>
@@ -276,7 +450,7 @@ export default function RegistroInventario() {
                             </div>
                         </div>
 
-                        <button type="submit" className={styles.primaryBtn} disabled={loading || !manualForm.catalogo_id}>
+                        <button type="submit" className={styles.primaryBtn} disabled={loading || (!manualForm.catalogo_id && !manualForm.es_nuevo_material) || (manualForm.es_nuevo_material && !manualForm.nombre_nuevo)}>
                             {loading ? 'Guardando...' : 'Registrar Stock'}
                         </button>
                     </form>

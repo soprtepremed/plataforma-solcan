@@ -135,10 +135,57 @@
 }
 
 /* Manual Form Styles */
-.manualForm {
+  gap: 1.2rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1.5px solid #f1f5f9;
+}
+
+.sectionHeader h4 {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--co-primary);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: #475569;
+}
+
+.checkboxLabel input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.editableSection {
+  background: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.2rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.subgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
 }
 
 .formGroup {

@@ -43,7 +43,7 @@ export default function TopNavbar() {
     if (!user) return;
     const fetchNotifications = async () => {
       const today = new Date();
-      today.setHours(0,0,0,0);
+      today.setHours(0, 0, 0, 0);
       const startOfToday = today.toISOString();
 
       const { data } = await supabase
@@ -61,8 +61,8 @@ export default function TopNavbar() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notificaciones' }, payload => {
         const nuevo = payload.new;
         if (nuevo.role === user.role || nuevo.user_id === user.id) {
-           setNotifications(prev => [nuevo, ...prev]);
-           playNotificationSound();
+          setNotifications(prev => [nuevo, ...prev]);
+          playNotificationSound();
         }
       })
       .subscribe();
@@ -112,7 +112,7 @@ export default function TopNavbar() {
       canvas.width = 200;
       canvas.height = 200;
       ctx.drawImage(img, croppedAreaPixels.x, croppedAreaPixels.y, croppedAreaPixels.width, croppedAreaPixels.height, 0, 0, 200, 200);
-      
+
       const blob = await new Promise(res => canvas.toBlob(res, 'image/webp', 0.8));
       const fileName = `${user.id}_${Date.now()}.webp`;
       const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, blob);
@@ -136,7 +136,7 @@ export default function TopNavbar() {
     if (!user) return [];
     const r = user.role?.toLowerCase();
     const options = [{ label: 'Inicio', path: '/', icon: 'home' }];
-    
+
     // Casos por rol (Sincronizado con Sucursales.jsx)
     if (r === 'admin' || r === 'captura' || r.includes('técnico') || r.includes('tecnico')) {
       options.push({ label: 'Captura Resultados', path: '/captura', icon: 'add_task' });
@@ -159,9 +159,16 @@ export default function TopNavbar() {
     }
 
     if (r === 'admin' || r === 'almacen') {
-      options.push({ label: 'Inventario General', path: '/almacen/inventario', icon: 'grid_view' });
-      options.push({ label: 'Materiales', path: '/almacen/materiales', icon: 'category' });
-      options.push({ label: 'Solicitudes de Material', path: '/almacen/solicitudes', icon: 'assignment_turned_in' });
+      options.push({ 
+        label: 'Almacén', 
+        path: '/almacen', 
+        icon: 'inventory_2',
+        children: [
+          { label: 'Inventario General', path: '/almacen/inventario', icon: 'grid_view' },
+          { label: 'Materiales', path: '/almacen/materiales', icon: 'category' },
+          { label: 'Solicitudes Material', path: '/almacen/solicitudes', icon: 'assignment_turned_in' },
+        ]
+      });
     }
 
     if (r === 'mensajero') {
@@ -181,7 +188,7 @@ export default function TopNavbar() {
 
     if (deltaX > 50) { // Deslizamiento a la izquierda detectado
       setSwipedNotifId(notifId);
-      
+
       // Auto-reset después de 4 segundos
       if (autoResetTimer.current) clearTimeout(autoResetTimer.current);
       autoResetTimer.current = setTimeout(() => {
@@ -199,33 +206,33 @@ export default function TopNavbar() {
   return (
     <nav className={styles.navbarContainer} ref={dropdownRef}>
       <div className={styles.topStripe}></div>
-      
+
       <div className={styles.navMain}>
         {/* IZQUIERDA: Logo + Campana Móvil */}
         <div className={styles.navLeft}>
           <div className={styles.brand} onClick={() => navigate('/')}>
-             <div className={styles.logoCircle}><img src="/favicon.png" alt="S" /></div>
-             <div className={styles.brandText}>
-                <span className={styles.brandName}>Solcan</span>
-             </div>
+            <div className={styles.logoCircle}><img src="/favicon.png" alt="S" /></div>
+            <div className={styles.brandText}>
+              <span className={styles.brandName}>Solcan</span>
+            </div>
           </div>
 
           <div className={styles.mobileNotifLeft}>
-             <button className={styles.iconBtn} onClick={() => { 
-               if (navigator.vibrate) navigator.vibrate(50);
-               setShowNotifMenu(!showNotifMenu); 
-               markAllAsRead(); 
-             }}>
-                <span className="material-symbols-rounded">notifications</span>
-                {unreadCount > 0 && <span className={styles.notifCircle}>{unreadCount}</span>}
-             </button>
-          </div>
-          
-          <div className={styles.notifAreaPC}>
-            <button className={styles.iconBtn} onClick={() => { 
+            <button className={styles.iconBtn} onClick={() => {
               if (navigator.vibrate) navigator.vibrate(50);
-              setShowNotifMenu(!showNotifMenu); 
-              markAllAsRead(); 
+              setShowNotifMenu(!showNotifMenu);
+              markAllAsRead();
+            }}>
+              <span className="material-symbols-rounded">notifications</span>
+              {unreadCount > 0 && <span className={styles.notifCircle}>{unreadCount}</span>}
+            </button>
+          </div>
+
+          <div className={styles.notifAreaPC}>
+            <button className={styles.iconBtn} onClick={() => {
+              if (navigator.vibrate) navigator.vibrate(50);
+              setShowNotifMenu(!showNotifMenu);
+              markAllAsRead();
             }}>
               <span className="material-symbols-rounded">notifications</span>
               {unreadCount > 0 && <span className={styles.notifCircle}>{unreadCount}</span>}
@@ -235,61 +242,78 @@ export default function TopNavbar() {
 
         {/* CENTRO: Menú de Lectura Directa en PC */}
         <div className={styles.navCenterPC}>
-           {menuOptions.map(o => (
-             <Link key={o.path} to={o.path} className={`${styles.navItemPC} ${location.pathname === o.path ? styles.activePC : ''}`}>
-               {o.label}
-             </Link>
-           ))}
+          {menuOptions.map(o => (
+            o.children ? (
+              <div key={o.label} className={styles.dropdownParent}>
+                <button className={`${styles.navItemPC} ${location.pathname.startsWith(o.path) ? styles.activePC : ''}`} style={{background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                  {o.label}
+                  <span className="material-symbols-rounded" style={{fontSize: '18px'}}>expand_more</span>
+                </button>
+                <div className={styles.submenu}>
+                  {o.children.map(child => (
+                    <Link key={child.path} to={child.path} className={`${styles.submenuItem} ${location.pathname === child.path ? styles.activeSub : ''}`}>
+                      <span className="material-symbols-rounded">{child.icon}</span>
+                      {child.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <Link key={o.path} to={o.path} className={`${styles.navItemPC} ${location.pathname === o.path ? styles.activePC : ''}`}>
+                {o.label}
+              </Link>
+            )
+          ))}
         </div>
 
         {/* DERECHA: Datos de Usuario y Acciones Rápidas */}
         <div className={styles.navActionsRight}>
-           <div className={styles.userInfoPC}>
-              <span className={styles.helloText}>Hola, {user?.name?.split(' ')[0] || 'Usuario'}</span>
-              <div className={styles.dividerPC}></div>
-              {(user?.sucursal || user?.branch) && (
-                <div className={styles.branchStatusPC}>
-                   <span className="material-symbols-rounded">location_on</span>
-                   <span>{user.sucursal || user.branch}</span>
-                </div>
-              )}
-           </div>
-
-           <div className={styles.profileArea}>
-              <div className={styles.avatarCircle} onClick={() => setShowProfileMenu(!showProfileMenu)}>
-                 {user?.foto_url ? <img src={user.foto_url} alt="U" /> : <span>{user?.name?.charAt(0)}</span>}
+          <div className={styles.userInfoPC}>
+            <span className={styles.helloText}>Hola, {user?.name?.split(' ')[0] || 'Usuario'}</span>
+            <div className={styles.dividerPC}></div>
+            {(user?.sucursal || user?.branch) && (
+              <div className={styles.branchStatusPC}>
+                <span className="material-symbols-rounded">location_on</span>
+                <span>{user.sucursal || user.branch}</span>
               </div>
-              {showProfileMenu && (
-                <div className={styles.profileDropdown}>
-                  <div className={styles.profileHeader}>
-                    <div className={styles.profileInfoRow}>
-                      <span className="material-symbols-rounded">person</span>
-                      <div className={styles.profileText}>
-                        <h4>{user?.name || 'Usuario'}</h4>
-                        <span className={styles.roleTag}>{user?.role || 'Personal'}</span>
-                      </div>
+            )}
+          </div>
+
+          <div className={styles.profileArea}>
+            <div className={styles.avatarCircle} onClick={() => setShowProfileMenu(!showProfileMenu)}>
+              {user?.foto_url ? <img src={user.foto_url} alt="U" /> : <span>{user?.name?.charAt(0)}</span>}
+            </div>
+            {showProfileMenu && (
+              <div className={styles.profileDropdown}>
+                <div className={styles.profileHeader}>
+                  <div className={styles.profileInfoRow}>
+                    <span className="material-symbols-rounded">person</span>
+                    <div className={styles.profileText}>
+                      <h4>{user?.name || 'Usuario'}</h4>
+                      <span className={styles.roleTag}>{user?.role || 'Personal'}</span>
                     </div>
                   </div>
-                  <div className={styles.profileItems}>
-                    <button className={styles.profileOption} onClick={() => fileInputRef.current.click()}>
-                      <span className="material-symbols-rounded">add_a_photo</span>
-                      Cambiar Foto de Perfil
-                    </button>
-                    <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={onFileChange} />
-                  </div>
                 </div>
-              )}
-           </div>
+                <div className={styles.profileItems}>
+                  <button className={styles.profileOption} onClick={() => fileInputRef.current.click()}>
+                    <span className="material-symbols-rounded">add_a_photo</span>
+                    Cambiar Foto de Perfil
+                  </button>
+                  <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={onFileChange} />
+                </div>
+              </div>
+            )}
+          </div>
 
-           <div className={styles.controlIconsPC}>
-              <button className={styles.iconBtn} onClick={logout}><span className="material-symbols-rounded">logout</span></button>
-           </div>
+          <div className={styles.controlIconsPC}>
+            <button className={styles.iconBtn} onClick={logout}><span className="material-symbols-rounded">logout</span></button>
+          </div>
 
-           <div className={styles.mobileOnly}>
-              <button className={styles.iconBtn} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-                <span className="material-symbols-rounded">{mobileMenuOpen ? 'close' : 'menu'}</span>
-              </button>
-           </div>
+          <div className={styles.mobileOnly}>
+            <button className={styles.iconBtn} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              <span className="material-symbols-rounded">{mobileMenuOpen ? 'close' : 'menu'}</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -297,21 +321,21 @@ export default function TopNavbar() {
       {showNotifMenu && (
         <div className={styles.notifDropdown}>
           <div className={styles.notifHeader}>
-              <h4>Avisos de Hoy</h4>
-              <button className={styles.clearBtn} onClick={() => { setNotifications([]); setShowNotifMenu(false); }}>Limpiar</button>
+            <h4>Avisos de Hoy</h4>
+            <button className={styles.clearBtn} onClick={() => { setNotifications([]); setShowNotifMenu(false); }}>Limpiar</button>
           </div>
           <div className={styles.notifList}>
             {notifications.map(n => (
               <div key={n.id} className={styles.swipeNotifContainer}>
-                <button 
-                  className={styles.revealDeleteBtn} 
+                <button
+                  className={styles.revealDeleteBtn}
                   onClick={() => { deleteNotification(n.id); setSwipedNotifId(null); }}
                 >
                   <span className="material-symbols-rounded">delete</span>
                   <span>Borrar</span>
                 </button>
 
-                <div 
+                <div
                   className={`${styles.notifItem} ${swipedNotifId === n.id ? styles.isSwiped : ''}`}
                   onTouchStart={handleSwipeStart}
                   onTouchEnd={(e) => handleSwipeEnd(e, n.id)}
@@ -320,13 +344,13 @@ export default function TopNavbar() {
                 >
                   <div className={styles.notifDot}></div>
                   <div className={styles.notifTextContent}>
-                      <div className={styles.notifUpper}>
-                        <h4>{n.title}</h4>
-                        <div className={styles.notifMetaRight}>
-                            <span className={styles.notifTime}>{formatNotifDate(n.created_at)}</span>
-                        </div>
+                    <div className={styles.notifUpper}>
+                      <h4>{n.title}</h4>
+                      <div className={styles.notifMetaRight}>
+                        <span className={styles.notifTime}>{formatNotifDate(n.created_at)}</span>
                       </div>
-                      <p>{n.message}</p>
+                    </div>
+                    <p>{n.message}</p>
                   </div>
                 </div>
               </div>
@@ -339,52 +363,75 @@ export default function TopNavbar() {
       {/* OVERLAY MÓVIL */}
       {mobileMenuOpen && (
         <div className={styles.mobileOverlay}>
-           <div className={styles.mobileProfileHeader}>
-              <div className={styles.mobileAvatarLarge}>
-                 {user?.foto_url ? <img src={user.foto_url} alt="U" /> : <span>{user?.name?.charAt(0)}</span>}
+          <div className={styles.mobileProfileHeader}>
+            <div className={styles.mobileAvatarLarge}>
+              {user?.foto_url ? <img src={user.foto_url} alt="U" /> : <span>{user?.name?.charAt(0)}</span>}
+            </div>
+            <h3>{user?.name}</h3>
+            <p>{user?.sucursal || user?.branch}</p>
+          </div>
+          <nav className={styles.mobileNav}>
+            {menuOptions.map(o => (
+              <div key={o.label || o.path}>
+                {o.children ? (
+                  <>
+                    <div className={styles.mobileNavItem} style={{background: 'transparent', marginBottom: '0'}}>
+                      <span className="material-symbols-rounded">{o.icon}</span>
+                      {o.label}
+                    </div>
+                    <div className={styles.mobileNestedNav}>
+                      {o.children.map(child => (
+                        <Link 
+                          key={child.path} 
+                          to={child.path} 
+                          className={`${styles.mobileSubItem} ${location.pathname === child.path ? styles.mobileSubItemActive : ''}`} 
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          • {child.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <Link key={o.path} to={o.path} className={styles.mobileNavItem} onClick={() => setMobileMenuOpen(false)}>
+                    <span className="material-symbols-rounded">{o.icon}</span>
+                    {o.label}
+                  </Link>
+                )}
               </div>
-              <h3>{user?.name}</h3>
-              <p>{user?.sucursal || user?.branch}</p>
-           </div>
-           <nav className={styles.mobileNav}>
-             {menuOptions.map(o => (
-               <Link key={o.path} to={o.path} className={styles.mobileNavItem} onClick={() => setMobileMenuOpen(false)}>
-                 <span className="material-symbols-rounded">{o.icon}</span>
-                 {o.label}
-               </Link>
-             ))}
-             <button className={styles.mobileLogoutBtn} onClick={logout}>
-               <span className="material-symbols-rounded">logout</span> Cerrar Sesión
-             </button>
-           </nav>
+            ))}
+            <button className={styles.mobileLogoutBtn} onClick={logout}>
+              <span className="material-symbols-rounded">logout</span> Cerrar Sesión
+            </button>
+          </nav>
         </div>
       )}
 
       {/* CROP MODAL */}
       {image && (
         <div className={styles.cropOverlay}>
-           <div className={styles.cropModal}>
-              <h3>Ajustar Foto de Perfil</h3>
-              <div className={styles.cropContainer}>
-                <Cropper
-                  image={image}
-                  crop={crop}
-                  zoom={zoom}
-                  aspect={1}
-                  cropShape="round"
-                  showGrid={false}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onCropComplete={onCropComplete}
-                />
-              </div>
-              <div className={styles.cropActions}>
-                 <button className={styles.cancelBtn} onClick={() => setImage(null)}>Cancelar</button>
-                 <button className={styles.saveBtn} onClick={handleUpdateProfile} disabled={isUploading}>
-                    {isUploading ? 'Guardando...' : 'Establecer Foto'}
-                 </button>
-              </div>
-           </div>
+          <div className={styles.cropModal}>
+            <h3>Ajustar Foto de Perfil</h3>
+            <div className={styles.cropContainer}>
+              <Cropper
+                image={image}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            </div>
+            <div className={styles.cropActions}>
+              <button className={styles.cancelBtn} onClick={() => setImage(null)}>Cancelar</button>
+              <button className={styles.saveBtn} onClick={handleUpdateProfile} disabled={isUploading}>
+                {isUploading ? 'Guardando...' : 'Establecer Foto'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </nav>
@@ -412,12 +459,12 @@ const playNotificationSound = () => {
     // Tono iOS-Style (Double Ding)
     playNote(1567.98, 0, 0.4); // Sol 6
     playNote(1174.66, 0.12, 0.5); // Re 6
-    
+
     // Vibración (Larga de 1 segundo para prueba definitiva)
     if (navigator.vibrate) {
       navigator.vibrate(1000);
     }
-    
+
     // Auto-close context para liberar recursos
     setTimeout(() => ctx.close(), 1000);
   } catch (err) {
