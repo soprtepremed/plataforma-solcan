@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 import { sendPushNotification } from "../../lib/pushNotifications";
+import { subscribeUserToPush } from "../../lib/pushSubscription";
 import styles from "./MensajeroDashboard.module.css";
 
 const MESSENGERS = [
@@ -15,6 +16,13 @@ const MESSENGERS = [
 
 export default function MensajeroDashboard() {
   const { user } = useAuth();
+
+  // Suscribir a notificaciones push automáticamente
+  useEffect(() => {
+    if (user?.id) {
+       subscribeUserToPush(user.id);
+    }
+  }, [user]);
   const [activeId, setActiveId] = useState(null);
   const [pendientes, setPendientes] = useState([]);
   const [loading, setLoading] = useState(true);

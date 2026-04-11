@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
+import { subscribeUserToPush } from "../../lib/pushSubscription";
 import styles from "./LogisticaAdmin.module.css";
 
 const AREAS_SOLCAN = [
@@ -15,6 +16,14 @@ const AREAS_SOLCAN = [
 
 export default function LogisticaAdmin() {
   const { user } = useAuth();
+
+  // Registro automático de notificaciones Push
+  useEffect(() => {
+    if (user?.id) {
+       subscribeUserToPush(user.id);
+    }
+  }, [user]);
+
   const [activeTab, setActiveTab] = useState("auditoria");
   const [data, setData] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
