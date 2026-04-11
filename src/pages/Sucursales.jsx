@@ -206,7 +206,7 @@ const Sucursales = () => {
         <div className={styles.homeContainer}>
             <DashHeader today={today} userName={user?.sucursal || user?.branch || user?.name.split(' ')[0]} />
 
-            {(user?.role === 'admin' || user?.role === 'almacen' || user?.role === 'quimico') && (
+            {(user?.role === 'admin' || user?.role === 'almacen') && (
                 <section className={styles.inventoryDashboard}>
                     <div className={styles.dashHeader}>
                         <div className={styles.dashTitle}>

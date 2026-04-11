@@ -42,6 +42,15 @@ function PrivateRoute({ children }) {
   return children;
 }
 
+// Guarda para Almacén e Inventario (Solo Almacén y Admin)
+function WarehouseRoute({ children }) {
+  const { user } = useAuth();
+  const r = user?.role?.toLowerCase();
+  const isAllowed = r === 'admin' || r === 'almacen';
+  if (!isAllowed) return <Navigate to="/" replace />;
+  return children;
+}
+
 // Layout con el Navbar (Solo se carga si el usuario entró)
 function DashboardLayout({ children }) {
   return (
@@ -90,12 +99,12 @@ function App() {
         
         {/* Almacén e Inventario (Reestructurado) */}
         <Route path="/almacen" element={<Navigate to="/almacen/inventario" replace />} />
-        <Route path="/almacen/inventario" element={<PrivateRoute><DashboardLayout><InventarioGeneral /></DashboardLayout></PrivateRoute>} />
-        <Route path="/almacen/materiales" element={<PrivateRoute><DashboardLayout><MaterialesCatalogo /></DashboardLayout></PrivateRoute>} />
-        <Route path="/almacen/solicitudes" element={<PrivateRoute><DashboardLayout><SolicitudesSurtido /></DashboardLayout></PrivateRoute>} />
+        <Route path="/almacen/inventario" element={<WarehouseRoute><DashboardLayout><InventarioGeneral /></DashboardLayout></WarehouseRoute>} />
+        <Route path="/almacen/materiales" element={<WarehouseRoute><DashboardLayout><MaterialesCatalogo /></DashboardLayout></WarehouseRoute>} />
+        <Route path="/almacen/solicitudes" element={<WarehouseRoute><DashboardLayout><SolicitudesSurtido /></DashboardLayout></WarehouseRoute>} />
         <Route path="/almacen/nueva-solicitud" element={<PrivateRoute><DashboardLayout><SolicitudMaterial /></DashboardLayout></PrivateRoute>} />
-        <Route path="/almacen/proveedores" element={<PrivateRoute><DashboardLayout><Proveedores /></DashboardLayout></PrivateRoute>} />
-        <Route path="/almacen/recepcion" element={<PrivateRoute><DashboardLayout><RecepcionPedido /></DashboardLayout></PrivateRoute>} />
+        <Route path="/almacen/proveedores" element={<WarehouseRoute><DashboardLayout><Proveedores /></DashboardLayout></WarehouseRoute>} />
+        <Route path="/almacen/recepcion" element={<WarehouseRoute><DashboardLayout><RecepcionPedido /></DashboardLayout></WarehouseRoute>} />
         <Route path="/admin/promociones" element={
           <PrivateRoute>
             {user?.role?.toLowerCase() === 'admin' ? <DashboardLayout><AdminPromociones /></DashboardLayout> : <Navigate to="/" replace />}
