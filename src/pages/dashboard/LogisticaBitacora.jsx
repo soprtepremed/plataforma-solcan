@@ -99,17 +99,33 @@ export default function LogisticaBitacora() {
     // Pero si es Admin o Químico Central (Matriz), puede ver todo
     const isGlobalUser = user?.role?.toLowerCase().includes('admin') || 
                          user?.role?.toLowerCase() === 'quimico';
+    
+    // Nueva lógica: ¿Es Mensajero?
+    const isMessenger = user?.role?.toLowerCase() === 'mensajero';
+    let myMessengerId = null;
+    
+    if (isMessenger) {
+      // Encontramos el ID técnico del mensajero basado en su nombre de usuario
+      const found = Object.entries(MESSENGERS_MAP).find(([id, name]) => 
+        name.toLowerCase() === user?.name?.toLowerCase()
+      );
+      if (found) myMessengerId = found[0];
+    }
 
-    if (!isGlobalUser && user?.branch) {
-      // Intentamos coincidencia parcial si el nombre tiene variaciones (acentos/espacios)
+    if (isMessenger && myMessengerId) {
+      // Si es mensajero, FORZAMOS que solo vea lo suyo
+      query = query.eq("mensajero_id", myMessengerId);
+    } else if (!isGlobalUser && user?.branch) {
+      // Si es sucursal, filtramos por sucursal
       query = query.ilike("sucursal", `%${user.branch}%`);
     }
 
-    if (selectedDriver !== "Todos") {
+    // Filtros manuales (Solo se aplican si no están bloqueados por el rol arriba)
+    if (!isMessenger && selectedDriver !== "Todos") {
       query = query.eq("mensajero_id", selectedDriver);
     }
 
-    if (selectedSucursal !== "Todas") {
+    if (!isMessenger && selectedSucursal !== "Todas") {
       query = query.eq("sucursal", selectedSucursal);
     }
 
@@ -365,33 +381,42 @@ export default function LogisticaBitacora() {
             />
           </div>
 
-          <div className={styles.dateSelector}>
-            <label>FILTRAR SUCURSAL:</label>
-            <select 
-              value={selectedSucursal} 
-              onChange={(e) => setSelectedSucursal(e.target.value)}
-              className={styles.dateInput}
-            >
-              {availableSucursales.map(s => (
-                <option key={s} value={s}>{(SUC_MAP[s] || s).toUpperCase()}</option>
-              ))}
-            </select>
-          </div>
+          {!user?.role?.toLowerCase().includes('mensajero') ? (
+            <>
+              <div className={styles.dateSelector}>
+                <label>FILTRAR SUCURSAL:</label>
+                <select 
+                  value={selectedSucursal} 
+                  onChange={(e) => setSelectedSucursal(e.target.value)}
+                  className={styles.dateInput}
+                >
+                  {availableSucursales.map(s => (
+                    <option key={s} value={s}>{(SUC_MAP[s] || s).toUpperCase()}</option>
+                  ))}
+                </select>
+              </div>
 
-          <div className={styles.dateSelector}>
-            <label>FILTRAR CHOFER:</label>
-            <select 
-              value={selectedDriver} 
-              onChange={(e) => setSelectedDriver(e.target.value)}
-              className={styles.dateInput}
-            >
-              {availableDrivers.map(d => (
-                <option key={d} value={d}>
-                  {d === "Todos" ? "TODOS LOS CHOFERES" : (MESSENGERS_MAP[d] || d).toUpperCase()}
-                </option>
-              ))}
-            </select>
-          </div>
+              <div className={styles.dateSelector}>
+                <label>FILTRAR CHOFER:</label>
+                <select 
+                  value={selectedDriver} 
+                  onChange={(e) => setSelectedDriver(e.target.value)}
+                  className={styles.dateInput}
+                >
+                  {availableDrivers.map(d => (
+                    <option key={d} value={d}>
+                      {d === "Todos" ? "TODOS LOS CHOFERES" : (MESSENGERS_MAP[d] || d).toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          ) : (
+            <div className={styles.dateSelector} style={{background: '#DBEAFE', color: '#1E40AF', borderColor: '#BFDBFE'}}>
+              <span className="material-symbols-rounded" style={{fontSize: '1.2rem'}}>person</span>
+              <label style={{color: '#1E40AF'}}>VISTA PERSONAL: {user.name.toUpperCase()}</label>
+            </div>
+          )}
         </div>
 
         <div className={styles.rightActions}>
@@ -422,9 +447,11 @@ export default function LogisticaBitacora() {
         <div className={styles.transportBar}>
           <div className={styles.transportLabel}>RESPONSABLE DE TRANSPORTE:</div>
           <div className={styles.transportValue}>
-            {selectedDriver === "Todos" 
-              ? "CONTROL GENERAL DE LABORATORIO" 
-              : (MESSENGERS_MAP[selectedDriver] || selectedDriver).toUpperCase()}
+            {user?.role?.toLowerCase() === 'mensajero' 
+              ? user.name.toUpperCase()
+              : selectedDriver === "Todos" 
+                ? "CONTROL GENERAL DE LABORATORIO" 
+                : (MESSENGERS_MAP[selectedDriver] || selectedDriver).toUpperCase()}
           </div>
         </div>
 

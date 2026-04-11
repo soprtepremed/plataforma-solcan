@@ -192,6 +192,7 @@ export default function TopNavbar() {
 
     if (r === 'mensajero') {
       options.push({ label: 'Ruta de Transporte', path: '/logistica/transporte', icon: 'route' });
+      options.push({ label: 'Mi Bitácora', path: '/logistica/bitacora', icon: 'assignment' });
     }
 
     // Rutas de las nuevas Áreas
