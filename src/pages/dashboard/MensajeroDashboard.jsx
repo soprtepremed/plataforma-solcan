@@ -17,12 +17,17 @@ const MESSENGERS = [
 export default function MensajeroDashboard() {
   const { user } = useAuth();
 
-  // Suscribir a notificaciones push automáticamente
-  useEffect(() => {
-    if (user?.id) {
-       subscribeUserToPush(user.id);
-    }
-  }, [user]);
+  // Estado de notificaciones Push
+  const [isSubscribed, setIsSubscribed] = useState(() => {
+    return 'Notification' in window && Notification.permission === 'granted';
+  });
+
+  const handleSubscribe = async () => {
+    if (!user?.id) return;
+    const success = await subscribeUserToPush(user.id);
+    if (success) setIsSubscribed(true);
+  };
+
   const [activeId, setActiveId] = useState(null);
   const [pendientes, setPendientes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -144,6 +149,18 @@ export default function MensajeroDashboard() {
       <button className={styles.backBtn} onClick={() => navigate("/")}>
         <span className="material-symbols-rounded">arrow_back</span> Volver
       </button>
+
+      {/* Banner de Notificaciones Push */}
+      {!isSubscribed && (
+        <div className={styles.pushBanner}>
+          <span className="material-symbols-rounded">notifications_active</span>
+          <div className={styles.pushText}>
+            <strong>Alertas en tiempo real</strong>
+            <p>Activa las notificaciones para avisarte cuando tengas material listo para recolectar.</p>
+          </div>
+          <button onClick={handleSubscribe} className={styles.pushBtn}>Activar</button>
+        </div>
+      )}
 
       {!isAutoMessenger && (
         <div className={styles.selectorCard}>

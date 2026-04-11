@@ -58,11 +58,14 @@ export async function subscribeUserToPush(userId) {
 
     if (error) {
       console.error('Error al guardar suscripción en Supabase:', error);
+      return false;
     } else {
       console.log('Dispositivo registrado en la nube de Solcan.');
+      return true;
     }
 
   } catch (error) {
     console.error('Error durante el registro de Push:', error);
+    return false;
   }
 }

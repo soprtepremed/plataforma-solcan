@@ -4,6 +4,69 @@
   margin: 0 auto;
 }
 
+.pushBanner {
+  background: linear-gradient(135deg, #0BCEDD 0%, #0099AE 100%);
+  border-radius: 20px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  color: white;
+  box-shadow: 0 10px 25px rgba(11, 206, 205, 0.25);
+  animation: fadeInDown 0.5s ease-out;
+}
+
+.pushBanner span {
+  font-size: 2.2rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 10px;
+  border-radius: 14px;
+}
+
+.pushText {
+  flex: 1;
+}
+
+.pushText strong {
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 2px;
+}
+
+.pushText p {
+  font-size: 0.85rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.pushBtn {
+  background: white;
+  color: var(--co-primary);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.pushBtn:hover {
+  transform: scale(1.05);
+  background: #f8fafc;
+}
+
+.pushBtn:active {
+  transform: scale(0.95);
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .selectorCard {
   background: white;
   border-radius: 28px;
