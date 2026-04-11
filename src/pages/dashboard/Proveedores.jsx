@@ -135,7 +135,7 @@ export default function Proveedores() {
                             <tr>
                                 <th>Nombre</th>
                                 <th>Contacto Principal</th>
-                                <th>WhatsApp</th>
+                                <th>Contacto Directo</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -156,14 +156,19 @@ export default function Proveedores() {
                                             {p.estatus === 'Inactivo' && <span style={{marginLeft:'8px', color: 'red', fontSize:'12px'}}>(Inactivo)</span>}
                                         </td>
                                         <td>{p.contacto_nombre || '---'}</td>
-                                        <td>
+                                        <td style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
                                             {p.whatsapp ? (
-                                                <a href={`https://wa.me/${p.whatsapp.replace(/\D/g,'')}`} target="_blank" rel="noreferrer" className={styles.contactBadge} onClick={e => e.stopPropagation()}>
-                                                    <span className="material-symbols-rounded" style={{fontSize: '16px'}}>chat</span> Chat
+                                                <a href={`https://wa.me/${p.whatsapp.replace(/\D/g,'')}`} target="_blank" rel="noreferrer" className={styles.contactBadge} onClick={e => e.stopPropagation()} title="Enviar WhatsApp">
+                                                    <span className="material-symbols-rounded" style={{fontSize: '16px'}}>chat</span> WA
                                                 </a>
                                             ) : (
                                                 <span className={`${styles.contactBadge} ${styles.empty}`}>Sin Wa</span>
                                             )}
+                                            {p.telefono ? (
+                                                <a href={`tel:${p.telefono.replace(/\D/g,'')}`} className={styles.contactBadge} style={{background: '#e0f2fe', color: '#0284c7'}} onClick={e => e.stopPropagation()} title="Llamar">
+                                                    <span className="material-symbols-rounded" style={{fontSize: '16px'}}>call</span> Llamar
+                                                </a>
+                                            ) : null}
                                         </td>
                                         <td>
                                             <button className={styles.actionBtn} onClick={(e) => openEdit(p, e)} title="Editar"><span className="material-symbols-rounded">edit</span></button>
