@@ -303,6 +303,10 @@ export default function MensajeroDashboard() {
            </div>
         </div>
       )}
+      {/* Pie de página con versión para diagnóstico */}
+      <div style={{ marginTop: '2rem', textAlign: 'center', opacity: 0.5, fontSize: '0.7rem', color: '#64748B' }}>
+        v2.5 - NOTIF | {user?.name}
+      </div>
     </div>
   );
 }
