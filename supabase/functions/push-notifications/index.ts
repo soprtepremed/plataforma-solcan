@@ -17,15 +17,11 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // 🚀 MODO CIEGO: Seleccionamos TODOS los dispositivos registrados en Solcan
-    console.log("📡 Empezando Broadcast a todos los choferes...");
-    let subscriptionsQuery = supabase.from('push_subscriptions').select('subscription, user_id');
-
-    // Ignoramos filtros de rol o user_id para asegurar entrega total (Modo Ciego)
-
-
-
-    const { data: subs, error: subError } = await subscriptionsQuery;
+    // 🚀 Seleccionamos dispositivos Web y Mobile
+    console.log("📡 Buscando suscripciones activas...");
+    const { data: subs, error: subError } = await supabase
+      .from('push_subscriptions')
+      .select('subscription, token, user_id, platform');
     
     if (subError) throw subError;
 
@@ -33,49 +29,67 @@ serve(async (req) => {
       return new Response(JSON.stringify({ message: "No subscriptions registered" }), { status: 200 });
     }
 
-    console.log(`📤 Enviando push a ${subs.length} dispositivos...`);
-
-    const pushPayload = JSON.stringify({
-      title: record.title,
-      message: record.message,
-      url: record.metadata?.url || '/'
-    });
-
     const results = await Promise.all(subs.map(async (s) => {
-      let logEntry = {
-        message: `📲 Intentando enviar a dispositivo...`,
-        details: { user_id: s.user_id, subscription: s.subscription }
-      };
-
-      try {
-        const response = await webpush.sendNotification(s.subscription, pushPayload);
-        logEntry.message = `✅ ÉXITO Google/FCM aceptó el envío.`;
-        logEntry.details = { ...logEntry.details, status: response.statusCode };
-        await supabase.from('push_logs').insert([logEntry]);
-        return { ok: true };
-      } catch (err: any) {
-        logEntry.message = `❌ FALLO DE GOOGLE/FCM: ${err.message}`;
-        logEntry.details = { ...logEntry.details, error: err.body || err.message, status: err.statusCode };
-        await supabase.from('push_logs').insert([logEntry]);
-        
-        if (err.statusCode === 410 || err.statusCode === 404) {
-           await supabase.from('push_subscriptions').delete().eq('subscription', s.subscription);
+      // --- CASO 1: EXPO PUSH TOKEN (MOBILE NATIVO) ---
+      if (s.token && s.token.startsWith('ExponentPushToken')) {
+        try {
+          const response = await fetch('https://exp.host/--/api/v2/push/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: s.token,
+              title: record.title,
+              body: record.message,
+              data: record.metadata || {},
+              sound: 'default'
+            }),
+          });
+          const resData = await response.json();
+          await supabase.from('push_logs').insert([{
+            message: `✅ EXPO: Envio procesado`,
+            details: { user_id: s.user_id, status: response.status, expo_response: resData }
+          }]);
+          return { ok: true, platform: 'expo' };
+        } catch (err: any) {
+          console.error('Error Expo Push:', err.message);
+          return { ok: false, error: err.message };
         }
-        return { ok: false, error: err.message };
       }
+
+      // --- CASO 2: WEB PUSH (VAPID) ---
+      if (s.subscription) {
+        try {
+          const pushPayload = JSON.stringify({
+            title: record.title,
+            message: record.message,
+            url: record.metadata?.url || '/'
+          });
+          await webpush.sendNotification(s.subscription, pushPayload);
+          await supabase.from('push_logs').insert([{
+            message: `✅ WEB: Éxito en envío`,
+            details: { user_id: s.user_id }
+          }]);
+          return { ok: true, platform: 'web' };
+        } catch (err: any) {
+          if (err.statusCode === 410 || err.statusCode === 404) {
+             await supabase.from('push_subscriptions').delete().eq('subscription', s.subscription);
+          }
+          return { ok: false, error: err.message };
+        }
+      }
+
+      return { ok: false, error: 'No valid subscription or token' };
     }));
 
-    return new Response(JSON.stringify({ ok: true, sent: subs.length, results }), {
+    return new Response(JSON.stringify({ ok: true, processed: subs.length, results }), {
       headers: { "Content-Type": "application/json" },
     });
 
   } catch (error: any) {
     console.error("❌ Error en Push Function:", error.message);
-    await supabase.from('push_logs').insert([{ message: '🚨 ERROR FATAL FUNCIÓN', details: { error: error.message } }]);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
   }
 })
-

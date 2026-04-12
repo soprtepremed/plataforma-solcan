@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "591570766642",
+    "project_id": "notificaciones-solcan",
+    "storage_bucket": "notificaciones-solcan.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:591570766642:android:2fcc9bd0c3be24b946a52b",
+        "android_client_info": {
+          "package_name": "com.solcan.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBnyy1s_dHO_qWjO0hcMEln1bbmilB782s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
