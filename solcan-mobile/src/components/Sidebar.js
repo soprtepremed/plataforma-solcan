@@ -118,7 +118,7 @@ export default function Sidebar({ isOpen, onClose, onNavigate, user, logout }) {
               </TouchableOpacity>
               <View>
                 <Text style={styles.userName}>{user?.name}</Text>
-                <Text style={styles.userRole}>Chofer Logística</Text>
+                <Text style={styles.userRole}>Recolector Logística</Text>
               </View>
             </View>
             <TouchableOpacity onPress={onClose}>
