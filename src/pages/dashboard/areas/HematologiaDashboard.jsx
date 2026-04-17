@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "../../../lib/supabaseClient";
-import styles from "../../Sucursales.module.css";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../../lib/supabaseClient';
 
-export default function HematologiaDashboard() {
+const HematologiaDashboard = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     total: 0,
-    criticos: 0,
-    caducos: 0,
+    critico: 0,
+    caducidad: 0,
     enUso: 0
   });
   const [loading, setLoading] = useState(true);
@@ -19,86 +18,115 @@ export default function HematologiaDashboard() {
 
   const fetchStats = async () => {
     try {
-      setLoading(true);
-      // Ajustar filtros según el área
+      // Conectado a la tabla maestra de áreas
       const { data, error } = await supabase
-        .from('inventario_laboratorio')
+        .from('inventario_areas')
         .select('*')
-        .eq('area', 'HEMATOLOGÍA');
-
-      if (error) throw error;
+        .eq('area_id', 'hematologia');
 
       if (data) {
         const now = new Date();
-        const threeMonthsFromNow = new Date();
-        threeMonthsFromNow.setMonth(now.getMonth() + 3);
+        const nextMonth = new Date();
+        nextMonth.setDate(now.getDate() + 30);
 
         setStats({
           total: data.length,
-          criticos: data.filter(i => (i.stock || 0) <= (i.minimo || 5)).length,
-          caducos: data.filter(i => i.caducidad && new Date(i.caducidad) <= threeMonthsFromNow).length,
-          enUso: data.filter(i => i.estatus === 'EN USO').length
+          critico: data.filter(i => i.stock_actual < 5 && i.stock_actual > 0).length,
+          caducidad: data.filter(i => i.caducidad && new Date(i.caducidad) <= nextMonth).length,
+          enUso: data.filter(i => i.fecha_inicio_uso && !i.fecha_termino_uso).length
         });
       }
-    } catch (err) {
-      console.error("Error fetching stats:", err);
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
   };
 
-  const cards = [
-    { title: 'Total Materiales', value: stats.total, icon: 'inventory_2', color: '#0BCECD', path: '/area/hematologia/inventario' },
-    { title: 'Stock Crítico', value: stats.criticos, icon: 'warning', color: '#F59E0B', path: '/area/hematologia/inventario?filter=critico' },
-    { title: 'Próximos a Caducar', value: stats.caducos, icon: 'event_busy', color: '#EF4444', path: '/area/hematologia/inventario?filter=caducidad' },
-    { title: 'En Uso / Abiertos', value: stats.enUso, icon: 'science', color: '#7C3AED', path: '/area/hematologia/inventario?filter=en_uso' }
+  const sections = [
+    {
+      title: 'Inventario y Calidad',
+      desc: 'Control de reactivos, lotes y bitácora de aceptación técnica.',
+      icon: 'fact_check',
+      path: '/area/hematologia/inventario',
+      color: '#DC2626'
+    },
+    {
+      title: 'Bitácora FO-DO-017',
+      desc: 'Seguimiento de muestras recibidas por bio-logística.',
+      icon: 'assignment_turned_in',
+      path: '/logistica/bitacora',
+      color: '#3B82F6'
+    }
   ];
 
   return (
-    <div className={styles.container}>
-      <header className={styles.dashHeader}>
-        <div>
-          <h1 className={styles.dashTitle}>Dashboard Hematología</h1>
-          <p className={styles.dashSubtitle}>Gestión y control de inventario especializado</p>
-        </div>
-        <button className={styles.refreshBtn} onClick={fetchStats} disabled={loading}>
-          <span className="material-symbols-rounded">{loading ? 'sync' : 'refresh'}</span>
-        </button>
+    <div style={{ padding: '2rem', background: '#F8FAFC', minHeight: 'calc(100vh - 102px)' }}>
+      <header style={{ marginBottom: '2.5rem' }}>
+        <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <span className="material-symbols-rounded" style={{ fontSize: '3.5rem', color: '#DC2626' }}>bloodtype</span>
+          Dashboard de Hematología
+        </h2>
+        <p style={{ color: '#64748B', fontSize: '1.1rem' }}>Suministros y Control Operativo del Área Técnica.</p>
       </header>
 
-      <div className={styles.statsGrid}>
-        {cards.map((card, i) => (
-          <div key={i} className={styles.statCard} onClick={() => navigate(card.path)}>
-            <div className={styles.cardHeader}>
-              <div className={styles.iconBox} style={{ backgroundColor: `${card.color}15`, color: card.color }}>
-                <span className="material-symbols-rounded">{card.icon}</span>
-              </div>
-            </div>
-            <div className={styles.cardBody}>
-              <h3 className={styles.cardValue}>{card.value}</h3>
-              <p className={styles.cardLabel}>{card.title}</p>
-            </div>
-            <div className={styles.cardFooter}>
-              <span className={styles.trendText}>Ver Detalles</span>
-              <span className="material-symbols-rounded">chevron_right</span>
-            </div>
+      {/* MÉTRICAS EN TIEMPO REAL */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '3rem' }}>
+        <div style={{ background: 'white', padding: '1.5rem', borderRadius: '20px', borderLeft: '6px solid #3B82F6', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+          <p style={{ color: '#64748B', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase' }}>Inventario Total</p>
+          <h3 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#1E293B' }}>{loading ? '...' : stats.total}</h3>
+          <p style={{ fontSize: '0.75rem', color: '#3B82F6' }}>Reactivos Registrados</p>
+        </div>
+        <div style={{ background: 'white', padding: '1.5rem', borderRadius: '20px', borderLeft: '6px solid #EF4444', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+          <p style={{ color: '#64748B', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase' }}>Stock Crítico</p>
+          <h3 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#EF4444' }}>{loading ? '...' : stats.critico}</h3>
+          <p style={{ fontSize: '0.75rem', color: '#EF4444' }}>Menos de 5 unidades</p>
+        </div>
+        <div style={{ background: 'white', padding: '1.5rem', borderRadius: '20px', borderLeft: '6px solid #F59E0B', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+          <p style={{ color: '#64748B', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase' }}>Próximos a Caducar</p>
+          <h3 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#F59E0B' }}>{loading ? '...' : stats.caducidad}</h3>
+          <p style={{ fontSize: '0.75rem', color: '#F59E0B' }}>Siguiente 30 días</p>
+        </div>
+        <div style={{ background: 'white', padding: '1.5rem', borderRadius: '20px', borderLeft: '6px solid #10B981', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+          <p style={{ color: '#64748B', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase' }}>En Uso (Abierto)</p>
+          <h3 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#10B981' }}>{loading ? '...' : stats.enUso}</h3>
+          <p style={{ fontSize: '0.75rem', color: '#10B981' }}>Reactivos en Proceso</p>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
+        {sections.map(s => (
+          <div 
+            key={s.path}
+            onClick={() => navigate(s.path)}
+            style={{
+              background: 'white',
+              padding: '2rem',
+              borderRadius: '24px',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              cursor: 'pointer',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              border: '1px solid #E2E8F0'
+            }}
+            onMouseOver={e => {
+              e.currentTarget.style.transform = 'translateY(-5px)';
+              e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1)';
+            }}
+            onMouseOut={e => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+            }}
+          >
+            <span className="material-symbols-rounded" style={{ fontSize: '3rem', color: s.color, marginBottom: '1rem' }}>
+              {s.icon}
+            </span>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '0.5rem', color: '#1E293B' }}>{s.title}</h3>
+            <p style={{ color: '#64748B', lineHeight: '1.5' }}>{s.desc}</p>
           </div>
         ))}
       </div>
-
-      <section className={styles.actionSection} style={{ marginTop: '2rem' }}>
-        <h2 className={styles.sectionTitle}>Acciones Rápidas</h2>
-        <div className={styles.quickActions}>
-          <button className={styles.actionBtn} onClick={() => navigate('/area/hematologia/inventario')}>
-            <span className="material-symbols-rounded">list_alt</span>
-            Gestionar Inventario
-          </button>
-          <button className={styles.actionBtn} onClick={() => navigate('/almacen/nueva-solicitud')}>
-            <span className="material-symbols-rounded">shopping_cart</span>
-            Solicitar Material
-          </button>
-        </div>
-      </section>
     </div>
   );
-}
+};
+
+export default HematologiaDashboard;

@@ -22,6 +22,8 @@ export default function TopNavbar() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [swipedNotifId, setSwipedNotifId] = useState(null);
+  const swipeStartX = useRef(0);
+  const autoResetTimer = useRef(null);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -61,6 +63,11 @@ export default function TopNavbar() {
     await supabase.from('notificaciones').update({ read: true }).or(`role.eq.${user.role},user_id.eq.${user.id}`).eq('read', false);
   };
 
+  const deleteNotification = async (id) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    await supabase.from('notificaciones').delete().eq('id', id);
+  };
+
   const getAreaName = () => {
     if (!user?.role) return '';
     const r = user.role.toLowerCase();
@@ -94,7 +101,12 @@ export default function TopNavbar() {
       await supabase.from('empleados').update({ foto_url: publicUrl }).eq('id', user.id);
       updateUser({ foto_url: publicUrl });
       setImage(null);
-    } catch (e) { console.error(e); } finally { setIsUploading(false); }
+    } catch (e) { 
+      console.error(e); 
+      alert('Error actualizando perfil');
+    } finally { 
+      setIsUploading(false); 
+    }
   };
 
   const getMenuOptions = () => {
@@ -102,21 +114,49 @@ export default function TopNavbar() {
     const r = user.role?.toLowerCase();
     const options = [{ label: 'Inicio', path: '/', icon: 'home' }];
 
+    // Captura y Resultados
     if (r === 'admin' || r === 'captura' || r.includes('técnico') || r.includes('tecnico')) {
       options.push({ label: 'Captura Resultados', path: '/captura', icon: 'add_task' });
       options.push({ label: 'Resultados Listos', path: '/resultados', icon: 'verified_user' });
     }
 
+    // Químico Central (Matriz)
     if (r === 'admin' || r === 'quimico' || r === 'químico') {
       options.push({ label: 'Recepción Matriz', path: '/logistica/recepcion', icon: 'lab_research' });
       options.push({ label: 'Bitácora FO-DO-017', path: '/logistica/bitacora', icon: 'assignment' });
       options.push({ label: 'Solicitud Insumos', path: '/almacen/nueva-solicitud', icon: 'shopping_cart' });
     }
 
-    if (r === 'mensajero') {
-      options.push({ label: 'Ruta Transporte', path: '/logistica/transporte', icon: 'route' });
+    if (r === 'admin' || r === 'recepcion' || r === 'recepción') {
+      options.push({ label: 'Mi Bitácora', path: '/logistica/bitacora', icon: 'assignment' });
+      options.push({ label: 'Estado Sede', path: '/logistica/sede', icon: 'store' });
     }
 
+    // Almacén
+    if (r === 'admin' || r === 'almacen') {
+      options.push({ 
+        label: 'Almacén', path: '/almacen', icon: 'inventory_2',
+        children: [
+          { label: 'Inventario General', path: '/almacen/inventario', icon: 'grid_view' },
+          { label: 'Materiales', path: '/almacen/materiales', icon: 'category' },
+          { label: 'Solicitudes Material', path: '/almacen/solicitudes', icon: 'assignment_turned_in' }
+        ]
+      });
+      options.push({
+        label: 'Proveedores', path: '/almacen/proveedores', icon: 'local_shipping',
+        children: [
+          { label: 'Directorio', path: '/almacen/proveedores', icon: 'contact_page' },
+          { label: 'Recepción Pedidos', path: '/almacen/recepcion', icon: 'inventory' }
+        ]
+      });
+    }
+
+    if (r === 'mensajero') {
+      options.push({ label: 'Ruta Transporte', path: '/logistica/transporte', icon: 'route' });
+      options.push({ label: 'Mi Bitácora', path: '/logistica/bitacora', icon: 'assignment' });
+    }
+
+    // Configuración detallada de Áreas Técnicas
     const areasConfig = {
       'hematologia': { 
         label: 'Hematología', path: '/area/hematologia', icon: 'bloodtype',
@@ -124,11 +164,30 @@ export default function TopNavbar() {
           { label: 'Dashboard Área', path: '/area/hematologia', icon: 'dashboard_customize' },
           { label: 'Inventario y Calidad', path: '/area/hematologia/inventario', icon: 'inventory_2' }
         ]
-      }
+      },
+      'microbiologia': { label: 'Microbiología', path: '/area/microbiologia', icon: 'biotech' },
+      'urianalisis': { label: 'Urianálisis', path: '/area/urianalisis', icon: 'science' },
+      'quimica_clinica': { label: 'Química Clínica', path: '/area/quimica-clinica', icon: 'chemistry' },
     };
 
     if (areasConfig[r]) options.push(areasConfig[r]);
+    
+    // Acceso administrativo a Áreas
+    if (r === 'admin') {
+      options.push({ 
+        label: 'App de Áreas', 
+        path: '/area/hematologia', 
+        icon: 'apps', 
+        children: Object.values(areasConfig) 
+      });
+    }
+
     return options;
+  };
+
+  const handleSwipeEnd = (e, id) => { 
+    setSwipedNotifId(id); 
+    setTimeout(() => setSwipedNotifId(null), 3000); 
   };
 
   const menuOptions = getMenuOptions();
@@ -139,8 +198,10 @@ export default function TopNavbar() {
       <div className={styles.navMain}>
         <div className={styles.navLeft}>
           <div className={styles.brand} onClick={() => navigate('/')}>
-            <div className={styles.logoCircle}><img src="/favicon.png" alt="S" /></div>
-            <span className={styles.brandName}>Solcan</span>
+            <div className={styles.logoCircle}>
+              <img src="/favicon.png" alt="Solcan" onError={(e) => e.target.style.display='none'} />
+            </div>
+            <span className={styles.brandName}>SOLCAN</span>
           </div>
           <button className={styles.iconBtn} onClick={() => { setShowNotifMenu(!showNotifMenu); markAllAsRead(); }}>
             <span className="material-symbols-rounded">notifications</span>
@@ -149,17 +210,26 @@ export default function TopNavbar() {
         </div>
 
         <div className={styles.navCenterPC}>
-          {user?.role?.toLowerCase() !== 'admin' && menuOptions.map(o => (
+          {user?.role?.toLowerCase().includes('admin') ? null : menuOptions.map(o => (
             o.children ? (
               <div key={o.label} className={styles.dropdownParent}>
                 <button className={`${styles.navItemPC} ${o.children.some(c => location.pathname === c.path) ? styles.activePC : ''}`}>
                   {o.label} <span className="material-symbols-rounded">expand_more</span>
                 </button>
                 <div className={styles.submenu}>
-                  {o.children.map(c => <Link key={c.path} to={c.path} className={styles.submenuItem}>{c.label}</Link>)}
+                  {o.children.map(c => (
+                    <Link key={c.path} to={c.path} className={`${styles.submenuItem} ${location.pathname === c.path ? styles.activeSub : ''}`}>
+                      <span className="material-symbols-rounded">{c.icon || 'arrow_right'}</span>
+                      {c.label}
+                    </Link>
+                  ))}
                 </div>
               </div>
-            ) : <Link key={o.path} to={o.path} className={`${styles.navItemPC} ${location.pathname === o.path ? styles.activePC : ''}`}>{o.label}</Link>
+            ) : (
+              <Link key={o.path} to={o.path} className={`${styles.navItemPC} ${location.pathname === o.path ? styles.activePC : ''}`}>
+                {o.label}
+              </Link>
+            )
           ))}
         </div>
 
@@ -175,30 +245,71 @@ export default function TopNavbar() {
             {showProfileMenu && (
               <div className={styles.profileDropdown}>
                 <div className={styles.profileHeader}>
-                  <div className={styles.profileAvatarLarge}>{user?.foto_url ? <img src={user.foto_url} alt="U" /> : <span>{finalDisplayName.charAt(0)}</span>}</div>
-                  <div className={styles.profileHeaderText}><h4>{finalDisplayName}</h4><span className={styles.roleTag}>{user.role}</span></div>
+                  <div className={styles.profileAvatarLarge}>
+                    {user?.foto_url ? <img src={user.foto_url} alt="U" /> : <span>{finalDisplayName.charAt(0)}</span>}
+                  </div>
+                  <div className={styles.profileHeaderText}>
+                    <h4>{finalDisplayName}</h4>
+                    <span className={styles.roleTag}>{user.role || 'Laboratorio'}</span>
+                  </div>
                 </div>
                 <div className={styles.profileActions}>
-                  <button className={styles.profileOption} onClick={() => fileInputRef.current.click()}><span className="material-symbols-rounded">add_a_photo</span> Cambiar Foto</button>
+                  <button className={styles.profileOption} onClick={() => fileInputRef.current.click()}>
+                    <span className="material-symbols-rounded">add_a_photo</span>
+                    Cambiar Foto
+                  </button>
                   <div className={styles.profileDivider}></div>
-                  <button className={`${styles.profileOption} ${styles.logoutOption}`} onClick={logout}><span className="material-symbols-rounded">logout</span> Cerrar Sesión</button>
+                  <button className={`${styles.profileOption} ${styles.logoutOption}`} onClick={logout}>
+                    <span className="material-symbols-rounded">logout</span>
+                    Cerrar Sesión
+                  </button>
                 </div>
                 <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={(e) => { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=()=>setImage(r.result); r.readAsDataURL(f); }}} />
               </div>
             )}
           </div>
-          <button className={styles.pcLogoutBtn} onClick={logout} title="Cerrar Sesión"><span className="material-symbols-rounded">logout</span></button>
-          <button className={styles.mobileOnly} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}><span className="material-symbols-rounded">{mobileMenuOpen ? 'close' : 'menu'}</span></button>
+          <button className={styles.pcLogoutBtn} onClick={logout} title="Cerrar Sesión">
+            <span className="material-symbols-rounded">logout</span>
+          </button>
+          <button className={styles.mobileOnly} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            <span className="material-symbols-rounded">{mobileMenuOpen ? 'close' : 'menu'}</span>
+          </button>
         </div>
       </div>
+
+      {showNotifMenu && (
+        <div className={styles.notifDropdown}>
+          <div className={styles.notifHeader}><h4>Notificaciones</h4></div>
+          <div className={styles.notifList}>
+            {notifications.map(n => (
+              <div key={n.id} className={`${styles.notifItem} ${swipedNotifId === n.id ? styles.isSwiped : ''}`}>
+                <div className={styles.notifDot}></div>
+                <div><h4>{n.title}</h4><p>{n.message}</p></div>
+              </div>
+            ))}
+            {notifications.length === 0 && <p className={styles.emptyNotif}>Sin avisos para hoy</p>}
+          </div>
+        </div>
+      )}
+
       {mobileMenuOpen && (
         <div className={styles.mobileOverlay}>
+          <div className={styles.mobileProfileHeader}>
+            <div className={styles.mobileAvatarLarge}>{user?.foto_url ? <img src={user.foto_url} alt="U" /> : <span>{finalDisplayName.charAt(0)}</span>}</div>
+            <h3>{finalDisplayName}</h3>
+            <p>{user.sucursal || user.branch}</p>
+          </div>
           <nav className={styles.mobileNav}>
-            {menuOptions.map(o => <Link key={o.label} to={o.path || '#'} className={styles.mobileNavItem} onClick={() => setMobileMenuOpen(false)}>{o.label}</Link>)}
+            {menuOptions.map(o => (
+              <Link key={o.label || o.path} to={o.path || '#'} className={styles.mobileNavItem} onClick={() => setMobileMenuOpen(false)}>
+                <span className="material-symbols-rounded">{o.icon}</span> {o.label}
+              </Link>
+            ))}
             <button className={styles.mobileLogoutBtn} onClick={logout}>Cerrar Sesión</button>
           </nav>
         </div>
       )}
+
       {image && (
         <div className={styles.cropOverlay}>
           <div className={styles.cropModal}>

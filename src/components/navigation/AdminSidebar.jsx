@@ -8,7 +8,7 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
   const location = useLocation();
   const [openMenus, setOpenMenus] = React.useState({});
 
-  if (user?.role?.toLowerCase() !== 'admin') return null;
+  if (!user?.role?.toLowerCase().includes('admin')) return null;
 
   const toggleMenu = (key) => {
     setOpenMenus(prev => ({ ...prev, [key]: !prev[key] }));

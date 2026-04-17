@@ -20,6 +20,7 @@ import RecepcionPedido from './pages/dashboard/RecepcionPedido';
 import AdminPromociones from './pages/dashboard/AdminPromociones';
 import Sucursales from './pages/Sucursales';
 import InventarioArea from './pages/dashboard/InventarioArea';
+import InventarioHemato from './pages/dashboard/InventarioHemato';
 
 // Áreas Modulares
 import HematologiaDashboard from './pages/dashboard/areas/HematologiaDashboard';
@@ -68,7 +69,7 @@ function AreaRoute({ children, requiredRole }) {
 // Layout con el Navbar (Solo se carga si el usuario entró)
 function DashboardLayout({ children }) {
   const { user } = useAuth();
-  const isAdmin = user?.role?.toLowerCase() === 'admin';
+  const isAdmin = user?.role?.toLowerCase().includes('admin');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
@@ -115,7 +116,7 @@ function App() {
         <Route path="/" element={
            <PrivateRoute>
              <DashboardLayout>
-                <Sucursales />
+               <Sucursales />
              </DashboardLayout>
            </PrivateRoute>
          } />
@@ -146,12 +147,13 @@ function App() {
         <Route path="/almacen/recepcion" element={<WarehouseRoute><DashboardLayout><RecepcionPedido /></DashboardLayout></WarehouseRoute>} />
         <Route path="/admin/promociones" element={
           <PrivateRoute>
-            {user?.role?.toLowerCase() === 'admin' ? <DashboardLayout><AdminPromociones /></DashboardLayout> : <Navigate to="/" replace />}
+            {user?.role?.toLowerCase().includes('admin') ? <DashboardLayout><AdminPromociones /></DashboardLayout> : <Navigate to="/" replace />}
           </PrivateRoute>
         } />
 
         {/* Áreas Modulares */}
         <Route path="/area/hematologia" element={<AreaRoute requiredRole="hematologia"><DashboardLayout><HematologiaDashboard /></DashboardLayout></AreaRoute>} />
+        <Route path="/area/hematologia/inventario" element={<AreaRoute requiredRole="hematologia"><DashboardLayout><InventarioHemato /></DashboardLayout></AreaRoute>} />
         
         {/* Inventario Universal por Área */}
         <Route path="/area/:areaId/inventario" element={<DashboardLayout><InventarioArea /></DashboardLayout>} />
