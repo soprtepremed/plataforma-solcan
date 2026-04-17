@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import TopNavbar from './components/navigation/TopNavbar';
 import Login from './pages/auth/Login';
@@ -18,6 +19,7 @@ import Proveedores from './pages/dashboard/Proveedores';
 import RecepcionPedido from './pages/dashboard/RecepcionPedido';
 import AdminPromociones from './pages/dashboard/AdminPromociones';
 import Sucursales from './pages/Sucursales';
+import InventarioArea from './pages/dashboard/InventarioArea';
 
 // Áreas Modulares
 import HematologiaDashboard from './pages/dashboard/areas/HematologiaDashboard';
@@ -29,6 +31,7 @@ import DireccionOperativaDashboard from './pages/dashboard/areas/DireccionOperat
 import RRHHDashboard from './pages/dashboard/areas/RRHHDashboard';
 import ContabilidadDashboard from './pages/dashboard/areas/ContabilidadDashboard';
 import QuimicaClinicaDashboard from './pages/dashboard/areas/QuimicaClinicaDashboard';
+import AdminSidebar from './components/navigation/AdminSidebar';
 
 import { useAuth } from './context/AuthContext';
 import './App.css';
@@ -51,15 +54,51 @@ function WarehouseRoute({ children }) {
   return children;
 }
 
+// Guarda Genérica para Áreas Técnicas
+function AreaRoute({ children, requiredRole }) {
+  const { user } = useAuth();
+  const r = user?.role?.toLowerCase();
+  // El admin tiene acceso total, los demás solo a su requiredRole
+  const isAllowed = r === 'admin' || r === requiredRole.toLowerCase();
+  
+  if (!isAllowed) return <Navigate to="/" replace />;
+  return children;
+}
+
 // Layout con el Navbar (Solo se carga si el usuario entró)
 function DashboardLayout({ children }) {
+  const { user } = useAuth();
+  const isAdmin = user?.role?.toLowerCase() === 'admin';
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#F8FAFC' }}>
       <TopNavbar />
-      <main className="main-content" style={{ paddingTop: '102px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        {children}
-      </main>
-    </>
+      <div style={{ display: 'flex', flex: 1 }}>
+        {isAdmin && (
+          <AdminSidebar 
+            collapsed={sidebarCollapsed} 
+            setCollapsed={setSidebarCollapsed} 
+          />
+        )}
+        <main 
+          className="main-content" 
+          style={{ 
+            paddingTop: '32px', 
+            marginTop: '72px',
+            minHeight: 'calc(100vh - 72px)', 
+            flex: 1,
+            display: 'flex', 
+            flexDirection: 'column',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            marginLeft: isAdmin ? (sidebarCollapsed ? '72px' : '260px') : '0',
+            maxWidth: isAdmin ? (sidebarCollapsed ? 'calc(100vw - 72px)' : 'calc(100vw - 260px)') : '100vw'
+          }}
+        >
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }
 
@@ -76,7 +115,7 @@ function App() {
         <Route path="/" element={
            <PrivateRoute>
              <DashboardLayout>
-               <Sucursales />
+                <Sucursales />
              </DashboardLayout>
            </PrivateRoute>
          } />
@@ -112,15 +151,19 @@ function App() {
         } />
 
         {/* Áreas Modulares */}
-        <Route path="/area/hematologia" element={<PrivateRoute><DashboardLayout><HematologiaDashboard /></DashboardLayout></PrivateRoute>} />
-        <Route path="/area/urianalisis" element={<PrivateRoute><DashboardLayout><UrianalisisDashboard /></DashboardLayout></PrivateRoute>} />
-        <Route path="/area/microbiologia" element={<PrivateRoute><DashboardLayout><MicrobiologiaDashboard /></DashboardLayout></PrivateRoute>} />
-        <Route path="/area/toma-muestra" element={<PrivateRoute><DashboardLayout><TomaMuestraDashboard /></DashboardLayout></PrivateRoute>} />
-        <Route path="/area/recepcion" element={<PrivateRoute><DashboardLayout><RecepcionDashboard /></DashboardLayout></PrivateRoute>} />
-        <Route path="/area/direccion-operativa" element={<PrivateRoute><DashboardLayout><DireccionOperativaDashboard /></DashboardLayout></PrivateRoute>} />
-        <Route path="/area/recursos-humanos" element={<PrivateRoute><DashboardLayout><RRHHDashboard /></DashboardLayout></PrivateRoute>} />
-        <Route path="/area/contabilidad" element={<PrivateRoute><DashboardLayout><ContabilidadDashboard /></DashboardLayout></PrivateRoute>} />
-        <Route path="/area/quimica-clinica" element={<PrivateRoute><DashboardLayout><QuimicaClinicaDashboard /></DashboardLayout></PrivateRoute>} />
+        <Route path="/area/hematologia" element={<AreaRoute requiredRole="hematologia"><DashboardLayout><HematologiaDashboard /></DashboardLayout></AreaRoute>} />
+        
+        {/* Inventario Universal por Área */}
+        <Route path="/area/:areaId/inventario" element={<DashboardLayout><InventarioArea /></DashboardLayout>} />
+
+        <Route path="/area/urianalisis" element={<AreaRoute requiredRole="urianalisis"><DashboardLayout><UrianalisisDashboard /></DashboardLayout></AreaRoute>} />
+        <Route path="/area/microbiologia" element={<AreaRoute requiredRole="microbiologia"><DashboardLayout><MicrobiologiaDashboard /></DashboardLayout></AreaRoute>} />
+        <Route path="/area/toma-muestra" element={<AreaRoute requiredRole="toma_de_muestra"><DashboardLayout><TomaMuestraDashboard /></DashboardLayout></AreaRoute>} />
+        <Route path="/area/recepcion" element={<AreaRoute requiredRole="recepcion_area"><DashboardLayout><RecepcionDashboard /></DashboardLayout></AreaRoute>} />
+        <Route path="/area/direccion-operativa" element={<AreaRoute requiredRole="direccion_operativa"><DashboardLayout><DireccionOperativaDashboard /></DashboardLayout></AreaRoute>} />
+        <Route path="/area/recursos-humanos" element={<AreaRoute requiredRole="recursos_humanos"><DashboardLayout><RRHHDashboard /></DashboardLayout></AreaRoute>} />
+        <Route path="/area/contabilidad" element={<AreaRoute requiredRole="contabilidad"><DashboardLayout><ContabilidadDashboard /></DashboardLayout></AreaRoute>} />
+        <Route path="/area/quimica-clinica" element={<AreaRoute requiredRole="quimica_clinica"><DashboardLayout><QuimicaClinicaDashboard /></DashboardLayout></AreaRoute>} />
 
       </Routes>
     </div>
