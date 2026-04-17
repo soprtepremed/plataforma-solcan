@@ -1,10 +1,11 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import styles from './AdminSidebar.module.css';
 
 export default function AdminSidebar({ collapsed, setCollapsed }) {
   const { user } = useAuth();
+  const location = useLocation();
   const [openMenus, setOpenMenus] = React.useState({});
 
   if (user?.role?.toLowerCase() !== 'admin') return null;
