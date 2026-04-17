@@ -19,7 +19,7 @@ import Proveedores from './pages/dashboard/Proveedores';
 import RecepcionPedido from './pages/dashboard/RecepcionPedido';
 import AdminPromociones from './pages/dashboard/AdminPromociones';
 import Sucursales from './pages/Sucursales';
-// import InventarioArea from './pages/dashboard/InventarioArea';
+import InventarioArea from './pages/dashboard/InventarioArea';
 
 // Áreas Modulares
 import HematologiaDashboard from './pages/dashboard/areas/HematologiaDashboard';
@@ -154,7 +154,7 @@ function App() {
         <Route path="/area/hematologia" element={<AreaRoute requiredRole="hematologia"><DashboardLayout><HematologiaDashboard /></DashboardLayout></AreaRoute>} />
         
         {/* Inventario Universal por Área */}
-        {/* <Route path="/area/:areaId/inventario" element={<DashboardLayout><InventarioArea /></DashboardLayout>} /> */}
+        <Route path="/area/:areaId/inventario" element={<DashboardLayout><InventarioArea /></DashboardLayout>} />
 
         <Route path="/area/urianalisis" element={<AreaRoute requiredRole="urianalisis"><DashboardLayout><UrianalisisDashboard /></DashboardLayout></AreaRoute>} />
         <Route path="/area/microbiologia" element={<AreaRoute requiredRole="microbiologia"><DashboardLayout><MicrobiologiaDashboard /></DashboardLayout></AreaRoute>} />
