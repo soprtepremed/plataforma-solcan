@@ -5,6 +5,215 @@
   animation: fadeIn 0.4s ease-out;
 }
 
+.importStats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.statBox {
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 16px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e2e8f0;
+}
+
+.statBox strong {
+    font-size: 1.8rem;
+    color: var(--co-primary);
+    line-height: 1;
+}
+
+.statBox span {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 5px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.statNew strong { color: #10b981; }
+.statDup strong { color: #f59e0b; }
+
+.conflictSection {
+    background: rgba(245, 158, 11, 0.05);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.conflictSection h4 {
+    color: #d97706;
+    border-bottom-color: #f59e0b;
+    margin-bottom: 0.5rem;
+}
+
+.conflictSection p {
+    font-size: 0.85rem;
+    color: #92400e;
+    margin-bottom: 1rem;
+}
+
+.conflictList {
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: white;
+    padding: 10px;
+    border-radius: 12px;
+}
+
+.conflictRow {
+    display: flex;
+    gap: 15px;
+    padding: 8px 12px;
+    background: #fffbeb;
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.conflictCode {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    color: #d97706;
+    min-width: 80px;
+}
+
+.conflictName {
+    color: #92400e;
+    font-weight: 600;
+}
+
+.previewTable h4 {
+    font-size: 0.9rem;
+    color: var(--co-primary);
+    margin-bottom: 1rem;
+}
+
+.moreLabel {
+    text-align: center;
+    padding: 10px;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.optionsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 20px;
+}
+
+.importStats {
+    display: flex;
+    gap: 1rem;
+    margin: 0;
+}
+
+.actionToggle {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: white;
+    padding: 1rem;
+    border-radius: 16px;
+    border: 1px solid var(--co-accent);
+    box-shadow: 0 4px 12px rgba(11, 206, 205, 0.1);
+}
+
+.toggleText strong {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--co-primary);
+}
+
+.toggleText p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+/* Switch Styles */
+.switchLabel {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 24px;
+}
+
+.switchLabel input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--co-accent);
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--co-accent);
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+.mutedConflict {
+    opacity: 0.6;
+    filter: grayscale(1);
+    background: #f1f5f9;
+}
+
+.mutedConflict h4 {
+    color: #64748b;
+    border-color: #cbd5e1;
+}
+
+.mutedConflict .conflictRow {
+    background: #f8fafc;
+}
+
+.mutedConflict .conflictCode {
+    color: #94a3b8;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 1rem;

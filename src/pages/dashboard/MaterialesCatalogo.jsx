@@ -15,8 +15,9 @@ export default function MaterialesCatalogo() {
     const [editingId, setEditingId] = useState(null);
     const [dialogConfig, setDialogConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
     const [viewMode, setViewMode] = useState('Activos'); // 'Activos' | 'Inactivos'
-    const [importData, setImportData] = useState([]);
+    const [importData, setImportData] = useState({ all: [], duplicates: [], news: [] });
     const [showImportPreview, setShowImportPreview] = useState(false);
+    const [skipDuplicates, setSkipDuplicates] = useState(false);
 
     const initialForm = {
         nombre: '',
@@ -263,7 +264,22 @@ export default function MaterialesCatalogo() {
             const wb = XLSX.read(bstr, { type: 'binary' });
             const ws = wb.Sheets[wb.SheetNames[0]];
             const data = XLSX.utils.sheet_to_json(ws);
-            setImportData(data);
+            
+            // Detectar duplicados comparando con el catálogo actual
+            const existingPrefixes = new Set(catalogo.map(c => c.prefijo));
+            const duplicates = [];
+            const news = [];
+
+            data.forEach(row => {
+                const prefixId = row.Prefijo?.toString().toUpperCase();
+                if (existingPrefixes.has(prefixId)) {
+                    duplicates.push(row);
+                } else {
+                    news.push(row);
+                }
+            });
+
+            setImportData({ all: data, duplicates, news });
             setShowImportPreview(true);
         };
         reader.readAsBinaryString(file);
@@ -283,9 +299,17 @@ export default function MaterialesCatalogo() {
     const processBulkImport = async () => {
         setLoading(true);
         try {
-            const itemsToInsert = importData.map(row => ({
+            // Decidimos qué datos procesar según la elección del usuario
+            const dataToProcess = skipDuplicates ? importData.news : importData.all;
+
+            if (dataToProcess.length === 0) {
+                setDialogConfig({ isOpen: true, type: 'alert', message: 'No hay datos nuevos para procesar con la configuración actual.' });
+                return;
+            }
+
+            const itemsToInsert = dataToProcess.map(row => ({
                 nombre: row.Material || row.Nombre,
-                prefijo: row.Prefijo,
+                prefijo: row.Prefijo?.toString().toUpperCase(),
                 unidad: row.Unidad || 'Pieza',
                 stock_minimo: parseInt(row.Minimo || 10),
                 categoria: row.Categoria || 'Consumibles',
@@ -304,8 +328,14 @@ export default function MaterialesCatalogo() {
             const { error } = await supabase
                 .from('materiales_catalogo')
                 .upsert(itemsToInsert, { onConflict: 'prefijo' });
+            
             if (error) throw error;
-            setDialogConfig({ isOpen: true, type: 'alert', message: `Éxito: ${itemsToInsert.length} materiales importados al catálogo.` });
+
+            const msg = skipDuplicates 
+                ? `Carga exitosa: Se agregaron ${itemsToInsert.length} materiales nuevos (duplicados omitidos).`
+                : `Carga exitosa: ${importData.news.length} nuevos y ${importData.duplicates.length} actualizados.`;
+
+            setDialogConfig({ isOpen: true, type: 'alert', message: msg });
             setShowImportPreview(false);
             fetchCatalogo();
         } catch (err) {
@@ -540,30 +570,88 @@ export default function MaterialesCatalogo() {
 
             {showImportPreview && (
                 <div className={styles.modalOverlay}>
-                    <div className={styles.modalLarge}>
-                        <h3>Vista Previa: Materiales</h3>
-                        <p>{importData.length} registros listos para procesar.</p>
-                        <div className={styles.previewTable}>
-                            <table>
-                                <thead>
-                                    <tr><th>Nombre</th><th>Marca</th><th>Proveedor</th><th>Costo</th><th>Ubicación</th></tr>
-                                </thead>
-                                <tbody>
-                                    {importData.slice(0, 5).map((row, i) => (
-                                        <tr key={i}>
-                                            <td>{row.Material || row.Nombre}</td>
-                                            <td>{row.Marca || '---'}</td>
-                                            <td>{row.Proveedor || '---'}</td>
-                                            <td>${row.Costo || 0}</td>
-                                            <td>{row.Ubicacion || 'Almacén'}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                    <div className={styles.modalLarge} style={{maxWidth: '800px'}}>
+                        <div className={styles.modalHeader}>
+                            <h3>Revisión de Carga Masiva</h3>
+                            <button className={styles.closeBtn} onClick={() => setShowImportPreview(false)}>&times;</button>
                         </div>
+                        
+                        <div className={styles.fullForm}>
+                            <div className={styles.optionsHeader}>
+                                <div className={styles.importStats}>
+                                    <div className={styles.statBox}>
+                                        <strong>{importData.all.length}</strong>
+                                        <span>Total</span>
+                                    </div>
+                                    <div className={`${styles.statBox} ${styles.statNew}`}>
+                                        <strong>{importData.news.length}</strong>
+                                        <span>Nuevos</span>
+                                    </div>
+                                    <div className={`${styles.statBox} ${styles.statDup}`}>
+                                        <strong>{importData.duplicates.length}</strong>
+                                        <span>Existentes</span>
+                                    </div>
+                                </div>
+                                
+                                <div className={styles.actionToggle}>
+                                    <label className={styles.switchLabel}>
+                                        <input 
+                                            type="checkbox" 
+                                            checked={skipDuplicates} 
+                                            onChange={(e) => setSkipDuplicates(e.target.checked)} 
+                                        />
+                                        <span className={styles.slider}></span>
+                                    </label>
+                                    <div className={styles.toggleText}>
+                                        <strong>Omitir Duplicados</strong>
+                                        <p>{skipDuplicates ? 'Solo se cargarán los registros nuevos.' : 'Se actualizarán los registros existentes.'}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {importData.duplicates.length > 0 && (
+                                <section className={`${styles.conflictSection} ${skipDuplicates ? styles.mutedConflict : ''}`}>
+                                    <h4>
+                                        <span className="material-symbols-rounded">{skipDuplicates ? 'visibility_off' : 'warning'}</span> 
+                                        {skipDuplicates ? 'Materiales que serán OMITIDOS' : 'Materiales que serán ACTUALIZADOS'}
+                                    </h4>
+                                    <div className={styles.conflictList}>
+                                        {importData.duplicates.map((row, i) => (
+                                            <div key={i} className={styles.conflictRow}>
+                                                <span className={styles.conflictCode}>{row.Prefijo}</span>
+                                                <span className={styles.conflictName}>{row.Material || row.Nombre}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+
+                            <section className={styles.previewTable}>
+                                <h4>Vista Previa de Datos</h4>
+                                <table>
+                                    <thead>
+                                        <tr><th>Código</th><th>Material</th><th>Área</th><th>Categoría</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        {importData.all.slice(0, 10).map((row, i) => (
+                                            <tr key={i}>
+                                                <td>{row.Prefijo}</td>
+                                                <td>{row.Material || row.Nombre}</td>
+                                                <td>{row.Area}</td>
+                                                <td>{row.Categoria}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                {importData.all.length > 10 && <p className={styles.moreLabel}>... y {importData.all.length - 10} registros más.</p>}
+                            </section>
+                        </div>
+
                         <div className={styles.modalActions}>
                             <button onClick={()=>setShowImportPreview(false)}>Cancelar</button>
-                            <button className={styles.primaryBtn} onClick={processBulkImport} disabled={loading}>Confirmar Carga</button>
+                            <button className={styles.primaryBtn} onClick={processBulkImport} disabled={loading}>
+                                {loading ? 'Procesando...' : 'Confirmar e Iniciar Carga'}
+                            </button>
                         </div>
                     </div>
                 </div>
