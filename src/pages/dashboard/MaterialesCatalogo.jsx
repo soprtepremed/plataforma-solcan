@@ -269,6 +269,17 @@ export default function MaterialesCatalogo() {
         reader.readAsBinaryString(file);
     };
 
+    const handleDownloadTemplate = () => {
+        const templateData = [
+            { Material: 'Ejemplo Material 1', Prefijo: 'M1', Area: 'HEMATOLOGÍA', Categoria: 'Consumibles', Unidad: 'Pieza', Minimo: 10 },
+            { Material: 'Ejemplo Material 2', Prefijo: 'M2', Area: 'QUÍMICA CLÍNICA', Categoria: 'Reactivos', Unidad: 'Caja', Minimo: 5 }
+        ];
+        const ws = XLSX.utils.json_to_sheet(templateData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Plantilla");
+        XLSX.writeFile(wb, "Plantilla_Catalogo_Solcan.xlsx");
+    };
+
     const processBulkImport = async () => {
         setLoading(true);
         try {
@@ -327,9 +338,14 @@ export default function MaterialesCatalogo() {
                     <button className={styles.secondaryBtn} onClick={() => setShowModal(true)}>
                         <span className="material-symbols-rounded">add_business</span> Registrar Material
                     </button>
-                    <div className={styles.importBtn}>
-                        <input type="file" id="bulk" accept=".csv, .xlsx" onChange={handleFileUpload} hidden />
-                        <label htmlFor="bulk"><span className="material-symbols-rounded">upload_file</span> Carga Masiva</label>
+                    <div className={styles.importGroup}>
+                        <button className={styles.templateBtn} onClick={handleDownloadTemplate} title="Descargar Excel de Ejemplo">
+                            <span className="material-symbols-rounded">download</span>
+                        </button>
+                        <div className={styles.importBtn}>
+                            <input type="file" id="bulk" accept=".csv, .xlsx" onChange={handleFileUpload} hidden />
+                            <label htmlFor="bulk"><span className="material-symbols-rounded">upload_file</span> Carga Masiva</label>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -359,8 +375,8 @@ export default function MaterialesCatalogo() {
                                     </div>
                                     <div className={styles.row}>
                                         <div className={styles.fieldGroup}>
-                                            <label>Prefijo</label>
-                                            <input required placeholder="TR" maxLength="4" value={form.prefijo} onChange={e=>setForm({...form, prefijo: e.target.value.toUpperCase()})} />
+                                            <label>Prefijo (Código Interno)</label>
+                                            <input required placeholder="TR" maxLength="20" value={form.prefijo} onChange={e=>setForm({...form, prefijo: e.target.value.toUpperCase()})} />
                                         </div>
                                         <div className={styles.fieldGroup}>
                                             <label>Área Técnica</label>

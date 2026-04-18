@@ -307,10 +307,10 @@ export default function RegistroInventario() {
                                 </div>
                                 <div className={styles.subgrid}>
                                     <div className={styles.formGroup}>
-                                        <label>Prefijo (Cód)</label>
+                                        <label>Prefijo (Código Interno)</label>
                                         <input 
-                                            placeholder="RHB" 
-                                            maxLength="4"
+                                            placeholder="Ej: TUBO-001" 
+                                            maxLength="20"
                                             value={manualForm.prefijo_nuevo}
                                             onChange={e => setManualForm({...manualForm, prefijo_nuevo: e.target.value.toUpperCase()})}
                                         />

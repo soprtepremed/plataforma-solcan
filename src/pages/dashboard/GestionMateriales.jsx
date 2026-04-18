@@ -206,8 +206,8 @@ export default function GestionMateriales() {
                             </div>
                             <div className={styles.formSplit}>
                                 <div className={styles.formGroup}>
-                                    <label>Prefijo ID (2-3 Letras)</label>
-                                    <input required maxLength={3} value={catalogForm.prefijo} onChange={e => setCatalogForm({...catalogForm, prefijo: e.target.value.toUpperCase()})} placeholder="TR" />
+                                    <label>Prefijo ID (Código Interno)</label>
+                                    <input required maxLength={20} value={catalogForm.prefijo} onChange={e => setCatalogForm({...catalogForm, prefijo: e.target.value.toUpperCase()})} placeholder="Ej: TUBO-001" />
                                 </div>
                                 <div className={styles.formGroup}>
                                     <label>Unidad de Medida</label>
