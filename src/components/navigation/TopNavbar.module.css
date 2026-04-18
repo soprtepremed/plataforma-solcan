@@ -66,16 +66,28 @@
 }
 
 .logoCircle {
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #000000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(11, 206, 205, 0.15);
+  margin-right: 4px;
+}
+
+.logoCircle::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0BCECD, #7C3AED);
+  z-index: -1;
 }
 
 .logoCircle img {
@@ -84,10 +96,19 @@
 }
 
 .brandName {
-  font-size: 1.7rem;
-  font-weight: 900;
+  font-size: 1.6rem;
+  font-weight: 950;
   color: #1A202C;
-  letter-spacing: -1.2px;
+  letter-spacing: -1px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.brandName span {
+  color: #0BCECD;
+  font-weight: 400;
+  letter-spacing: 2px;
 }
 
 .notifAreaPC {
@@ -716,7 +737,24 @@
   .mobileOnly {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: #F1F5F9;
+    color: #1a202c;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mobileOnly:active {
+    transform: scale(0.9);
+    background: #E2E8F0;
+  }
+
+  .mobileOnly span {
+    font-size: 28px;
   }
 
   .mobileNotifLeft {

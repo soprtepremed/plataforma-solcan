@@ -206,7 +206,7 @@ export default function TopNavbar() {
             <div className={styles.logoCircle}>
               <img src="/favicon.png" alt="Solcan" onError={(e) => e.target.style.display='none'} />
             </div>
-            <span className={styles.brandName}>SOLCAN</span>
+            <span className={styles.brandName}>Solcan <span>Lab</span></span>
           </div>
           <button className={styles.iconBtn} onClick={() => { setShowNotifMenu(!showNotifMenu); markAllAsRead(); }}>
             <span className="material-symbols-rounded">notifications</span>
