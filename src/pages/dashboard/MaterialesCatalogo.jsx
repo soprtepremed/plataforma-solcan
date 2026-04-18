@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
@@ -83,9 +83,9 @@ export default function MaterialesCatalogo() {
 
     useEffect(() => {
         fetchCatalogo();
-    }, [viewMode]);
+    }, [viewMode, fetchCatalogo]);
 
-    const fetchCatalogo = async () => {
+    const fetchCatalogo = useCallback(async () => {
         setLoading(true);
         const { data } = await supabase
             .from('materiales_catalogo')
@@ -94,7 +94,7 @@ export default function MaterialesCatalogo() {
             .order('nombre', { ascending: true });
         if (data) setCatalogo(data);
         setLoading(false);
-    };
+    }, [viewMode]);
 
     const handleEdit = (item) => {
         setForm({

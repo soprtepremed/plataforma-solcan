@@ -569,7 +569,7 @@ export default function InventarioGeneral() {
                         </div>
 
                         <div className={styles.barcodeList}>
-                            {selectedLotUnits.map((u, i) => (
+                            {selectedLotUnits.map((u) => (
                                 <div 
                                     key={u.id} 
                                     className={`${styles.barcodeItem} ${selectedToPrint.has(u.id) ? styles.barcodeItemSelected : ''}`}

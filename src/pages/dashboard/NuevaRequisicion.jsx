@@ -147,12 +147,6 @@ export default function NuevaRequisicion() {
     setShowManual(false);
   };
 
-  const removeItem = (index) => {
-    const next = [...items];
-    next.splice(index, 1);
-    setItems(next);
-  };
-
   const downloadPDF = (folio) => {
     if (!printAreaRef.current) return;
     const opt = {

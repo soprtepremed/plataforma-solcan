@@ -6,7 +6,6 @@ import { useAuth } from '../../context/AuthContext';
 import styles from './RegistroInventario.module.css';
 
 export default function RegistroInventario() {
-    const { user } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [catalogo, setCatalogo] = useState([]);
