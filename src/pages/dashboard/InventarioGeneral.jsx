@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import styles from './InventarioGeneral.module.css';
 import Barcode from '../../components/common/Barcode';
 
-const categories = ['Todos', 'Hematología', 'Química Clínica', 'Uroanálisis', 'Microbiología', 'Papelería', 'Otros'];
+const categories = ['Todos', 'Hematología', 'Química Clínica', 'Uroanálisis', 'Microbiología', 'Toma de Muestra', 'Papelería', 'Otros'];
 
 // Componentes Memoizados para alto rendimiento
 const FilterSection = memo(({ activeCategory, setActiveCategory, searchTerm, setSearchTerm, categories, expandAll, collapseAll }) => (
@@ -382,6 +382,7 @@ export default function InventarioGeneral() {
             const isQuimica = itemArea === 'QUIMICA CLINICA' || itemArea === 'QUIMICA';
             const isUro = itemArea === 'UROANALISIS' || itemArea === 'URO';
             const isMicro = itemArea === 'MICROBIOLOGIA' || itemArea === 'MICRO';
+            const isToma = itemArea === 'TOMA DE MUESTRA' || itemArea === 'TOMA MUESTRA';
             const isPapeleria = itemArea === 'PAPELERIA';
 
             let matchesCategory = false;
@@ -395,10 +396,12 @@ export default function InventarioGeneral() {
                 matchesCategory = isUro;
             } else if (normCat === 'MICROBIOLOGÍA' || normCat === 'MICROBIOLOGIA') {
                 matchesCategory = isMicro;
+            } else if (normCat === 'TOMA DE MUESTRA') {
+                matchesCategory = isToma;
             } else if (normCat === 'PAPELERIA') {
                 matchesCategory = isPapeleria;
             } else if (deferredCategory === 'Otros') {
-                matchesCategory = !isHematologia && !isQuimica && !isUro && !isMicro && !isPapeleria;
+                matchesCategory = !isHematologia && !isQuimica && !isUro && !isMicro && !isToma && !isPapeleria;
             }
 
             const searchWords = normSearch.split(' ').filter(w => w.length > 0);
@@ -497,6 +500,12 @@ export default function InventarioGeneral() {
                                     <th className={styles.sortableHeader}>
                                         <div className={styles.headerCell}>
                                             <span>Área</span>
+                                            <button onClick={() => setOpenDropdown(openDropdown === 'area_tecnica' ? null : 'area_tecnica')} className={columnFilters['area_tecnica'] ? styles.filterActive : ''}>
+                                                <span className="material-symbols-rounded">filter_list</span>
+                                            </button>
+                                            {openDropdown === 'area_tecnica' && (
+                                                <FilterDropdown columnKey="area_tecnica" label="Área" items={catalogo} activeFilters={columnFilters} applyFilter={applyColumnFilter} clearFilter={clearColumnFilter} requestSort={requestSort} sortConfig={sortConfig} onClose={() => setOpenDropdown(null)} />
+                                            )}
                                         </div>
                                     </th>
                                     <th className={styles.sortableHeader}>
