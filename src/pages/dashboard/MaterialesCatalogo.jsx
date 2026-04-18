@@ -301,7 +301,9 @@ export default function MaterialesCatalogo() {
                 precio1: parseFloat(row.Saldo || row.Precio || 0)
             }));
 
-            const { error } = await supabase.from('materiales_catalogo').insert(itemsToInsert);
+            const { error } = await supabase
+                .from('materiales_catalogo')
+                .upsert(itemsToInsert, { onConflict: 'prefijo' });
             if (error) throw error;
             setDialogConfig({ isOpen: true, type: 'alert', message: `Éxito: ${itemsToInsert.length} materiales importados al catálogo.` });
             setShowImportPreview(false);
