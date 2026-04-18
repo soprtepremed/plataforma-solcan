@@ -341,6 +341,7 @@ export default function RegistroInventario() {
                                         <option value="QUÍMICA CLÍNICA">Química Clínica</option>
                                         <option value="UROANÁLISIS">Uroanálisis</option>
                                         <option value="MICROBIOLOGÍA">Microbiología</option>
+                                        <option value="TOMA DE MUESTRA">Toma de Muestra</option>
                                         <option value="PAPELERÍA">Papelería</option>
                                         <option value="OTROS">Otros</option>
                                     </select>
