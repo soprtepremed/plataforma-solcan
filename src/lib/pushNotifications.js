@@ -21,7 +21,7 @@ export async function sendPushNotification({ role, user_id, title, message, meta
     const { data, error } = await supabase.functions.invoke('push-notifications', {
       body: {
         record: { 
-          role: role || 'mensajero', // Por defecto a mensajero si no viene nada
+          role: role, 
           user_id, 
           title, 
           message, 

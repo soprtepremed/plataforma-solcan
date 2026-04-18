@@ -24,6 +24,7 @@ import InventarioHemato from './pages/dashboard/InventarioHemato';
 import NuevaRequisicion from './pages/dashboard/NuevaRequisicion';
 import GestionRequisiciones from './pages/dashboard/GestionRequisiciones';
 import HistorialRequisicionesArea from './pages/dashboard/HistorialRequisicionesArea';
+import RelacionFoliosGeneral from './pages/dashboard/RelacionFoliosGeneral';
 
 // Áreas Modulares
 import HematologiaDashboard from './pages/dashboard/areas/HematologiaDashboard';
@@ -61,11 +62,16 @@ function WarehouseRoute({ children }) {
 // Guarda Genérica para Áreas Técnicas
 function AreaRoute({ children, requiredRole }) {
   const { user } = useAuth();
-  const r = user?.role?.toLowerCase();
-  // El admin tiene acceso total, los demás solo a su requiredRole
-  const isAllowed = r === 'admin' || r === requiredRole.toLowerCase();
+  const r = user?.role?.toLowerCase() || '';
   
-  if (!isAllowed) return <Navigate to="/" replace />;
+  // El admin tiene acceso total
+  const isAdmin = r === 'admin' || r === 'administrador' || r === 'administración';
+  
+  // Soporte para múltiples roles permitidos
+  const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+  const isAuthorized = allowedRoles.some(role => r === role.toLowerCase());
+
+  if (!isAdmin && !isAuthorized) return <Navigate to="/" replace />;
   return children;
 }
 
@@ -136,6 +142,7 @@ function App() {
         <Route path="/logistica/transporte" element={<PrivateRoute><DashboardLayout><MensajeroDashboard /></DashboardLayout></PrivateRoute>} />
         <Route path="/logistica/recepcion" element={<PrivateRoute><DashboardLayout><VerificacionMatriz /></DashboardLayout></PrivateRoute>} />
         <Route path="/logistica/bitacora" element={<PrivateRoute><DashboardLayout><LogisticaBitacora /></DashboardLayout></PrivateRoute>} />
+        <Route path="/logistica/relacion-folios" element={<PrivateRoute><DashboardLayout><RelacionFoliosGeneral /></DashboardLayout></PrivateRoute>} />
         <Route path="/logistica/impresion" element={<PrivateRoute><DashboardLayout><ImpresionEtiquetas /></DashboardLayout></PrivateRoute>} />
         
         <Route path="/pacientes" element={<PrivateRoute><DashboardLayout><h2 style={{padding: '3rem', textAlign: 'center', color:'var(--co-primary)'}}>Módulo de Recepción y Pacientes</h2></DashboardLayout></PrivateRoute>} />
@@ -166,7 +173,7 @@ function App() {
 
         <Route path="/area/urianalisis" element={<AreaRoute requiredRole="urianalisis"><DashboardLayout><UrianalisisDashboard /></DashboardLayout></AreaRoute>} />
         <Route path="/area/microbiologia" element={<AreaRoute requiredRole="microbiologia"><DashboardLayout><MicrobiologiaDashboard /></DashboardLayout></AreaRoute>} />
-        <Route path="/area/toma-muestra" element={<AreaRoute requiredRole="toma_de_muestra"><DashboardLayout><TomaMuestraDashboard /></DashboardLayout></AreaRoute>} />
+        <Route path="/area/toma-muestra" element={<AreaRoute requiredRole={['toma_de_muestra', 'recepcion']}><DashboardLayout><TomaMuestraDashboard /></DashboardLayout></AreaRoute>} />
         <Route path="/area/recepcion" element={<AreaRoute requiredRole="recepcion_area"><DashboardLayout><RecepcionDashboard /></DashboardLayout></AreaRoute>} />
         <Route path="/area/direccion-operativa" element={<AreaRoute requiredRole="direccion_operativa"><DashboardLayout><DireccionOperativaDashboard /></DashboardLayout></AreaRoute>} />
         <Route path="/area/recursos-humanos" element={<AreaRoute requiredRole="recursos_humanos"><DashboardLayout><RRHHDashboard /></DashboardLayout></AreaRoute>} />

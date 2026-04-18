@@ -17,16 +17,52 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // 🚀 Seleccionamos dispositivos Web y Mobile
-    console.log("📡 Buscando suscripciones activas...");
-    const { data: subs, error: subError } = await supabase
+    // 🚀 Seleccionamos dispositivos filtrando por destinatario
+    console.log("📡 Buscando suscripciones para destinatario:", record.role || record.user_id || 'Global');
+    
+    let query = supabase
       .from('push_subscriptions')
       .select('subscription, token, user_id, platform');
+
+    // FILTRO INTELIGENTE
+    if (record.user_id) {
+      // Notificación para un usuario específico (ej. un repartidor puntual)
+      query = query.eq('user_id', record.user_id);
+    } else if (record.role) {
+      // Notificación por rol (ej. 'almacen', 'mensajero')
+      // Necesitamos cruzar con la tabla empleados para saber quién tiene ese rol
+      const { data: employees } = await supabase
+        .from('empleados')
+        .select('id')
+        .eq('role', record.role);
+      
+      const employeeIds = employees?.map(e => e.id) || [];
+      if (employeeIds.length > 0) {
+        query = query.in('user_id', employeeIds);
+      } else {
+        return new Response(JSON.stringify({ message: "No employees found for this role" }), { status: 200 });
+      }
+    } else {
+      // Si no hay rol ni user_id, por seguridad solo enviamos a administradores
+      const { data: admins } = await supabase
+        .from('empleados')
+        .select('id')
+        .eq('role', 'admin');
+      
+      const adminIds = admins?.map(a => a.id) || [];
+      if (adminIds.length > 0) {
+        query = query.in('user_id', adminIds);
+      } else {
+        return new Response(JSON.stringify({ message: "No specific recipient and no admins found" }), { status: 200 });
+      }
+    }
+
+    const { data: subs, error: subError } = await query;
     
     if (subError) throw subError;
 
     if (!subs || subs.length === 0) {
-      return new Response(JSON.stringify({ message: "No subscriptions registered" }), { status: 200 });
+      return new Response(JSON.stringify({ message: "No relevant subscriptions found" }), { status: 200 });
     }
 
     const results = await Promise.all(subs.map(async (s) => {

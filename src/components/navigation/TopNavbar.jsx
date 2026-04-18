@@ -128,6 +128,7 @@ export default function TopNavbar() {
     }
 
     if (r === 'admin' || r === 'recepcion' || r === 'recepción') {
+      options.push({ label: 'Relación de Folios', path: '/area/toma-muestra', icon: 'note_add' });
       options.push({ label: 'Mi Bitácora', path: '/logistica/bitacora', icon: 'assignment' });
       options.push({ label: 'Estado Sede', path: '/logistica/sede', icon: 'store' });
     }
@@ -171,6 +172,7 @@ export default function TopNavbar() {
       'microbiologia': { label: 'Microbiología', path: '/area/microbiologia', icon: 'biotech' },
       'urianalisis': { label: 'Urianálisis', path: '/area/urianalisis', icon: 'science' },
       'quimica_clinica': { label: 'Química Clínica', path: '/area/quimica-clinica', icon: 'chemistry' },
+      'toma_de_muestra': { label: 'Relación de Folios', path: '/area/toma-muestra', icon: 'note_add' },
     };
 
     if (areasConfig[r]) options.push(areasConfig[r]);
