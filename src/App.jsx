@@ -37,6 +37,7 @@ import RRHHDashboard from './pages/dashboard/areas/RRHHDashboard';
 import ContabilidadDashboard from './pages/dashboard/areas/ContabilidadDashboard';
 import QuimicaClinicaDashboard from './pages/dashboard/areas/QuimicaClinicaDashboard';
 import AdminSidebar from './components/navigation/AdminSidebar';
+import ChatWidget from './components/shared/ChatWidget';
 
 import { useAuth } from './context/AuthContext';
 import './App.css';
@@ -181,6 +182,7 @@ function App() {
         <Route path="/area/quimica-clinica" element={<AreaRoute requiredRole="quimica_clinica"><DashboardLayout><QuimicaClinicaDashboard /></DashboardLayout></AreaRoute>} />
 
       </Routes>
+      <ChatWidget />
     </div>
   );
 }

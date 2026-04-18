@@ -1,0 +1,271 @@
+.chatWrapper {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  z-index: 10000;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.fab {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+  color: white;
+  border: none;
+  box-shadow: 0 8px 16px rgba(30, 58, 138, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.fab:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 12px 24px rgba(30, 58, 138, 0.5);
+}
+
+.fab span {
+  font-size: 28px;
+}
+
+.badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #ef4444;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+.window {
+  width: 380px;
+  height: 550px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.header {
+  padding: 1rem 1.25rem;
+  background: #1e293b;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.backBtn, .closeBtn {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 50%;
+}
+
+.backBtn:hover, .closeBtn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  background: #f1f5f9;
+}
+
+/* Selector de Área */
+.areaSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.areaSelector p {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.areaItem {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.areaItem:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  transform: translateX(5px);
+}
+
+.areaItem span:first-child {
+  color: #3b82f6;
+  font-size: 24px;
+}
+
+.areaInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.areaInfo strong {
+  color: #1e293b;
+  font-size: 0.95rem;
+}
+
+.areaInfo span {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Timeline del Chat */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.msgRow {
+  display: flex;
+  width: 100%;
+}
+
+.msgRow.own {
+  justify-content: flex-end;
+}
+
+.msgBubble {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  position: relative;
+}
+
+.own .msgBubble {
+  background: #3b82f6;
+  color: white;
+  border-bottom-right-radius: 2px;
+}
+
+.msgRow:not(.own) .msgBubble {
+  border-bottom-left-radius: 2px;
+}
+
+.senderName {
+  display: block;
+  font-weight: 700;
+  font-size: 0.7rem;
+  color: #3b82f6;
+  margin-bottom: 4px;
+}
+
+.msgBubble p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.msgTime {
+  display: block;
+  font-size: 0.65rem;
+  text-align: right;
+  margin-top: 4px;
+  opacity: 0.7;
+}
+
+.empty {
+  text-align: center;
+  color: #94a3b8;
+  padding: 2rem;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* Footer (Input) */
+.footer {
+  padding: 1rem;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 10px;
+}
+
+.footer input {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  outline: none;
+  font-size: 0.9rem;
+}
+
+.footer input:focus {
+  border-color: #3b82f6;
+}
+
+.footer button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.footer button:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.footer button:not(:disabled):hover {
+  transform: scale(1.1);
+}
