@@ -1,0 +1,215 @@
+.page {
+    width: 100%;
+    min-height: 800px;
+    background: white;
+    padding: 30px;
+    font-family: Arial, sans-serif;
+    color: #000;
+    font-size: 11px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.header {
+    display: flex;
+    border: 1.5px solid #000;
+    margin-bottom: 20px;
+}
+
+.logoBox {
+    flex: 1.5;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-right: 1.5px solid #000;
+}
+
+.logoBox img {
+    height: 40px;
+}
+
+.brand {
+    display: block;
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+}
+
+.tagline {
+    font-size: 8px;
+    color: #4B5563;
+}
+
+.titleBox {
+    flex: 4;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-right: 1.5px solid #000;
+}
+
+.titleBox h2 {
+    font-size: 12px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.codeBox {
+    flex: 1.2;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: 9px;
+}
+
+.infoSection {
+    margin-bottom: 15px;
+}
+
+.infoRow {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.infoField {
+    border-bottom: 1px solid #000;
+    min-width: 250px;
+    padding-bottom: 2px;
+}
+
+.folioNo {
+    font-size: 16px;
+    font-weight: 900;
+    color: #0BCECD;
+    margin-left: 10px;
+}
+
+.placeholder {
+    color: #ccc;
+}
+
+/* TABLA MAESTRA */
+.mainTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+}
+
+.mainTable th {
+    background: #f1f5f9;
+    border: 1.5px solid #000;
+    padding: 6px 4px;
+    font-size: 9px;
+    font-weight: 900;
+}
+
+.mainTable td {
+    border: 1.2px solid #000;
+    padding: 5px;
+    height: 25px;
+}
+
+.textCenter {
+    text-align: center;
+}
+
+.emptyRow td {
+    background: repeating-linear-gradient(
+        -45deg,
+        #f8fafc,
+        #f8fafc 10px,
+        #ffffff 10px,
+        #ffffff 20px
+    );
+}
+
+.obsSection {
+    margin-bottom: 25px;
+}
+
+.obsBox {
+    border: 1.5px solid #000;
+    height: 60px;
+    margin-top: 5px;
+}
+
+.footer {
+    border-top: 2px solid #000;
+    padding-top: 20px;
+}
+
+.signGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.signBox {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    min-height: 80px; /* Altura mínima para que quepa la firma */
+}
+
+.signatureWrapper {
+  position: relative;
+  width: 100%;
+  height: 55px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.signatureImg {
+  position: absolute;
+  bottom: 2px;
+  height: 50px;
+  width: auto;
+  max-width: 90%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.signLine {
+    width: 100%;
+    border-top: 1.5px solid #000;
+    margin-top: 2px;
+}
+
+.signLabel {
+    display: block;
+    font-weight: 800;
+    font-size: 8px;
+    margin: 4px 0 2px;
+    text-transform: uppercase;
+}
+
+.userName {
+    font-size: 8px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.exclusive {
+    text-align: right;
+    font-style: italic;
+    font-size: 9px;
+    margin-top: 15px;
+    color: #94a3b8;
+}
+
+@media print {
+    .page {
+        box-shadow: none;
+        border: none;
+    }
+}

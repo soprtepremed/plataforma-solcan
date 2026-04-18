@@ -42,12 +42,12 @@ export default function SolicitudesSurtido() {
             if (solicitanteIds.length > 0) {
                 const { data: empData } = await supabase
                     .from('empleados')
-                    .select('id, name')
+                    .select('id, nombre')
                     .in('id', solicitanteIds);
                 
                 if (empData) {
                     empData.forEach(emp => {
-                        solicitantesMap[emp.id] = emp.name;
+                        solicitantesMap[emp.id] = emp.nombre;
                     });
                 }
             }

@@ -139,7 +139,8 @@ export default function TopNavbar() {
         children: [
           { label: 'Inventario General', path: '/almacen/inventario', icon: 'grid_view' },
           { label: 'Materiales', path: '/almacen/materiales', icon: 'category' },
-          { label: 'Solicitudes Material', path: '/almacen/solicitudes', icon: 'assignment_turned_in' }
+          { label: 'Solicitudes Material', path: '/almacen/solicitudes', icon: 'assignment_turned_in' },
+          { label: 'Requisiciones de Compra', path: '/almacen/requisiciones', icon: 'shopping_cart' }
         ]
       });
       options.push({
@@ -162,7 +163,9 @@ export default function TopNavbar() {
         label: 'Hematología', path: '/area/hematologia', icon: 'bloodtype',
         children: [
           { label: 'Dashboard Área', path: '/area/hematologia', icon: 'dashboard_customize' },
-          { label: 'Inventario y Calidad', path: '/area/hematologia/inventario', icon: 'inventory_2' }
+          { label: 'Inventario y Calidad', path: '/area/hematologia/inventario', icon: 'inventory_2' },
+          { label: 'Solicitud de Compra', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
+          { label: 'Historial de Compras', path: '/area/requisiciones/historial', icon: 'history' }
         ]
       },
       'microbiologia': { label: 'Microbiología', path: '/area/microbiologia', icon: 'biotech' },

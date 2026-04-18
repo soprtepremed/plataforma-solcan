@@ -21,6 +21,9 @@ import AdminPromociones from './pages/dashboard/AdminPromociones';
 import Sucursales from './pages/Sucursales';
 import InventarioArea from './pages/dashboard/InventarioArea';
 import InventarioHemato from './pages/dashboard/InventarioHemato';
+import NuevaRequisicion from './pages/dashboard/NuevaRequisicion';
+import GestionRequisiciones from './pages/dashboard/GestionRequisiciones';
+import HistorialRequisicionesArea from './pages/dashboard/HistorialRequisicionesArea';
 
 // Áreas Modulares
 import HematologiaDashboard from './pages/dashboard/areas/HematologiaDashboard';
@@ -142,6 +145,7 @@ function App() {
         <Route path="/almacen/inventario" element={<WarehouseRoute><DashboardLayout><InventarioGeneral /></DashboardLayout></WarehouseRoute>} />
         <Route path="/almacen/materiales" element={<WarehouseRoute><DashboardLayout><MaterialesCatalogo /></DashboardLayout></WarehouseRoute>} />
         <Route path="/almacen/solicitudes" element={<WarehouseRoute><DashboardLayout><SolicitudesSurtido /></DashboardLayout></WarehouseRoute>} />
+        <Route path="/almacen/requisiciones" element={<WarehouseRoute><DashboardLayout><GestionRequisiciones /></DashboardLayout></WarehouseRoute>} />
         <Route path="/almacen/nueva-solicitud" element={<PrivateRoute><DashboardLayout><SolicitudMaterial /></DashboardLayout></PrivateRoute>} />
         <Route path="/almacen/proveedores" element={<WarehouseRoute><DashboardLayout><Proveedores /></DashboardLayout></WarehouseRoute>} />
         <Route path="/almacen/recepcion" element={<WarehouseRoute><DashboardLayout><RecepcionPedido /></DashboardLayout></WarehouseRoute>} />
@@ -154,6 +158,8 @@ function App() {
         {/* Áreas Modulares */}
         <Route path="/area/hematologia" element={<AreaRoute requiredRole="hematologia"><DashboardLayout><HematologiaDashboard /></DashboardLayout></AreaRoute>} />
         <Route path="/area/hematologia/inventario" element={<AreaRoute requiredRole="hematologia"><DashboardLayout><InventarioHemato /></DashboardLayout></AreaRoute>} />
+        <Route path="/area/requisiciones/historial" element={<PrivateRoute><DashboardLayout><HistorialRequisicionesArea /></DashboardLayout></PrivateRoute>} />
+        <Route path="/area/requisicion" element={<PrivateRoute><DashboardLayout><NuevaRequisicion /></DashboardLayout></PrivateRoute>} />
         
         {/* Inventario Universal por Área */}
         <Route path="/area/:areaId/inventario" element={<DashboardLayout><InventarioArea /></DashboardLayout>} />

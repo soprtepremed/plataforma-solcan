@@ -1,0 +1,52 @@
+.sigPadContainer {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1rem;
+}
+
+.sigPadHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.clearSigBtn {
+  background: #1e293b;
+  color: white;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clearSigBtn:hover {
+  background: #0f172a;
+}
+
+.canvas {
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  width: 100%;
+  height: 150px;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.sigHint {
+  text-align: center;
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
