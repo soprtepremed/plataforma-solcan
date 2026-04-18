@@ -307,23 +307,32 @@ export default function MaterialesCatalogo() {
                 return;
             }
 
-            const itemsToInsert = dataToProcess.map(row => ({
-                nombre: row.Material || row.Nombre,
-                prefijo: row.Prefijo?.toString().toUpperCase(),
-                unidad: row.Unidad || 'Pieza',
-                stock_minimo: parseInt(row.Minimo || 10),
-                categoria: row.Categoria || 'Consumibles',
-                ubicacion: row.Ubicacion || row.Localizacion || 'Almacén General',
-                marca: row.Marca || '',
-                proveedor: row.Proveedor || '',
-                costo_unitario: parseFloat(row.Costo || 0),
-                presentacion: row.Presentacion || 'Unidad',
-                requiere_frio: row.Frio === 'Si' || row.Frio === true,
-                area_tecnica: row.Area || 'HEMATOLOGÍA',
-                ean_maestro: row.EAN || row.Codigo_Maestro || '',
-                clase: row.Clase || 'Artículo',
-                precio1: parseFloat(row.Saldo || row.Precio || 0)
-            }));
+            const itemsMap = new Map();
+
+            dataToProcess.forEach(row => {
+                const prefixId = row.Prefijo?.toString().toUpperCase();
+                if (!prefixId) return;
+
+                itemsMap.set(prefixId, {
+                    nombre: row.Material || row.Nombre,
+                    prefijo: prefixId,
+                    unidad: row.Unidad || 'Pieza',
+                    stock_minimo: parseInt(row.Minimo || 10),
+                    categoria: row.Categoria || 'Consumibles',
+                    ubicacion: row.Ubicacion || row.Localizacion || 'Almacén General',
+                    marca: row.Marca || '',
+                    proveedor: row.Proveedor || '',
+                    costo_unitario: parseFloat(row.Costo || 0),
+                    presentacion: row.Presentacion || 'Unidad',
+                    requiere_frio: row.Frio === 'Si' || row.Frio === true,
+                    area_tecnica: row.Area || 'HEMATOLOGÍA',
+                    ean_maestro: row.EAN || row.Codigo_Maestro || '',
+                    clase: row.Clase || 'Artículo',
+                    precio1: parseFloat(row.Saldo || row.Precio || 0)
+                });
+            });
+
+            const itemsToInsert = Array.from(itemsMap.values());
 
             const { error } = await supabase
                 .from('materiales_catalogo')
