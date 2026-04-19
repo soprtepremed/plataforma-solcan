@@ -299,6 +299,10 @@ export default function TopNavbar() {
 
       {mobileMenuOpen && (
         <div className={styles.mobileOverlay}>
+          <button className={styles.mobileBackBtn} onClick={() => setMobileMenuOpen(false)}>
+            <span className="material-symbols-rounded">arrow_back</span>
+            Volver
+          </button>
           <div className={styles.mobileProfileHeader}>
             <div className={styles.mobileAvatarLarge}>{user?.foto_url ? <img src={user.foto_url} alt="U" /> : <span>{finalDisplayName.charAt(0)}</span>}</div>
             <h3>{finalDisplayName}</h3>
@@ -306,9 +310,20 @@ export default function TopNavbar() {
           </div>
           <nav className={styles.mobileNav}>
             {menuOptions.map(o => (
-              <Link key={o.label || o.path} to={o.path || '#'} className={styles.mobileNavItem} onClick={() => setMobileMenuOpen(false)}>
-                <span className="material-symbols-rounded">{o.icon}</span> {o.label}
-              </Link>
+              <div key={o.label}>
+                <Link to={o.path || '#'} className={styles.mobileNavItem} onClick={o.children ? null : () => setMobileMenuOpen(false)}>
+                  <span className="material-symbols-rounded">{o.icon}</span> {o.label}
+                </Link>
+                {o.children && (
+                  <div className={styles.mobileNestedNav}>
+                    {o.children.map(c => (
+                      <Link key={c.path} to={c.path} className={styles.mobileSubItem} onClick={() => setMobileMenuOpen(false)}>
+                        • {c.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
             <button className={styles.mobileLogoutBtn} onClick={logout}>Cerrar Sesión</button>
           </nav>

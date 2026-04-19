@@ -730,7 +730,8 @@
   .navCenterPC,
   .userInfoPC,
   .controlIconsPC,
-  .notifAreaPC {
+  .notifAreaPC,
+  .pcLogoutBtn {
     display: none;
   }
 
@@ -801,6 +802,34 @@
   flex-direction: column;
   padding-top: 100px;
   animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobileBackBtn {
+  position: absolute;
+  top: 40px;
+  left: 20px;
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  padding: 8px 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748B;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.mobileBackBtn:active {
+  transform: scale(0.95);
+  background: white;
+}
+
+.mobileBackBtn span {
+  font-size: 1.2rem;
 }
 
 @keyframes slideInRight {

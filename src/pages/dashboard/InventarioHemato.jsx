@@ -7,6 +7,98 @@ const SUCURSALES = [
   "Matriz", "CRAE", "Tapachula", "San Cristobal", "Comitan", "Arriaga", "Pijijiapan", "Palenque"
 ];
 
+// Optimized Inventory Card for Mobile
+const InventoryCard = ({ item, onEdit, onQuickStart, onQuickEnd }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    return (
+        <div 
+            className={`${styles.inventoryCard} ${isExpanded ? styles.isExpanded : ''}`}
+            onClick={() => setIsExpanded(!isExpanded)}
+        >
+            <div className={styles.cardHeader}>
+                <div className={styles.cardTitle}>
+                    <div className={styles.cardID}>{item.solicitud_id || 'SIN ID'}</div>
+                    <h3>{item.descripcion}</h3>
+                    <div className={styles.cardSubDetails}>
+                        <span className={styles.badgeCode}>{item.codigo}</span>
+                        <span className={styles.badgeLote}>Lote: {item.lote || 'N/A'}</span>
+                    </div>
+                </div>
+                <div className={styles.cardStock}>
+                    <span className={`${styles.stockCircle} ${item.stock_actual < 5 ? styles.stockCritical : styles.stockOk}`}>
+                        {item.stock_actual}
+                    </span>
+                    <label>STOCK</label>
+                </div>
+            </div>
+
+            <div className={styles.cardQuickInfo}>
+                <div className={styles.quickItem}>
+                    <label>Caducidad</label>
+                    <span style={{ color: new Date(item.caducidad) < new Date() ? '#EF4444' : 'inherit', fontWeight: 700 }}>
+                        {item.caducidad ? new Date(item.caducidad).toLocaleDateString() : '---'}
+                    </span>
+                </div>
+                <div className={styles.quickItem}>
+                    <label>Cód. Calidad</label>
+                    <span className={item.aceptado ? styles.textSuccess : styles.textDanger}>
+                        {item.aceptado ? 'ACEPTADO' : 'RECHAZADO'}
+                    </span>
+                </div>
+            </div>
+
+            {isExpanded && (
+                <div className={styles.cardExpandedContent}>
+                    <div className={styles.detailsGrid}>
+                        <div className={styles.detailRow}>
+                            <label>Inicio Uso:</label>
+                            <span>{item.fecha_inicio_uso ? new Date(item.fecha_inicio_uso).toLocaleDateString() : 'PENDIENTE'}</span>
+                        </div>
+                        <div className={styles.detailRow}>
+                            <label>Término Uso:</label>
+                            <span>{item.fecha_termino_uso ? new Date(item.fecha_termino_uso).toLocaleDateString() : '---'}</span>
+                        </div>
+                        <div className={styles.detailRow}>
+                            <label>Temperatura:</label>
+                            <span>{item.temp_almacenamiento}</span>
+                        </div>
+                        <div className={styles.detailRow}>
+                            <label>Apariencia:</label>
+                            <span>{item.apariencia_fisica === 'SI' ? 'Apariencia OK' : 'Falla Apariencia'}</span>
+                        </div>
+                        {item.nuevo_lote && (
+                            <div className={styles.newLotBadge}>NUEVO LOTE DETECTADO</div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            <div className={styles.cardActions} onClick={(e) => e.stopPropagation()}>
+                <div className={styles.mainActions}>
+                    {!item.fecha_inicio_uso && (
+                        <button onClick={() => onQuickStart(item.id)} className={styles.mobileActionBtn} style={{background: '#0EA5E9'}}>
+                            <span className="material-symbols-rounded">play_arrow</span> Iniciar
+                        </button>
+                    )}
+                    {item.fecha_inicio_uso && !item.fecha_termino_uso && (
+                        <button onClick={() => onQuickEnd(item.id)} className={styles.mobileActionBtn} style={{background: '#EF4444'}}>
+                            <span className="material-symbols-rounded">stop</span> Terminar
+                        </button>
+                    )}
+                </div>
+                <button onClick={() => onEdit(item)} className={styles.mobileEditBtn}>
+                    <span className="material-symbols-rounded">edit</span>
+                </button>
+            </div>
+            
+            <div className={styles.expandTip}>
+                <span className="material-symbols-rounded">{isExpanded ? 'expand_less' : 'expand_more'}</span>
+            </div>
+        </div>
+    );
+};
+
 export default function InventarioHemato() {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
@@ -162,9 +254,9 @@ export default function InventarioHemato() {
       show: true,
       message: "¿Deseas marcar el INICIO de uso de este reactivo para el día de hoy?",
       onConfirm: async () => {
-        const now = new Date().toISOString().split('T')[0];
+        const now = new Date().toISOString(); // Timestamp completo para mayor precisión
         const { error } = await supabase
-          .from("hematologia_inventario")
+          .from("inventario_areas")
           .update({ fecha_inicio_uso: now })
           .eq("id", id);
         if (!error) fetchInventory();
@@ -176,12 +268,15 @@ export default function InventarioHemato() {
   const handleQuickEnd = async (id) => {
     setConfirmDialog({
       show: true,
-      message: "¿Seguro que deseas TERMINAR el uso de este reactivo? El stock se pondrá en cero.",
+      message: "¿Seguro que deseas TERMINAR el uso de este reactivo? El stock se pondrá en cero automáticamente.",
       onConfirm: async () => {
-        const now = new Date().toISOString().split('T')[0];
+        const now = new Date().toISOString();
         const { error } = await supabase
-          .from("hematologia_inventario")
-          .update({ fecha_termino_uso: now, stock_actual: 0 })
+          .from("inventario_areas")
+          .update({ 
+            fecha_termino_uso: now, 
+            stock_actual: 0 
+          })
           .eq("id", id);
         if (!error) fetchInventory();
         setConfirmDialog({ show: false });
@@ -200,8 +295,18 @@ export default function InventarioHemato() {
         setSaving(true);
         try {
           const { id, ...payload } = form; // Quitar el ID del cuerpo para evitar errores
+          
+          // Lógica de recuperación de stock:
+          // Si borramos la fecha de término y el stock estaba en 0, le devolvemos 1 unidad
+          let finalStock = payload.stock_actual;
+          if (!payload.fecha_termino_uso && payload.stock_actual === 0) {
+            finalStock = 1;
+            console.log("Restaurando stock por eliminación de fecha de término");
+          }
+
           const cleanPayload = {
             ...payload,
+            stock_actual: finalStock,
             area_id: 'hematologia', // Forzar el ID de área correcto
             fecha_inicio_uso: payload.fecha_inicio_uso || null,
             fecha_termino_uso: payload.fecha_termino_uso || null,
@@ -294,76 +399,98 @@ export default function InventarioHemato() {
 
 
         <div className={styles.tableContainer}>
-          <table>
-            <thead>
-              <tr>
-                <th>ID# / Solicitud</th>
-                <th>Descripción / Nombre</th>
-                <th>Código</th>
-                <th>Lote</th>
-                <th>Caducidad</th>
-                <th>Inicio de Uso</th>
-                <th>Término</th>
-                <th>Stock</th>
-                <th>Calidad / QC</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan="10" style={{textAlign:'center', padding:'3rem'}}>Cargando inventario...</td></tr>
-              ) : filteredItems.length === 0 ? (
-                <tr><td colSpan="10" style={{textAlign:'center', padding:'3rem'}}>No se encontraron reactivos.</td></tr>
-              ) : filteredItems.map(item => (
-                <tr key={item.id}>
-                  <td style={{fontSize: '0.8rem', fontWeight: 700}}>
-                    <div style={{color: '#64748B'}}>{item.solicitud_id || '---'}</div>
-                    <div style={{fontSize: '0.7rem', opacity: 0.6}}>Solicitud: {item.fecha_solicitud_almacen ? new Date(item.fecha_solicitud_almacen).toLocaleDateString() : 'N/A'}</div>
-                  </td>
-                  <td style={{fontWeight: 700}}>{item.descripcion}</td>
-                  <td><span className={styles.badge} style={{background: '#F1F5F9', color: '#475569'}}>{item.codigo}</span></td>
-                  <td style={{fontFamily: 'monospace'}}>{item.lote || 'N/A'}</td>
-                  <td style={{color: new Date(item.caducidad) < new Date() ? 'red' : 'inherit', fontWeight: 600}}>
-                    {item.caducidad ? new Date(item.caducidad).toLocaleDateString() : '---'}
-                  </td>
-                  <td style={{fontSize: '0.85rem'}}>{item.fecha_inicio_uso ? new Date(item.fecha_inicio_uso).toLocaleDateString() : 'PENDIENTE'}</td>
-                  <td style={{fontSize: '0.85rem'}}>{item.fecha_termino_uso ? new Date(item.fecha_termino_uso).toLocaleDateString() : '---'}</td>
-                  <td>
-                    <span className={`${styles.badge} ${item.stock_actual < 5 ? styles.badgeDanger : styles.badgeSuccess}`} style={{fontSize: '1rem'}}>
-                      {item.stock_actual}
-                    </span>
-                  </td>
-                  <td>
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '2px', minWidth: '120px'}}>
-                      <span className={item.aceptado ? styles.badgeSuccess : styles.badgeDanger} style={{fontSize: '0.7rem', textAlign:'center'}}>
-                        {item.aceptado ? 'ACEPTADO' : 'RECHAZADO'}
-                      </span>
-                      <span style={{fontSize: '0.7rem', opacity: 0.7}}>🌡️ {item.temp_almacenamiento}</span>
-                      <span style={{fontSize: '0.7rem', opacity: 0.7}}>📦 {item.apariencia_fisica === 'SI' ? 'Apariencia OK' : 'Falla Apariencia'}</span>
-                      {item.nuevo_lote && <span style={{fontSize: '0.7rem', background:'#FEF3C7', color:'#92400E', padding:'1px 4px', borderRadius:'4px', textAlign:'center', fontWeight:700}}>NUEVO LOTE</span>}
-                    </div>
-                  </td>
-                  <td>
-                    <div style={{display: 'flex', gap: '5px'}}>
-                      {!item.fecha_inicio_uso && (
-                        <button title="Iniciar Uso" onClick={() => handleQuickStart(item.id)} className={styles.btnAction} style={{background: '#0EA5E9', color:'white'}}>
-                          <span className="material-symbols-rounded" style={{fontSize: '1.2rem'}}>play_arrow</span>
-                        </button>
-                      )}
-                      {item.fecha_inicio_uso && !item.fecha_termino_uso && (
-                        <button title="Terminar Uso" onClick={() => handleQuickEnd(item.id)} className={styles.btnAction} style={{background: '#EF4444', color:'white'}}>
-                          <span className="material-symbols-rounded" style={{fontSize: '1.2rem'}}>stop</span>
-                        </button>
-                      )}
-                      <button title="Editar / Completar" onClick={() => handleEdit(item)} className={styles.btnAction} style={{background: '#F1F5F9', color:'#475569'}}>
-                        <span className="material-symbols-rounded" style={{fontSize: '1.2rem'}}>edit</span>
-                      </button>
-                    </div>
-                  </td>
+          <div className={styles.desktopView}>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID# / Solicitud</th>
+                  <th>Descripción / Nombre</th>
+                  <th>Código</th>
+                  <th>Lote</th>
+                  <th>Caducidad</th>
+                  <th>Inicio de Uso</th>
+                  <th>Término</th>
+                  <th>Stock</th>
+                  <th>Calidad / QC</th>
+                  <th>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan="10" style={{textAlign:'center', padding:'3rem'}}>Cargando inventario...</td></tr>
+                ) : filteredItems.length === 0 ? (
+                  <tr><td colSpan="10" style={{textAlign:'center', padding:'3rem'}}>No se encontraron reactivos.</td></tr>
+                ) : filteredItems.map(item => (
+                  <tr key={item.id}>
+                    <td style={{fontSize: '0.8rem', fontWeight: 700}}>
+                      <div style={{color: '#64748B'}}>{item.solicitud_id || '---'}</div>
+                      <div style={{fontSize: '0.7rem', opacity: 0.6}}>Solicitud: {item.fecha_solicitud_almacen ? new Date(item.fecha_solicitud_almacen).toLocaleDateString() : 'N/A'}</div>
+                    </td>
+                    <td style={{fontWeight: 700}}>{item.descripcion}</td>
+                    <td><span className={styles.badge} style={{background: '#F1F5F9', color: '#475569'}}>{item.codigo}</span></td>
+                    <td style={{fontFamily: 'monospace'}}>{item.lote || 'N/A'}</td>
+                    <td style={{color: new Date(item.caducidad) < new Date() ? 'red' : 'inherit', fontWeight: 600}}>
+                      {item.caducidad ? new Date(item.caducidad).toLocaleDateString() : '---'}
+                    </td>
+                    <td style={{fontSize: '0.85rem'}}>{item.fecha_inicio_uso ? new Date(item.fecha_inicio_uso).toLocaleDateString() : 'PENDIENTE'}</td>
+                    <td style={{fontSize: '0.85rem'}}>{item.fecha_termino_uso ? new Date(item.fecha_termino_uso).toLocaleDateString() : '---'}</td>
+                    <td>
+                      <span className={`${styles.badge} ${item.stock_actual < 5 ? styles.badgeDanger : styles.badgeSuccess}`} style={{fontSize: '1rem'}}>
+                        {item.stock_actual}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{display: 'flex', flexDirection: 'column', gap: '2px', minWidth: '120px'}}>
+                        <span className={item.aceptado ? styles.badgeSuccess : styles.badgeDanger} style={{fontSize: '0.7rem', textAlign:'center'}}>
+                          {item.aceptado ? 'ACEPTADO' : 'RECHAZADO'}
+                        </span>
+                        <span style={{fontSize: '0.7rem', opacity: 0.7}}>🌡️ {item.temp_almacenamiento}</span>
+                        <span style={{fontSize: '0.7rem', opacity: 0.7}}>📦 {item.apariencia_fisica === 'SI' ? 'Apariencia OK' : 'Falla Apariencia'}</span>
+                        {item.nuevo_lote && <span style={{fontSize: '0.7rem', background:'#FEF3C7', color:'#92400E', padding:'1px 4px', borderRadius:'4px', textAlign:'center', fontWeight:700}}>NUEVO LOTE</span>}
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{display: 'flex', gap: '5px'}}>
+                        {!item.fecha_inicio_uso && (
+                          <button title="Iniciar Uso" onClick={() => handleQuickStart(item.id)} className={styles.btnAction} style={{background: '#0EA5E9', color:'white'}}>
+                            <span className="material-symbols-rounded" style={{fontSize: '1.2rem'}}>play_arrow</span>
+                          </button>
+                        )}
+                        {item.fecha_inicio_uso && !item.fecha_termino_uso && (
+                          <button title="Terminar Uso" onClick={() => handleQuickEnd(item.id)} className={styles.btnAction} style={{background: '#EF4444', color:'white'}}>
+                            <span className="material-symbols-rounded" style={{fontSize: '1.2rem'}}>stop</span>
+                          </button>
+                        )}
+                        <button title="Editar / Completar" onClick={() => handleEdit(item)} className={styles.btnAction} style={{background: '#F1F5F9', color:'#475569'}}>
+                          <span className="material-symbols-rounded" style={{fontSize: '1.2rem'}}>edit</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className={styles.mobileView}>
+            {loading ? (
+                <div style={{padding: '3rem', textAlign: 'center'}}>Cargando inventario...</div>
+            ) : filteredItems.length === 0 ? (
+                <div style={{padding: '3rem', textAlign: 'center'}}>No se encontraron reactivos.</div>
+            ) : (
+                <div className={styles.cardsGridMobile}>
+                    {filteredItems.map(item => (
+                        <InventoryCard 
+                            key={item.id} 
+                            item={item} 
+                            onEdit={handleEdit} 
+                            onQuickStart={handleQuickStart} 
+                            onQuickEnd={handleQuickEnd} 
+                        />
+                    ))}
+                </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -399,7 +526,7 @@ export default function InventarioHemato() {
                     </button>
                   </div>
                 </div>
-                <div className={styles.inputGroup} style={{gridColumn: 'span 2'}}>
+                <div className={`${styles.inputGroup} ${styles.spanFull}`}>
                   <label>SUB-ÁREA DE TRABAJO</label>
                   <select value={form.sub_area} onChange={e => setForm({...form, sub_area: e.target.value})} style={{fontWeight: 700}}>
                     <option value="HEMATOLOGÍA">HEMATOLOGÍA GENERAL</option>

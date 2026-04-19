@@ -264,6 +264,10 @@ td {
   gap: 6px;
 }
 
+.spanFull {
+  grid-column: span 2;
+}
+
 .inputGroup label {
   font-size: 0.85rem;
   font-weight: 700;
@@ -404,4 +408,295 @@ td {
 .btnAction:hover {
   transform: scale(1.1);
   filter: brightness(0.9);
+}
+
+/* --- RESPONSIVE / MOBILE TRANSFORMATION --- */
+.desktopView {
+    display: block;
+}
+
+.mobileView {
+    display: none;
+}
+
+@media (max-width: 1024px) {
+    .desktopView {
+        display: none !important;
+    }
+    
+    .mobileView {
+        display: block;
+        padding: 1rem;
+    }
+
+    .container {
+        padding: 1rem;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+
+    .title {
+        font-size: 1.5rem; /* Ajustado para móviles */
+        gap: 10px;
+    }
+
+    .btnPrimary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .statsGrid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+    }
+}
+
+/* INVENTORY CARD STYLES */
+.cardsGridMobile {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    padding-bottom: 2rem;
+}
+
+.inventoryCard {
+    background: white;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    padding: 1.25rem;
+    position: relative;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.isExpanded {
+    border-color: #3b82f6;
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.1);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.cardTitle h3 {
+    margin: 4px 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1.3;
+}
+
+.cardID {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #94a3b8;
+    background: #f8fafc;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.cardSubDetails {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+.badgeCode, .badgeLote {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.cardStock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.stockCircle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 1.2rem;
+}
+
+.stockOk { background: #dcfce7; color: #15803d; }
+.stockCritical { background: #fee2e2; color: #dc2626; }
+
+.cardStock label {
+    font-size: 0.6rem;
+    font-weight: 900;
+    color: #94a3b8;
+}
+
+.cardQuickInfo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding: 0.8rem 0;
+    border-top: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.quickItem {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.quickItem label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.quickItem span {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.cardExpandedContent {
+    padding: 1rem 0;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.detailsGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: 12px;
+}
+
+.detailRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+}
+
+.detailRow label {
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+.detailRow span {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.newLotBadge {
+    background: #fef3c7;
+    color: #92400e;
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 4px;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+.cardActions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.mainActions {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+}
+
+.mobileActionBtn {
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.mobileEditBtn {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    padding: 8px;
+    border-radius: 10px;
+    display: flex;
+    cursor: pointer;
+}
+
+.expandTip {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+    color: #94a3b8;
+}
+
+.textSuccess { color: #10B981; font-weight: 800; }
+.textDanger { color: #EF4444; font-weight: 800; }
+
+@media (max-width: 768px) {
+    .modal {
+        width: 95%;
+        padding: 1.5rem;
+        border-radius: 20px;
+    }
+
+    .formGrid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+    }
+
+    .spanFull {
+        grid-column: span 1 !important;
+    }
+
+    .inputGroup input, .inputGroup select {
+        padding: 0.8rem;
+        font-size: 0.95rem;
+    }
+
+    .title {
+        font-size: 1.4rem;
+    }
+
+    .qcTitle {
+        font-size: 0.8rem;
+    }
+
+    .modal h2 {
+        font-size: 1.2rem;
+        line-height: 1.2;
+    }
 }

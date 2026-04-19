@@ -115,6 +115,77 @@ const FilterDropdown = memo(({ columnKey, label, items, activeFilters, applyFilt
     );
 });
 
+const MaterialCard = memo(({ item, isExpanded, toggleRow, stock, isLow, isCritical, loadedLots, openBarsModal, isLoadingDetail }) => {
+    const myUnits = loadedLots[item.id] || [];
+    const lotsGrouped = myUnits.reduce((acc, curr) => {
+        const key = curr.lote_numero || 'SIN LOTE';
+        if (!acc[key]) acc[key] = { count: 0, caducidad: curr.caducidad };
+        acc[key].count++;
+        return acc;
+    }, {});
+
+    return (
+        <div className={`${styles.materialCard} ${isCritical ? styles.cardCritical : isLow ? styles.cardLow : ''}`} onClick={() => toggleRow(item.id)}>
+            <div className={styles.cardHeader}>
+                <div className={styles.cardTitle}>
+                    <span className={styles.cardPrefix}>{item.prefijo}</span>
+                    <h3>{item.nombre}</h3>
+                </div>
+                <div className={styles.cardStatus}>
+                    {isCritical ? <span className={`${styles.statusLabel} ${styles.statusCritical}`}>AGOTADO</span> : isLow ? <span className={`${styles.statusLabel} ${styles.statusLow}`}>BAJO STOCK</span> : <span className={`${styles.statusLabel} ${styles.statusOk}`}>ÓPTIMO</span>}
+                </div>
+            </div>
+            
+            <div className={styles.cardBody}>
+                <div className={styles.cardInfoGrid}>
+                    <div className={styles.infoItem}>
+                        <label>Área</label>
+                        <span>{item.area_tecnica || '---'}</span>
+                    </div>
+                    <div className={styles.infoItem}>
+                        <label>Existencia</label>
+                        <span className={styles.bold}>{stock} {item.unidad}(s)</span>
+                    </div>
+                    <div className={styles.infoItem}>
+                        <label>Distribución</label>
+                        <span>{Object.keys(lotsGrouped).length} Lote(s)</span>
+                    </div>
+                    <div className={styles.infoItem}>
+                        <label>Acción</label>
+                        <span className={styles.tapTip}>{isExpanded ? 'Ver menos' : 'Ver lotes'}</span>
+                    </div>
+                </div>
+            </div>
+
+            {isExpanded && (
+                <div className={styles.cardDetails} onClick={(e) => e.stopPropagation()}>
+                    <h4>Lotes en Almacén Central</h4>
+                    {isLoadingDetail ? (
+                        <div className={styles.cardLoader}>Sincronizando...</div>
+                    ) : Object.entries(lotsGrouped).length > 0 ? (
+                        <div className={styles.lotCardsMobile}>
+                            {Object.entries(lotsGrouped).map(([lote, info]) => (
+                                <div key={lote} className={styles.lotCardMini}>
+                                    <div className={styles.lotMiniInfo}>
+                                        <strong>Lote: {lote}</strong>
+                                        <span>Caducidad: {info.caducidad ? new Date(info.caducidad).toLocaleDateString() : 'N/A'}</span>
+                                        <span>Cantidad: {info.count}</span>
+                                    </div>
+                                    <button className={styles.barcodeBtn} onClick={() => openBarsModal(item.id, lote)}>
+                                        <span className="material-symbols-rounded">barcode_scanner</span>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className={styles.emptyDetail}>No hay lotes físicos registrados.</p>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+});
+
 const MaterialRow = memo(({ item, isExpanded, toggleRow, stock, isLow, isCritical, loadedLots, openBarsModal, isLoadingDetail }) => {
     const myUnits = loadedLots[item.id] || [];
     const lotsGrouped = myUnits.reduce((acc, curr) => {
@@ -464,72 +535,61 @@ export default function InventarioGeneral() {
                 {loading ? (
                     <div className={styles.loader}>Sincronizando inventario visual...</div>
                 ) : (
-                    <div className={styles.tableWrapper}>
-                        <table className={styles.denseTable}>
-                            <thead>
-                                <tr>
-                                    <th style={{width: '40px'}}></th>
-                                    <th className={styles.sortableHeader}>
-                                        <div className={styles.headerCell}>
-                                            <span>Cód.</span>
-                                            <button onClick={() => setOpenDropdown(openDropdown === 'prefijo' ? null : 'prefijo')} className={columnFilters['prefijo'] ? styles.filterActive : ''}>
-                                                <span className="material-symbols-rounded">filter_list</span>
-                                            </button>
-                                            {openDropdown === 'prefijo' && (
-                                                <FilterDropdown columnKey="prefijo" label="Código" items={catalogo} activeFilters={columnFilters} applyFilter={applyColumnFilter} clearFilter={clearColumnFilter} requestSort={requestSort} sortConfig={sortConfig} onClose={() => setOpenDropdown(null)} />
-                                            )}
-                                        </div>
-                                    </th>
-                                    <th>Barras</th>
-                                    <th className={styles.sortableHeader}>
-                                        <div className={styles.headerCell}>
-                                            <span>Clase</span>
-                                            <button onClick={() => setOpenDropdown(openDropdown === 'clase' ? null : 'clase')} className={columnFilters['clase'] ? styles.filterActive : ''}>
-                                                <span className="material-symbols-rounded">filter_list</span>
-                                            </button>
-                                            {openDropdown === 'clase' && (
-                                                <FilterDropdown columnKey="clase" label="Clase" items={catalogo} activeFilters={columnFilters} applyFilter={applyColumnFilter} clearFilter={clearColumnFilter} requestSort={requestSort} sortConfig={sortConfig} onClose={() => setOpenDropdown(null)} />
-                                            )}
-                                        </div>
-                                    </th>
-                                    <th className={styles.sortableHeader}>
-                                        <div className={styles.headerCell}>
-                                            <span>Material</span>
-                                        </div>
-                                    </th>
-                                    <th className={styles.sortableHeader}>
-                                        <div className={styles.headerCell}>
-                                            <span>Área</span>
-                                            <button onClick={() => setOpenDropdown(openDropdown === 'area_tecnica' ? null : 'area_tecnica')} className={columnFilters['area_tecnica'] ? styles.filterActive : ''}>
-                                                <span className="material-symbols-rounded">filter_list</span>
-                                            </button>
-                                            {openDropdown === 'area_tecnica' && (
-                                                <FilterDropdown columnKey="area_tecnica" label="Área" items={catalogo} activeFilters={columnFilters} applyFilter={applyColumnFilter} clearFilter={clearColumnFilter} requestSort={requestSort} sortConfig={sortConfig} onClose={() => setOpenDropdown(null)} />
-                                            )}
-                                        </div>
-                                    </th>
-                                    <th className={styles.sortableHeader}>
-                                        <div className={styles.headerCell}>
-                                            <span>Marca</span>
-                                            <button onClick={() => setOpenDropdown(openDropdown === 'marca' ? null : 'marca')} className={columnFilters['marca'] ? styles.filterActive : ''}>
-                                                <span className="material-symbols-rounded">filter_list</span>
-                                            </button>
-                                            {openDropdown === 'marca' && (
-                                                <FilterDropdown columnKey="marca" label="Marca" items={catalogo} activeFilters={columnFilters} applyFilter={applyColumnFilter} clearFilter={clearColumnFilter} requestSort={requestSort} sortConfig={sortConfig} onClose={() => setOpenDropdown(null)} />
-                                            )}
-                                        </div>
-                                    </th>
-                                    <th className={styles.textCenter}>Costo</th>
-                                    <th className={styles.textCenter}>Precio</th>
-                                    <th className={styles.textCenter}>Stock</th>
-                                    <th className={styles.textCenter}>Min.</th>
-                                    <th>Estatus</th>
-                                    <th className={styles.textRight}>Unidad</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredMaterials.map(item => (
-                                    <MaterialRow 
+                    <div className={styles.inventoryContainer}>
+                        {/* VISTA DE ESCRITORIO - TABLA COMPLETA */}
+                        <div className={styles.desktopView}>
+                            <div className={styles.tableWrapper}>
+                                <table className={styles.denseTable}>
+                                    <thead>
+                                        <tr>
+                                            <th style={{width: '40px'}}></th>
+                                            <th className={styles.sortableHeader}>
+                                                <div className={styles.headerCell}><span>Cód.</span><button onClick={() => setOpenDropdown(openDropdown === 'prefijo' ? null : 'prefijo')}><span className="material-symbols-rounded">filter_list</span></button></div>
+                                            </th>
+                                            <th>Barras</th>
+                                            <th className={styles.sortableHeader}>
+                                                <div className={styles.headerCell}><span>Clase</span><button onClick={() => setOpenDropdown(openDropdown === 'clase' ? null : 'clase')}><span className="material-symbols-rounded">filter_list</span></button></div>
+                                            </th>
+                                            <th>Material</th>
+                                            <th className={styles.sortableHeader}>
+                                                <div className={styles.headerCell}><span>Área</span><button onClick={() => setOpenDropdown(openDropdown === 'area_tecnica' ? null : 'area_tecnica')}><span className="material-symbols-rounded">filter_list</span></button></div>
+                                            </th>
+                                            <th>Marca</th>
+                                            <th className={styles.textCenter}>Costo</th>
+                                            <th className={styles.textCenter}>Precio</th>
+                                            <th className={styles.textCenter}>Stock</th>
+                                            <th className={styles.textCenter}>Min.</th>
+                                            <th>Estatus</th>
+                                            <th className={styles.textRight}>Unidad</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredMaterials.map(item => (
+                                            <MaterialRow 
+                                                key={item.id}
+                                                item={item}
+                                                isExpanded={expandedRows.has(item.id)}
+                                                toggleRow={toggleRow}
+                                                stock={item.stock_real}
+                                                isLow={item.stock_real <= item.stock_minimo && item.stock_real > 0}
+                                                isCritical={item.stock_real === 0}
+                                                loadedLots={loadedLots}
+                                                openBarsModal={openBarsModal}
+                                                isLoadingDetail={loadingRows.has(item.id)}
+                                            />
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* VISTA MÓVIL - TARJETAS GRÁFICAS */}
+                        <div className={styles.mobileView}>
+                            {filteredMaterials.length === 0 ? (
+                                <div className={styles.emptyMobile}>No se encontraron materiales con estos filtros.</div>
+                            ) : (
+                                filteredMaterials.map(item => (
+                                    <MaterialCard 
                                         key={item.id}
                                         item={item}
                                         isExpanded={expandedRows.has(item.id)}
@@ -541,9 +601,9 @@ export default function InventarioGeneral() {
                                         openBarsModal={openBarsModal}
                                         isLoadingDetail={loadingRows.has(item.id)}
                                     />
-                                ))}
-                            </tbody>
-                        </table>
+                                ))
+                            )}
+                        </div>
                     </div>
                 )}
             </main>
