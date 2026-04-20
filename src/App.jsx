@@ -26,6 +26,7 @@ import NuevaRequisicion from './pages/dashboard/NuevaRequisicion';
 import GestionRequisiciones from './pages/dashboard/GestionRequisiciones';
 import HistorialRequisicionesArea from './pages/dashboard/HistorialRequisicionesArea';
 import RelacionFoliosGeneral from './pages/dashboard/RelacionFoliosGeneral';
+import PortalPacientes from './pages/PortalPacientes';
 
 // Áreas Modulares
 import HematologiaDashboard from './pages/dashboard/areas/HematologiaDashboard';
@@ -120,8 +121,10 @@ function App() {
   return (
     <div className="app-container">
       <Routes>
-        {/* Ruta Pública (No requiere sesión) */}
+        {/* Rutas Públicas (No requieren sesión) */}
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+        <Route path="/portal" element={<PortalPacientes />} />
+        <Route path="/portal/:code" element={<PortalPacientes />} />
 
         {/* Rutas Privadas (Protegidas, requieren sesión) */}
         <Route path="/" element={
@@ -184,7 +187,7 @@ function App() {
         <Route path="/area/quimica-clinica" element={<AreaRoute requiredRole="quimica_clinica"><DashboardLayout><QuimicaClinicaDashboard /></DashboardLayout></AreaRoute>} />
 
       </Routes>
-      <ChatWidget />
+      {user && <ChatWidget />}
     </div>
   );
 }

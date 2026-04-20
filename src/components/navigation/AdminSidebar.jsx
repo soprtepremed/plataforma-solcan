@@ -56,6 +56,13 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
       ]
     },
     {
+      title: 'MARKETING',
+      items: [
+        { label: 'Promociones Portal', path: '/admin/promociones', icon: 'campaign' },
+        { label: 'Ver Portal Pacientes', path: '/portal', icon: 'open_in_new' },
+      ]
+    },
+    {
       title: 'ÁREAS TÉCNICAS',
       items: [
         { label: 'Hematología', path: '/area/hematologia', icon: 'bloodtype' },

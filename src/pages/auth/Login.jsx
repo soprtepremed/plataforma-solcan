@@ -78,7 +78,7 @@ export default function Login() {
               type="text" 
               className={styles.branchSelect} 
               style={{ width: '100%', boxSizing: 'border-box' }}
-              placeholder="Ej. maria, admin..." 
+              placeholder="Escriba su usuario" 
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               autoFocus
@@ -95,7 +95,7 @@ export default function Login() {
                 pattern="[0-9]*"
                 className={styles.branchSelect} 
                 style={{ width: '100%', boxSizing: 'border-box', paddingRight: '45px' }}
-                placeholder="••••" 
+                placeholder="Ingrese su PIN" 
                 value={pin}
                 onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                 autoComplete="current-password"
