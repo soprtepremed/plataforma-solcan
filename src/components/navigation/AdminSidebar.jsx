@@ -61,7 +61,7 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
         { label: 'Hematología', path: '/area/hematologia', icon: 'bloodtype' },
         { label: 'Microbiología', path: '/area/microbiologia', icon: 'biotech' },
         { label: 'Urianálisis', path: '/area/urianalisis', icon: 'science' },
-        { label: 'Química Clínica', path: '/area/quimica-clinica', icon: 'chemistry' },
+        { label: 'Química Clínica', path: '/area/quimica-clinica', icon: 'science' },
       ]
     }
   ];

@@ -4,321 +4,202 @@ import { useAuth } from '../../context/AuthContext';
 import styles from './ChatWidget.module.css';
 
 const AREAS = [
-  { id: 'hematologia', name: 'Hematología', icon: 'bloodtype' },
+  { id: 'hematologia', name: 'Hematología', icon: 'biotech' },
   { id: 'quimica_clinica', name: 'Química Clínica', icon: 'science' },
-  { id: 'almacen', name: 'Almacén', icon: 'inventory_2' },
-  { id: 'admin', name: 'Soporte / Admin', icon: 'support_agent' }
+  { id: 'urianalisis', name: 'Urianálisis', icon: 'medication' },
+  { id: 'microbiologia', name: 'Microbiología', icon: 'coronavirus' },
+  { id: 'serologia', name: 'Serología', icon: 'bloodtype' },
+  { id: 'almacen', name: 'Almacén e Insumos', icon: 'inventory_2' },
+  { id: 'admin', name: 'Soporte / Central', icon: 'support_agent' }
 ];
+
+const cleanSuc = n => (n || '').toLowerCase().replace(/\s*\([^)]*\)/g, '').trim();
 
 export default function ChatWidget() {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  
-  // Estados de navegación interna
+  const [activeTab, setActiveTab] = useState('sucursales');
   const [selectedArea, setSelectedArea] = useState(null);
   const [selectedSucursal, setSelectedSucursal] = useState(null);
-  
+  const [sucursalesDb, setSucursalesDb] = useState([]);
+  const [chatType, setChatType] = useState('sucursal-area'); 
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadBySucursal, setUnreadBySucursal] = useState({});
-  const [activeSucursales, setActiveSucursales] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [stagedFile, setStagedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [audioCtx, setAudioCtx] = useState(null);
   
+  const fileInputRef = useRef(null);
   const scrollRef = useRef(null);
-  const r = user?.role?.toLowerCase() || '';
-  const isAdmin = r === 'admin' || r === 'administrador' || r === 'administración';
-  const isBranch = r === 'recepcion' || r === 'toma_de_muestra';
-
   const areaRef = useRef(null);
   const sucursalRef = useRef(null);
   const isOpenRef = useRef(false);
+  const chatTypeRef = useRef('sucursal-area');
 
-  // --- AUDIO NOTIFICATION (Campana) ---
-  const [audioCtx, setAudioCtx] = useState(null);
+  const r = (user?.role || '').toLowerCase().trim();
+  const isQuimico = r.includes('quimico') || r.includes('químico');
+  const isAdmin = r === 'admin' || r === 'administrador' || r === 'administración' || r.includes('logistica');
+  const isAreaStaff = AREAS.some(area => area.id === r);
+  const isBranch = !!(user?.branch || user?.sucursal) && !isAdmin && !isAreaStaff;
+  const isAuthorized = (isAdmin || isBranch || isAreaStaff) && !isQuimico;
+
+  useEffect(() => {
+    areaRef.current = selectedArea; sucursalRef.current = selectedSucursal;
+    isOpenRef.current = isOpen; chatTypeRef.current = chatType;
+  }, [selectedArea, selectedSucursal, isOpen, chatType]);
+
   const playBell = () => {
     try {
-      let ctx = audioCtx;
-      if (!ctx) {
-        ctx = new (window.AudioContext || window.webkitAudioContext)();
-        setAudioCtx(ctx);
-      }
+      let ctx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (!audioCtx) setAudioCtx(ctx);
       if (ctx.state === 'suspended') ctx.resume();
-      
-      const now = ctx.currentTime;
-      
-      // Función para crear una nota armónica
-      const createTone = (freq, vol, decay) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, now);
-        gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(vol, now + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + decay);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(now);
-        osc.stop(now + decay);
+      const playNote = (f, s, d) => {
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(f, ctx.currentTime+s);
+        g.gain.setValueAtTime(0, ctx.currentTime+s);
+        g.gain.linearRampToValueAtTime(0.3, ctx.currentTime+s+0.01);
+        g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime+s+d);
+        o.connect(g); g.connect(ctx.destination); o.start(ctx.currentTime+s); o.stop(ctx.currentTime+s+d);
       };
-
-      // Combinación de frecuencias para efecto de campana (Fundamentales y Armónicos)
-      createTone(880, 0.15, 1.2); // Nota principal (A5)
-      createTone(1318.51, 0.08, 0.8); // Quinta (E6)
-      createTone(1760, 0.05, 0.5); // Octava (A6)
-      
-    } catch (e) { console.warn("Audio blocked", e); }
+      playNote(880, 0, 0.1); playNote(1174.66, 0.08, 0.2);
+    } catch(e){}
   };
 
-  useEffect(() => { areaRef.current = selectedArea; }, [selectedArea]);
-  useEffect(() => { sucursalRef.current = selectedSucursal; }, [selectedSucursal]);
-  useEffect(() => { isOpenRef.current = isOpen; }, [isOpen]);
+  useEffect(() => {
+    if (!user || !isAuthorized || isBranch) return;
+    const fetchSucs = async () => {
+      const { data } = await supabase.from('empleados').select('sucursal');
+      const excludeKeywords = ["MATRIZ", "CENTRAL", "OFICINA", "TRANSPORTE", "ADMIN", "TUXTLA"];
+      const sSet = new Set();
+      data?.forEach(e => { if (e.sucursal) { const upper = e.sucursal.toUpperCase(); if (!excludeKeywords.some(k => upper.includes(k))) sSet.add(e.sucursal); } });
+      setSucursalesDb(Array.from(sSet).sort().map(s => ({ id: s, name: s })));
+    };
+    fetchSucs();
+  }, [user, isAuthorized, isBranch]);
 
-  const markAsRead = async (specificId, targetCanal = null, targetSuc = null) => {
+  const getUnreadKey = (msg) => {
+    if (msg.sucursal.startsWith('INTER:')) {
+      const parts = msg.sucursal.replace('INTER:', '').split('-');
+      return parts.find(p => p !== r) || 'admin';
+    }
+    return isBranch ? msg.canal : msg.sucursal;
+  };
+
+  const markAsRead = async (id, tCanal, tSuc) => {
     if (!user) return;
     try {
-      let query = supabase.from('chat_messages').update({ leido: true }).eq('leido', false).neq('emisor_id', user.id);
-      
-      if (specificId) {
-        query = query.eq('id', specificId);
-      } else {
-        const selArea = targetCanal || areaRef.current;
-        const selSuc = targetSuc || sucursalRef.current;
-
-        if (isBranch && selArea) {
-          query = query.eq('canal', selArea.id || selArea).eq('sucursal', user.branch || user.sucursal);
-        } else if (!isBranch && selSuc) {
-          query = query.eq('sucursal', selSuc);
-          if (!isAdmin) query = query.eq('canal', r);
-        } else {
-          return;
-        }
+      let q = supabase.from('chat_messages').update({ leido: true }).eq('leido', false).neq('emisor_id', user.id);
+      if (id) q = q.eq('id', id); else {
+        const sA = tCanal || areaRef.current; const sS = tSuc || sucursalRef.current;
+        if (isBranch && sA) q = q.eq('canal', sA.id || sA).eq('sucursal', user.branch || user.sucursal);
+        else if (!isBranch && sS) {
+          if (chatTypeRef.current === 'area-area') q = q.eq('sucursal', `INTER:${[r, cleanSuc(sS)].sort().join('-')}`);
+          else q = q.eq('sucursal', sS).eq('canal', r);
+        } else return;
       }
-      await query;
-      fetchInitialUnread(); // Recualcular badge global
-    } catch (e) { console.error("Error marking as read:", e); }
+      await q; fetchInitialUnread();
+    } catch (e) {}
   };
-
-  useEffect(() => {
-    if (!user) return;
-
-    console.log("Chat: Iniciando suscripción realtime...");
-    const channel = supabase
-      .channel('chat_global')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages' }, payload => {
-        if (payload.eventType === 'INSERT') {
-          const msg = payload.new;
-          if (!msg) return;
-          const curArea = areaRef.current;
-          const curSuc = sucursalRef.current;
-          const myRole = user.role?.toLowerCase() || '';
-          const mySuc = (user.branch || user.sucursal || '').toLowerCase();
-          
-          const isFromOther = msg.emisor_id !== user.id;
-          let isForCurrentView = false;
-          if (isBranch) {
-            isForCurrentView = curArea && msg.canal === curArea.id && msg.sucursal.toLowerCase() === mySuc;
-          } else {
-            const canalCoincide = isAdmin || msg.canal === myRole;
-            isForCurrentView = curSuc && msg.sucursal.toLowerCase() === curSuc.toLowerCase() && canalCoincide;
-          }
-
-          if (isOpenRef.current && isForCurrentView) {
-              setMessages(prev => {
-                const isDuplicate = prev.some(m => 
-                  m.id === msg.id || 
-                  (m.contenido === msg.contenido && m.emisor_id === msg.emisor_id && !m.id)
-                );
-                if (isDuplicate) return prev.map(m => (!m.id && m.contenido === msg.contenido && m.emisor_id === msg.emisor_id) ? msg : m);
-                return [...prev, msg];
-              });
-              if (isFromOther) {
-                playBell();
-                markAsRead(msg.id);
-              }
-          } else {
-              const isMsgForMe = isAdmin || msg.canal === myRole || (isBranch && msg.sucursal.toLowerCase() === mySuc);
-              if (isMsgForMe && isFromOther) {
-                setUnreadCount(prev => prev + 1);
-                const key = isBranch ? msg.canal : msg.sucursal;
-                setUnreadBySucursal(prev => ({ ...prev, [key]: (prev[key] || 0) + 1 }));
-                playBell();
-                showSystemNotification(msg);
-              }
-          }
-        }
-        
-        if (payload.eventType === 'UPDATE') {
-          const updatedMsg = payload.new;
-          setMessages(prev => prev.map(m => m.id === updatedMsg.id ? updatedMsg : m));
-        }
-
-        if (!isBranch) fetchActiveSucursales();
-      })
-      .subscribe((status) => {
-        console.log(`Chat: Estado de suscripción: ${status}`);
-        if (status === 'CHANNEL_ERROR') {
-          console.error("Chat: Error en la conexión realtime. Es posible que la tabla no tenga habilitado Realtime en Supabase.");
-        }
-      });
-
-    return () => { 
-      console.log("Chat: Removiendo suscripción...");
-      supabase.removeChannel(channel); 
-    };
-  }, [user]);
-
-  useEffect(() => {
-    if (isOpen && !isBranch) fetchActiveSucursales();
-  }, [isOpen]);
-
-  // --- NOTIFICACIONES DEL SISTEMA ---
-  useEffect(() => {
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission();
-    }
-  }, []);
-
-  const showSystemNotification = (msg) => {
-    if ("Notification" in window && Notification.permission === "granted") {
-      new Notification(`Nuevo mensaje de ${msg.emisor_nombre}`, {
-        body: msg.contenido,
-        icon: '/favicon.ico' // Opcional: ruta a tu icono
-      });
-    }
-  };
-
-  // --- AUTO-CLEANUP (Borra mensajes > 24h) ---
-  useEffect(() => {
-    const cleanup = async () => {
-      try {
-        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        const { error } = await supabase.from('chat_messages').delete().lt('created_at', yesterday);
-        if (error) console.warn("Cleanup error:", error.message);
-        else console.log("Chat: Limpieza de mensajes antiguos completada.");
-      } catch (e) { console.error("Cleanup failed:", e); }
-    };
-    if (user) {
-      cleanup();
-      fetchInitialUnread();
-    }
-  }, [user]);
 
   const fetchInitialUnread = async () => {
-    if (!user) return;
-    try {
-      let query = supabase.from('chat_messages').select('id', { count: 'exact' }).eq('leido', false).neq('emisor_id', user.id);
-      
-      if (isBranch) {
-        query = query.eq('sucursal', user.branch || user.sucursal);
-      } else {
-        if (!isAdmin) query = query.eq('canal', r);
-      }
-
-      const { count } = await query;
-      setUnreadCount(count || 0);
-
-      // Cargar desglosado por (sucursal para técnicos | area para sucursales)
-      const { data } = await supabase.from('chat_messages').select('sucursal, canal').eq('leido', false).neq('emisor_id', user.id);
-      if (data) {
-        const counts = {};
-        data.forEach(m => { 
-          const key = isBranch ? m.canal : m.sucursal;
-          counts[key] = (counts[key] || 0) + 1; 
-        });
-        setUnreadBySucursal(counts);
-      }
-    } catch (e) { console.error("Error fetching unread:", e); }
-  };
-
-  useEffect(() => {
-    if (selectedArea || selectedSucursal) {
-      // 1. LIMPIEZA TOTAL OPTIMISTA (Local e instantánea)
-      const key = isBranch ? (selectedArea?.id || selectedArea) : selectedSucursal;
-      
-      setUnreadBySucursal(prev => {
-        const newState = { ...prev };
-        delete newState[key];
-        return newState;
-      });
-
-      // Recalcular contador global restando lo que acabamos de "leer" localmente
-      setUnreadCount(prev => Math.max(0, prev - (unreadBySucursal[key] || 0)));
-      
-      // 2. SINCRONIZACIÓN CON BASE DE DATOS
-      markAsRead(null, selectedArea?.id || selectedArea, selectedSucursal); 
-      fetchMessages();
-    }
-  }, [selectedArea, selectedSucursal, isOpen]);
-
-  useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages]);
-
-  const fetchActiveSucursales = async () => {
-    let query = supabase.from('chat_messages').select('sucursal, created_at');
-    if (!isAdmin) query = query.eq('canal', r);
-    const { data } = await query.order('created_at', { ascending: false });
+    if (!user || !isAuthorized) return;
+    let q = supabase.from('chat_messages').select('id, sucursal, canal, emisor_id').eq('leido', false).neq('emisor_id', user.id);
+    if (isBranch) q = q.eq('sucursal', user.branch || user.sucursal);
+    else if (!isAdmin) q = q.or(`canal.eq.${r},sucursal.ilike.%${r}%`);
+    const { data } = await q;
     if (data) {
-      const unique = [...new Set(data.map(m => m.sucursal).filter(Boolean))];
-      setActiveSucursales(unique);
+      setUnreadCount(data.length); const c = {}; data.forEach(m => { const k = getUnreadKey(m); c[k] = (c[k] || 0)+1; });
+      setUnreadBySucursal(c);
     }
   };
+
+  useEffect(() => {
+    if (!user || !isAuthorized) return;
+    fetchInitialUnread();
+    const sub = supabase.channel('chat_vistos_sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages' }, p => {
+        if (p.eventType === 'INSERT') {
+          const m = p.new;
+          let forMe = false;
+          if (isBranch) forMe = cleanSuc(m.sucursal) === cleanSuc(user.branch || user.sucursal);
+          else forMe = isAdmin || m.canal === r || m.sucursal.includes(r);
+          
+          if (forMe || m.emisor_id === user.id) {
+            let cur = false; const cS = cleanSuc(sucursalRef.current);
+            if (isBranch) cur = (areaRef.current?.id || areaRef.current) === m.canal;
+            else if (chatTypeRef.current === 'area-area') cur = m.sucursal === `INTER:${[r, cS].sort().join('-')}`;
+            else cur = cS === cleanSuc(m.sucursal) && m.canal === r;
+            
+            if (isOpenRef.current && cur) {
+              setMessages(prev => {
+                const already = prev.find(x => x.id === m.id); if (already) return prev;
+                const tempIdx = prev.findIndex(x => !x.id && x.contenido === m.contenido && x.emisor_id === m.emisor_id);
+                if (tempIdx !== -1) { const n = [...prev]; n[tempIdx] = m; return n; }
+                return [...prev, m];
+              });
+              if (m.emisor_id !== user.id) markAsRead(m.id);
+            } else if (m.emisor_id !== user.id && forMe) {
+              playBell();
+              setUnreadCount(v => v + 1); const k = getUnreadKey(m); setUnreadBySucursal(v => ({ ...v, [k]: (v[k] || 0)+1 }));
+            }
+          }
+        }
+        if (p.eventType === 'UPDATE') {
+          // Fusionar cambios (leido: true) sin perder datos existentes
+          setMessages(v => v.map(x => x.id === p.new.id ? { ...x, ...p.new } : x));
+          fetchInitialUnread();
+        }
+      }).subscribe();
+    return () => supabase.removeChannel(sub);
+  }, [user, isAuthorized]);
 
   const fetchMessages = async () => {
-    // Obtenemos los últimos 50 mensajes de forma descendente para tener los más recientes
-    let query = supabase.from('chat_messages').select('*').order('created_at', { ascending: false }).limit(50);
-    
-    if (isBranch) {
-      if (!selectedArea) return;
-      query = query.eq('canal', selectedArea.id).eq('sucursal', user.branch || user.sucursal);
-    } else {
-      if (!selectedSucursal) return;
-      query = query.eq('sucursal', selectedSucursal);
-      if (!isAdmin) query = query.eq('canal', r);
-    }
+    const cS = cleanSuc(selectedSucursal);
+    let q = supabase.from('chat_messages').select('*').order('created_at', { ascending: false }).limit(60);
+    if (isBranch) { if(!selectedArea) return; q = q.eq('canal', (selectedArea.id || selectedArea).toLowerCase()).ilike('sucursal', `%${cleanSuc(user.branch || user.sucursal)}%`); }
+    else { if (chatType === 'area-area') q = q.eq('sucursal', `INTER:${[r, cS].sort().join('-')}`); else { if(!selectedSucursal) return; q = q.ilike('sucursal', `%${cS}%`).eq('canal', r); } }
+    const { data } = await q; if(data) setMessages(data.reverse());
+  };
 
-    const { data } = await query;
-    if (data) {
-      // Los invertimos para que se vean en orden cronológico (viejo -> nuevo)
-      setMessages(data.reverse());
+  useEffect(() => {
+    if ((selectedArea || selectedSucursal) && isAuthorized) {
+      const key = isBranch ? (selectedArea?.id || selectedArea) : selectedSucursal;
+      setUnreadBySucursal(p => { const n = {...p}; delete n[key]; return n; });
+      markAsRead(null, selectedArea?.id || selectedArea, selectedSucursal);
+      fetchMessages();
     }
+  }, [selectedArea, selectedSucursal, isOpen, isAuthorized]);
+
+  useEffect(() => { if(scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages]);
+
+  const handleFile = (e) => {
+    const f = e.target.files[0]; if(!f) return;
+    if (f.size > 10 * 1024 * 1024) return alert("Máximo 10MB");
+    setStagedFile(f); if (f.type.startsWith('image/')) setPreviewUrl(URL.createObjectURL(f)); else setPreviewUrl(null);
   };
 
   const sendMessage = async (e) => {
-    e.preventDefault();
-    if (!newMessage.trim()) return;
-
-    // Lógica de destino: 
-    // - Si es sucursal: va al área seleccionada.
-    // - Si es administrador/técnico: 
-    //   - Si el admin está respondiendo en un hilo, intentamos usar el canal de ese hilo (Ej: 'hematologia')
-    //   - Si no hay mensajes previos o no es admin, usa su propio rol.
-    const lastMsgInThread = messages[messages.length - 1];
-    const canalDestino = isBranch ? selectedArea?.id : (isAdmin && lastMsgInThread ? lastMsgInThread.canal : r);
-    const sucursalDestino = isBranch ? (user.branch || user.sucursal) : selectedSucursal;
-
-    const msgObj = {
-      emisor_id: user.id,
-      emisor_nombre: user.name,
-      canal: canalDestino,
-      sucursal: sucursalDestino,
-      contenido: newMessage.trim(),
-      leido: false,
-      created_at: new Date().toISOString()
-    };
-
-    // --- ACTUALIZACIÓN OPTIMISTA (INSTANTÁNEA) ---
-    setMessages(prev => [...prev, msgObj]);
-    setNewMessage('');
-
-    const { error } = await supabase.from('chat_messages').insert([msgObj]);
-    if (error) {
-       alert('No se pudo enviar: ' + error.message);
-       // Opcional: remover el mensaje optimista si falló de forma permanente
+    e.preventDefault(); if(!newMessage.trim() && !stagedFile) return;
+    const cS = cleanSuc(selectedSucursal); let cD, sD;
+    if (isBranch) { cD = (selectedArea?.id || selectedArea).toLowerCase(); sD = user.branch || user.sucursal; }
+    else { if (chatType === 'area-area') { sD = `INTER:${[r, cS].sort().join('-')}`; cD = 'INTER'; } else { cD = r; sD = selectedSucursal; } }
+    let fD = { url: null, type: null, name: null };
+    if (stagedFile) {
+      setIsUploading(true);
+      const path = `attachments/${Date.now()}_${stagedFile.name}`;
+      await supabase.storage.from('chat-attachments').upload(path, stagedFile);
+      const { data: { publicUrl } } = supabase.storage.from('chat-attachments').getPublicUrl(path);
+      fD = { url: publicUrl, type: stagedFile.type.startsWith('image/') ? 'image' : 'document', name: stagedFile.name };
     }
+    const msg = { emisor_id: user.id, emisor_nombre: user.name, canal: cD, sucursal: sD, contenido: newMessage.trim() || `Archivo: ${stagedFile.name}`, file_url: fD.url, file_type: fD.type, file_name: fD.name, leido: false, created_at: new Date().toISOString() };
+    setMessages(prev => [...prev, msg]); setNewMessage(''); setStagedFile(null); setPreviewUrl(null); setIsUploading(false);
+    await supabase.from('chat_messages').insert([msg]);
   };
 
-  if (!user) return null;
+  if (!user || !isAuthorized) return null;
 
   return (
     <div className={styles.chatWrapper}>
@@ -328,7 +209,6 @@ export default function ChatWidget() {
           {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
         </button>
       )}
-
       {isOpen && (
         <div className={styles.window}>
           <header className={styles.header}>
@@ -338,65 +218,68 @@ export default function ChatWidget() {
                   <span className="material-symbols-rounded">arrow_back</span>
                 </button>
               )}
-              <span className="material-symbols-rounded">
-                {isBranch ? (selectedArea?.icon || 'forum') : (selectedSucursal ? 'location_on' : 'inbox')}
-              </span>
-              <span>{selectedArea?.name || selectedSucursal || (isBranch ? 'Chat Solcan' : 'Bandeja de Entrada')}</span>
+              <span className="material-symbols-rounded">{isBranch ? (selectedArea?.icon || 'forum') : (selectedSucursal ? (chatType==='area-area'?'group_work':'store') : 'inbox')}</span>
+              <span>{selectedArea?.name || selectedSucursal || 'Bandeja de Entrada'}</span>
             </div>
-            <button className={styles.closeBtn} onClick={() => setIsOpen(false)}>
-              <span className="material-symbols-rounded">close</span>
-            </button>
+            <button className={styles.closeBtn} onClick={() => setIsOpen(false)}><span className="material-symbols-rounded">close</span></button>
           </header>
-
           <main className={styles.body} ref={scrollRef}>
             {isBranch && !selectedArea && (
               <div className={styles.areaSelector}>
                 <p>¿Con qué área necesitas comunicarte?</p>
-                {AREAS.map(area => (
-                  <button key={area.id} className={styles.areaItem} onClick={() => setSelectedArea(area)}>
-                    <span className="material-symbols-rounded">{area.icon}</span>
-                    <div className={styles.areaInfo}><strong>{area.name}</strong><span>Consulta directa</span></div>
-                    {unreadBySucursal[area.id] > 0 && <div className={styles.unreadBadge}>{unreadBySucursal[area.id]}</div>}
+                {AREAS.map(a => (
+                  <button key={a.id} className={styles.areaItem} onClick={() => setSelectedArea(a)}>
+                    <span className="material-symbols-rounded">{a.icon}</span>
+                    <div className={styles.areaInfo}><strong>{a.name}</strong><span>Consulta</span></div>
+                    {unreadBySucursal[a.id] > 0 && <div className={styles.unreadBadge}>{unreadBySucursal[a.id]}</div>}
                   </button>
                 ))}
               </div>
             )}
-
             {!isBranch && !selectedSucursal && (
               <div className={styles.areaSelector}>
-                <p>Aspirantes a consulta (Sucursales)</p>
-                {activeSucursales.length === 0 ? <p className={styles.empty}>No hay mensajes entrantes.</p> :
-                  activeSucursales.map(suc => (
-                    <button key={suc} className={styles.areaItem} onClick={() => setSelectedSucursal(suc)}>
-                      <span className="material-symbols-rounded">store</span>
-                      <div className={styles.areaInfo}><strong>{suc}</strong><span>Ver conversación</span></div>
-                      {unreadBySucursal[suc] > 0 && <div className={styles.unreadBadge}>{unreadBySucursal[suc]}</div>}
-                      <span className="material-symbols-rounded">chevron_right</span>
+                <div className={styles.tabContainer}>
+                  <button className={activeTab === 'sucursales' ? styles.tabActive : styles.tab} onClick={() => { setActiveTab('sucursales'); setChatType('sucursal-area'); }}>SUCURSALES</button>
+                  <button className={activeTab === 'areas' ? styles.tabActive : styles.tab} onClick={() => { setActiveTab('areas'); setChatType('area-area'); }}>ÁREAS</button>
+                </div>
+                <div className={styles.areaList}>
+                  {activeTab === 'sucursales' ? sucursalesDb.map(s => (
+                    <button key={s.id} className={styles.areaItem} onClick={() => { setSelectedSucursal(s.id); setChatType('sucursal-area'); }}>
+                      <span className="material-symbols-rounded" style={{color:'#64748b'}}>store</span>
+                      <div className={styles.areaInfo}><strong>{s.name}</strong><span>Chat sede</span></div>
+                      {unreadBySucursal[s.id] > 0 && <div className={styles.unreadBadge}>{unreadBySucursal[s.id]}</div>}
                     </button>
-                  ))
-                }
+                  )) : AREAS.filter(a => a.id !== r).map(a => (
+                    <button key={a.id} className={styles.areaItem} onClick={() => { setSelectedArea(a); setSelectedSucursal(a.id); setChatType('area-area'); }}>
+                      <span className="material-symbols-rounded">{a.icon}</span>
+                      <div className={styles.areaInfo}><strong>{a.name}</strong><span>Interno</span></div>
+                      {unreadBySucursal[a.id] > 0 && <div className={styles.unreadBadge}>{unreadBySucursal[a.id]}</div>}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
-
             {(selectedArea || selectedSucursal) && (
               <div className={styles.timeline}>
-                {messages.map((msg, i) => (
-                  <div key={msg.id || i} className={`${styles.msgRow} ${msg.emisor_id === user.id ? styles.own : ''}`}>
+                {messages.length === 0 && <p className={styles.empty}>Sin mensajes.</p>}
+                {messages.map((m, i) => (
+                  <div key={m.id || i} className={`${styles.msgRow} ${m.emisor_id === user.id ? styles.own : ''}`}>
                     <div className={styles.msgBubble}>
-                      {msg.emisor_id !== user.id && <small className={styles.senderName}>{msg.emisor_nombre}</small>}
-                      <p>{msg.contenido}</p>
-                      <small className={styles.msgTime}>
-                        {new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
-                        {msg.emisor_id == user?.id && (
-                          <span className="material-symbols-rounded" style={{ 
-                            fontSize: '15px', 
-                            marginLeft: '4px',
-                            color: msg.leido ? '#2af598' : '#94a3b8',
-                            fontWeight: 'bold',
-                            display: 'inline-block',
-                            verticalAlign: 'middle'
-                          }}>
-                            done_all
+                      {m.emisor_id !== user.id && <small className={styles.senderName}>{m.emisor_nombre}</small>}
+                      {m.file_url && (
+                        <div className={styles.fileContainer}>
+                          {m.file_type === 'image' ? <img src={m.file_url} className={styles.chatImage} onClick={() => window.open(m.file_url, '_blank')} /> : 
+                          <a href={m.file_url} target="_blank" rel="noreferrer" className={styles.documentLink}>
+                            <span className="material-symbols-rounded">description</span>
+                            <div className={styles.docInfo}><span>{m.file_name || 'Archivo'}</span><small>Clic para ver</small></div>
+                          </a>}
+                        </div>
+                      )}
+                      {m.contenido && <p className={styles.textContent}>{m.contenido}</p>}
+                      <small className={styles.msgTime}>{new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                        {m.emisor_id === user.id && (
+                          <span className="material-symbols-rounded" style={{fontSize:'16px', color: m.leido ? '#2af598' : 'rgba(255,255,255,0.4)', marginLeft:'4px'}}>
+                            {m.leido ? 'done_all' : 'check'}
                           </span>
                         )}
                       </small>
@@ -406,11 +289,20 @@ export default function ChatWidget() {
               </div>
             )}
           </main>
-
           {(selectedArea || selectedSucursal) && (
-            <form className={styles.footer} onSubmit={sendMessage}>
-              <input type="text" placeholder="Escribe tu respuesta..." value={newMessage} onChange={e => setNewMessage(e.target.value)} />
-              <button type="submit" disabled={!newMessage.trim()}><span className="material-symbols-rounded">send</span></button>
+            <form className={styles.chatFooter} onSubmit={sendMessage}>
+              <input type="file" ref={fileInputRef} onChange={handleFile} style={{display:'none'}} />
+              <button type="button" className={styles.attachBtn} onClick={() => fileInputRef.current?.click()} disabled={isUploading}><span className="material-symbols-rounded">attach_file</span></button>
+              <div className={styles.inputWrapper}>
+                {stagedFile && (
+                  <div className={styles.filePreviewBar}>
+                    {previewUrl? <img src={previewUrl} className={styles.previewThumb}/> : <div className={styles.docPreview}><span className="material-symbols-rounded">description</span><span>{stagedFile.name}</span></div>}
+                    <button type="button" className={styles.removeFileBtn} onClick={()=>{setStagedFile(null);setPreviewUrl(null);}}><span className="material-symbols-rounded">close</span></button>
+                  </div>
+                )}
+                <input type="text" placeholder="Mensaje..." value={newMessage} onChange={e=>setNewMessage(e.target.value)} disabled={isUploading}/>
+              </div>
+              <button type="submit" disabled={isUploading||(!newMessage.trim()&&!stagedFile)}><span className="material-symbols-rounded">{isUploading?'sync':'send'}</span></button>
             </form>
           )}
         </div>

@@ -165,13 +165,46 @@ export default function TopNavbar() {
         children: [
           { label: 'Dashboard Área', path: '/area/hematologia', icon: 'dashboard_customize' },
           { label: 'Inventario y Calidad', path: '/area/hematologia/inventario', icon: 'inventory_2' },
-          { label: 'Solicitud de Compra', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
-          { label: 'Historial de Compras', path: '/area/requisiciones/historial', icon: 'history' }
+          { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
+          { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }
         ]
       },
-      'microbiologia': { label: 'Microbiología', path: '/area/microbiologia', icon: 'biotech' },
-      'urianalisis': { label: 'Urianálisis', path: '/area/urianalisis', icon: 'science' },
-      'quimica_clinica': { label: 'Química Clínica', path: '/area/quimica-clinica', icon: 'chemistry' },
+      'microbiologia': { 
+        label: 'Microbiología', path: '/area/microbiologia', icon: 'biotech',
+        children: [
+          { label: 'Dashboard Área', path: '/area/microbiologia', icon: 'dashboard_customize' },
+          { label: 'Inventario y Calidad', path: '/area/microbiologia/inventario', icon: 'inventory_2' },
+          { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
+          { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }
+        ]
+      },
+      'urianalisis': { 
+        label: 'Urianálisis', path: '/area/urianalisis', icon: 'science',
+        children: [
+          { label: 'Dashboard Área', path: '/area/urianalisis', icon: 'dashboard_customize' },
+          { label: 'Inventario y Calidad', path: '/area/urianalisis/inventario', icon: 'inventory_2' },
+          { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
+          { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }
+        ]
+      },
+      'quimica_clinica': { 
+        label: 'Química Clínica', path: '/area/quimica-clinica', icon: 'science',
+        children: [
+          { label: 'Dashboard Área', path: '/area/quimica-clinica', icon: 'dashboard_customize' },
+          { label: 'Inventario y Calidad', path: '/area/quimica-clinica/inventario', icon: 'inventory_2' },
+          { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
+          { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }
+        ]
+      },
+      'serologia': { 
+        label: 'Serología', path: '/area/serologia', icon: 'bloodtype',
+        children: [
+          { label: 'Dashboard Área', path: '/area/serologia', icon: 'dashboard_customize' },
+          { label: 'Inventario y Calidad', path: '/area/serologia/inventario', icon: 'inventory_2' },
+          { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
+          { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }
+        ]
+      },
       'toma_de_muestra': { label: 'Relación de Folios', path: '/area/toma-muestra', icon: 'note_add' },
     };
 

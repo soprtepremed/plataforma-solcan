@@ -98,7 +98,7 @@ export default function TomaMuestraDashboard() {
             className={`${styles.tabBtn} ${view === 'registro' ? styles.tabActive : ''}`}
             onClick={() => setView('registro')}
           >
-            <span className="material-symbols-rounded">add_notes</span> Nueva Relación
+            <span className="material-symbols-rounded">note_add</span> Nueva Relación
           </button>
           <button 
             className={`${styles.tabBtn} ${view === 'historial' ? styles.tabActive : ''}`}

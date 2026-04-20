@@ -189,22 +189,23 @@
 }
 
 .msgBubble {
-  max-width: 80%;
-  padding: 10px 14px;
+  position: relative;
+  max-width: 85%;
+  padding: 8px 12px 18px;
   border-radius: 14px;
   background: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  position: relative;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  color: #1e293b;
 }
 
 .own .msgBubble {
   background: #3b82f6;
   color: white;
-  border-bottom-right-radius: 2px;
+  border-bottom-right-radius: 4px;
 }
 
-.msgRow:not(.own) .msgBubble {
-  border-bottom-left-radius: 2px;
+.msgBubble:not(.own) {
+  border-bottom-left-radius: 4px;
 }
 
 .senderName {
@@ -215,18 +216,76 @@
   margin-bottom: 4px;
 }
 
-.msgBubble p {
-  margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.4;
-}
-
 .msgTime {
   display: block;
   font-size: 0.65rem;
   text-align: right;
   margin-top: 4px;
   opacity: 0.7;
+}
+
+.textContent {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.fileContainer {
+  margin: 4px -4px 8px -4px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.03);
+}
+
+.chatImage {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.chatImage:hover {
+  opacity: 0.9;
+}
+
+.documentLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(59, 130, 246, 0.05);
+  text-decoration: none;
+  color: inherit;
+  border-radius: 8px;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.docInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.docInfo span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #1e293b;
+}
+
+.own .docInfo span {
+  color: white;
+}
+
+.docInfo small {
+  font-size: 0.7rem;
+  opacity: 0.8;
 }
 
 .empty {
@@ -238,28 +297,104 @@
 }
 
 /* Footer (Input) */
-.footer {
-  padding: 1rem;
+.chatFooter {
+  padding: 12px;
   background: white;
   border-top: 1px solid #e2e8f0;
   display: flex;
+  align-items: flex-end;
   gap: 10px;
 }
 
-.footer input {
+.inputWrapper {
   flex: 1;
-  padding: 10px 16px;
-  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
   border: 1px solid #e2e8f0;
-  outline: none;
-  font-size: 0.9rem;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
 }
 
-.footer input:focus {
+.inputWrapper:focus-within {
   border-color: #3b82f6;
+  background: white;
 }
 
-.footer button {
+.filePreviewBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.previewThumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid #cbd5e1;
+}
+
+.docPreview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 600;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.docPreview span:first-child {
+  color: #3b82f6;
+}
+
+.removeFileBtn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.removeFileBtn span {
+  font-size: 14px !important;
+}
+
+.removeFileBtn:hover {
+  transform: scale(1.1);
+}
+
+.chatFooter input[type="text"] {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.chatFooter button {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -273,12 +408,12 @@
   transition: transform 0.2s;
 }
 
-.footer button:disabled {
+.chatFooter button:disabled {
   background: #cbd5e1;
   cursor: not-allowed;
 }
 
-.footer button:not(:disabled):hover {
+.chatFooter button:not(:disabled):hover {
   transform: scale(1.1);
 }
 
@@ -295,4 +430,59 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+/* TABS STYLES */
+.tabContainer {
+  display: flex;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  border: 1px solid #e2e8f0;
+}
+
+.tab, .tabActive {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 800;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.tab {
+  background: transparent;
+  color: #64748b;
+}
+
+.tab:hover {
+  background: rgba(255,255,255,0.5);
+}
+
+.tabActive {
+  background: white;
+  color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  transform: translateY(-1px);
+}
+
+.attachBtn {
+  background: #f1f5f9;
+  border: none;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.attachBtn:hover {
+  background: #e2e8f0;
+  color: #3b82f6;
 }
