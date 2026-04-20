@@ -20,6 +20,7 @@ import RecepcionPedido from './pages/dashboard/RecepcionPedido';
 import AdminPromociones from './pages/dashboard/AdminPromociones';
 import Sucursales from './pages/Sucursales';
 import InventarioArea from './pages/dashboard/InventarioArea';
+import ControlCalidadArea from './pages/dashboard/ControlCalidadArea';
 import InventarioHemato from './pages/dashboard/InventarioHemato';
 import NuevaRequisicion from './pages/dashboard/NuevaRequisicion';
 import GestionRequisiciones from './pages/dashboard/GestionRequisiciones';
@@ -171,6 +172,7 @@ function App() {
         
         {/* Inventario Universal por Área */}
         <Route path="/area/:areaId/inventario" element={<DashboardLayout><InventarioArea /></DashboardLayout>} />
+        <Route path="/area/:areaId/control-calidad" element={<DashboardLayout><ControlCalidadArea /></DashboardLayout>} />
 
         <Route path="/area/urianalisis" element={<AreaRoute requiredRole="urianalisis"><DashboardLayout><UrianalisisDashboard /></DashboardLayout></AreaRoute>} />
         <Route path="/area/microbiologia" element={<AreaRoute requiredRole="microbiologia"><DashboardLayout><MicrobiologiaDashboard /></DashboardLayout></AreaRoute>} />

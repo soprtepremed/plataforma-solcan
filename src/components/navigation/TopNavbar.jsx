@@ -165,6 +165,7 @@ export default function TopNavbar() {
         children: [
           { label: 'Dashboard Área', path: '/area/hematologia', icon: 'dashboard_customize' },
           { label: 'Inventario y Calidad', path: '/area/hematologia/inventario', icon: 'inventory_2' },
+          { label: 'Acciones QC (FO-DO-012)', path: '/area/hematologia/control-calidad', icon: 'fact_check' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
           { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }
         ]
@@ -174,6 +175,7 @@ export default function TopNavbar() {
         children: [
           { label: 'Dashboard Área', path: '/area/microbiologia', icon: 'dashboard_customize' },
           { label: 'Inventario y Calidad', path: '/area/microbiologia/inventario', icon: 'inventory_2' },
+          { label: 'Acciones QC (FO-DO-012)', path: '/area/microbiologia/control-calidad', icon: 'fact_check' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
           { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }
         ]
@@ -183,6 +185,7 @@ export default function TopNavbar() {
         children: [
           { label: 'Dashboard Área', path: '/area/urianalisis', icon: 'dashboard_customize' },
           { label: 'Inventario y Calidad', path: '/area/urianalisis/inventario', icon: 'inventory_2' },
+          { label: 'Acciones QC (FO-DO-012)', path: '/area/urianalisis/control-calidad', icon: 'fact_check' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
           { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }
         ]
@@ -192,6 +195,7 @@ export default function TopNavbar() {
         children: [
           { label: 'Dashboard Área', path: '/area/quimica-clinica', icon: 'dashboard_customize' },
           { label: 'Inventario y Calidad', path: '/area/quimica-clinica/inventario', icon: 'inventory_2' },
+          { label: 'Acciones QC (FO-DO-012)', path: '/area/quimica-clinica/control-calidad', icon: 'fact_check' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
           { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }
         ]
@@ -201,6 +205,7 @@ export default function TopNavbar() {
         children: [
           { label: 'Dashboard Área', path: '/area/serologia', icon: 'dashboard_customize' },
           { label: 'Inventario y Calidad', path: '/area/serologia/inventario', icon: 'inventory_2' },
+          { label: 'Acciones QC (FO-DO-012)', path: '/area/serologia/control-calidad', icon: 'fact_check' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
           { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }
         ]
