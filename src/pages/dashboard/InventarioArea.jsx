@@ -11,6 +11,7 @@ const AREA_ICONS = {
   'microbiologia': 'biotech',
   'urianalisis': 'science',
   'quimica-clinica': 'science',
+  'quimica_clinica': 'science',
   'serologia': 'bloodtype'
 };
 
@@ -19,6 +20,7 @@ const AREA_NAMES = {
   'microbiologia': 'Microbiología',
   'urianalisis': 'Urianálisis',
   'quimica-clinica': 'Química Clínica',
+  'quimica_clinica': 'Química Clínica',
   'serologia': 'Serología'
 };
 
@@ -139,7 +141,12 @@ export default function InventarioArea() {
 
   const fetchInventory = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("inventario_areas").select("*").eq("area_id", areaKey).order("descripcion", { ascending: true });
+    const normalizedAreaId = areaKey.replace('-', '_');
+    const { data, error } = await supabase
+      .from("inventario_areas")
+      .select("*")
+      .or(`area_id.eq.${areaKey},area_id.eq.${normalizedAreaId}`)
+      .order("descripcion", { ascending: true });
     if (!error) setItems(data || []);
     setLoading(false);
   };
@@ -151,27 +158,74 @@ export default function InventarioArea() {
 
   const handleQuickStart = async (id) => {
     setConfirmDialog({ show: true, message: "¿Deseas marcar el INICIO para hoy?", onConfirm: async () => {
-      await supabase.from("inventario_areas").update({ fecha_inicio_uso: new Date().toISOString() }).eq("id", id);
-      fetchInventory(); setConfirmDialog({ show: false });
+      const { error } = await supabase.from("inventario_areas").update({ fecha_inicio_uso: new Date().toISOString() }).eq("id", id);
+      if (error) {
+        alert("Error al marcar inicio: " + error.message);
+      } else {
+        fetchInventory();
+      }
+      setConfirmDialog({ show: false });
     }});
   };
 
   const handleQuickEnd = async (id) => {
     setConfirmDialog({ show: true, message: "¿Seguro que deseas TERMINAR uso? Stock será cero.", onConfirm: async () => {
-      await supabase.from("inventario_areas").update({ fecha_termino_uso: new Date().toISOString(), stock_actual: 0 }).eq("id", id);
-      fetchInventory(); setConfirmDialog({ show: false });
+      const { error } = await supabase.from("inventario_areas").update({ fecha_termino_uso: new Date().toISOString(), stock_actual: 0 }).eq("id", id);
+      if (error) {
+        alert("Error al marcar término: " + error.message);
+      } else {
+        fetchInventory();
+      }
+      setConfirmDialog({ show: false });
     }});
   };
 
   const handleSave = async (e) => {
     e.preventDefault(); if (saving) return;
+    
+    // VERIFICACIÓN DE SEGURIDAD FRONTEND
+    const normalizedAreaId = areaKey.replace('-', '_');
+    const userRole = user?.role?.toLowerCase();
+    const isAdmin = userRole === 'admin' || userRole === 'administrador';
+    const isAuthorized = isAdmin || userRole === normalizedAreaId;
+
+    if (!isAuthorized) {
+      alert(`⛔ ACCESO DENEGADO: Tu rol (${userRole}) no tiene permisos para corregir el inventario de ${displayTitle}.`);
+      return;
+    }
+
     setConfirmDialog({ show: true, message: "¿Confirmas el registro técnico auditado?", onConfirm: async () => {
         setSaving(true);
-        const { id, ...payload } = form;
-        const cleanPayload = { ...payload, area_id: areaKey, stock_actual: payload.stock_actual || 0 };
-        const response = modalMode === 'edit' ? await supabase.from("inventario_areas").update(cleanPayload).eq("id", editingId) : await supabase.from("inventario_areas").insert([cleanPayload]);
-        if (!response.error) { setShowModal(false); setModalMode('add'); setEditingId(null); setForm({...initialForm, sub_area: displayTitle.toUpperCase()}); fetchInventory(); }
-        setSaving(false); setConfirmDialog({ show: false });
+        try {
+          const { id, ...payload } = form;
+          
+          const cleanPayload = { 
+            ...payload, 
+            area_id: normalizedAreaId, 
+            stock_actual: payload.stock_actual || 0 
+          };
+          
+          const response = modalMode === 'edit' 
+            ? await supabase.from("inventario_areas").update(cleanPayload).eq("id", editingId) 
+            : await supabase.from("inventario_areas").insert([cleanPayload]);
+          
+          if (!response.error) { 
+            setShowModal(false); 
+            setModalMode('add'); 
+            setEditingId(null); 
+            setForm({...initialForm, sub_area: displayTitle.toUpperCase()}); 
+            fetchInventory(); 
+          } else {
+            console.error("Error de Supabase:", response.error);
+            alert(`Error al guardar en ${displayTitle}: ${response.error.message}\n\nDetalle: ${response.error.details || 'No especificado'}`);
+          }
+        } catch (err) {
+          console.error("Error crítico:", err);
+          alert("Ocurrió un error inesperado: " + err.message);
+        } finally {
+          setSaving(false); 
+          setConfirmDialog({ show: false });
+        }
     }});
   };
 

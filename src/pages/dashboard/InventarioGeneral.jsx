@@ -516,7 +516,7 @@ export default function InventarioGeneral() {
         <div className={styles.container}>
             <header className={styles.header}>
                 <div className={styles.titleArea}>
-                    <h1><span className="material-symbols-rounded">inventory</span> Panorama General</h1>
+                    <h1><span className="material-symbols-rounded">inventory</span> Inventario General</h1>
                     <p>Resumen global de existencias y áreas con control de precios</p>
                 </div>
                 
@@ -544,15 +544,69 @@ export default function InventarioGeneral() {
                                         <tr>
                                             <th style={{width: '40px'}}></th>
                                             <th className={styles.sortableHeader}>
-                                                <div className={styles.headerCell}><span>Cód.</span><button onClick={() => setOpenDropdown(openDropdown === 'prefijo' ? null : 'prefijo')}><span className="material-symbols-rounded">filter_list</span></button></div>
+                                                <div className={styles.headerCell}>
+                                                    <span>Cód.</span>
+                                                    <button onClick={() => setOpenDropdown(openDropdown === 'prefijo' ? null : 'prefijo')}>
+                                                        <span className="material-symbols-rounded">filter_list</span>
+                                                    </button>
+                                                </div>
+                                                {openDropdown === 'prefijo' && (
+                                                    <FilterDropdown 
+                                                        columnKey="prefijo" 
+                                                        label="Código" 
+                                                        items={catalogo} 
+                                                        activeFilters={columnFilters}
+                                                        applyFilter={applyColumnFilter}
+                                                        clearFilter={clearColumnFilter}
+                                                        requestSort={requestSort}
+                                                        sortConfig={sortConfig}
+                                                        onClose={() => setOpenDropdown(null)}
+                                                    />
+                                                )}
                                             </th>
                                             <th>Barras</th>
                                             <th className={styles.sortableHeader}>
-                                                <div className={styles.headerCell}><span>Clase</span><button onClick={() => setOpenDropdown(openDropdown === 'clase' ? null : 'clase')}><span className="material-symbols-rounded">filter_list</span></button></div>
+                                                <div className={styles.headerCell}>
+                                                    <span>Clase</span>
+                                                    <button onClick={() => setOpenDropdown(openDropdown === 'clase' ? null : 'clase')}>
+                                                        <span className="material-symbols-rounded">filter_list</span>
+                                                    </button>
+                                                </div>
+                                                {openDropdown === 'clase' && (
+                                                    <FilterDropdown 
+                                                        columnKey="clase" 
+                                                        label="Clase" 
+                                                        items={catalogo} 
+                                                        activeFilters={columnFilters}
+                                                        applyFilter={applyColumnFilter}
+                                                        clearFilter={clearColumnFilter}
+                                                        requestSort={requestSort}
+                                                        sortConfig={sortConfig}
+                                                        onClose={() => setOpenDropdown(null)}
+                                                    />
+                                                )}
                                             </th>
                                             <th>Material</th>
                                             <th className={styles.sortableHeader}>
-                                                <div className={styles.headerCell}><span>Área</span><button onClick={() => setOpenDropdown(openDropdown === 'area_tecnica' ? null : 'area_tecnica')}><span className="material-symbols-rounded">filter_list</span></button></div>
+                                                <div className={styles.headerCell}>
+                                                    <span>Área</span>
+                                                    <button onClick={() => setOpenDropdown(openDropdown === 'area_tecnica' ? null : 'area_tecnica')}>
+                                                        <span className="material-symbols-rounded">filter_list</span>
+                                                    </button>
+                                                </div>
+                                                {openDropdown === 'area_tecnica' && (
+                                                    <FilterDropdown 
+                                                        columnKey="area_tecnica" 
+                                                        label="Área" 
+                                                        items={catalogo} 
+                                                        activeFilters={columnFilters}
+                                                        applyFilter={applyColumnFilter}
+                                                        clearFilter={clearColumnFilter}
+                                                        requestSort={requestSort}
+                                                        sortConfig={sortConfig}
+                                                        onClose={() => setOpenDropdown(null)}
+                                                    />
+                                                )}
                                             </th>
                                             <th>Marca</th>
                                             <th className={styles.textCenter}>Costo</th>

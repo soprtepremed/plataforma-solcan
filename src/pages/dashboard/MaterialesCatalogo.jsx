@@ -51,6 +51,10 @@ const MaterialCard = memo(({ item, onEdit, onDelete, onReactivate, viewMode, use
             <div className={styles.cardBody}>
                 <div className={styles.cardInfoGrid}>
                     <div className={styles.infoItem}>
+                        <label>Subcategoría</label>
+                        <span>{item.subcategoria || 'General'}</span>
+                    </div>
+                    <div className={styles.infoItem}>
                         <label>Área Técnica</label>
                         <span>{item.area_tecnica || 'Admin'}</span>
                     </div>
@@ -60,9 +64,13 @@ const MaterialCard = memo(({ item, onEdit, onDelete, onReactivate, viewMode, use
                     </div>
                 </div>
 
-                {item.requiere_frio && (
-                    <div className={styles.frioBadge}>
-                        <span className="material-symbols-rounded">ac_unit</span> Red de Frío
+                {item.temperatura_almacenamiento && (
+                    <div className={`${styles.frioBadge} ${styles['temp' + item.temperatura_almacenamiento]}`}>
+                        <span className="material-symbols-rounded">
+                            {item.temperatura_almacenamiento === 'Ambiente' ? 'home' : 
+                             item.temperatura_almacenamiento === 'Refrigerado' ? 'thermostat' : 'ac_unit'}
+                        </span> 
+                        {item.temperatura_almacenamiento}
                     </div>
                 )}
 
@@ -111,45 +119,56 @@ export default function MaterialesCatalogo() {
     const navigate = useNavigate();
     const [catalogo, setCatalogo] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [viewMode, setViewMode] = useState('Activos');
+    const [searchTerm, setSearchTerm] = useState(localStorage.getItem('solcan_cat_search') || '');
+    const [viewMode, setViewMode] = useState(localStorage.getItem('solcan_cat_viewMode') || 'Activos');
     const [showModal, setShowModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [targetItem, setTargetItem] = useState(null);
     const nombreInputRef = useRef(null);
+    const fileInputRef = useRef(null);
 
     // Bulk Import States
     const [showImportPreview, setShowImportPreview] = useState(false);
     const [importData, setImportData] = useState({ all: [], duplicates: [], news: [] });
     const [skipDuplicates, setSkipDuplicates] = useState(true);
+    const [visibleCount, setVisibleCount] = useState(50);
 
     const initialForm = {
-        nombre: '', prefijo: '', unidad: 'Pieza', stock_minimo: 10, categoria: 'Consumibles',
-        marca: '', proveedor_id: '', costo_unitario: 0, precio1: 0,
-        presentacion: 'Caja', requiere_frio: false, area_tecnica: 'HEMATOLOGÍA',
-        ean_maestro: '', clase: 'Artículo'
+        nombre: '', prefijo: '', unidad: 'Pieza', stock_minimo: 10, categoria: 'Reactivos',
+        subcategoria: 'General', sub_area: 'General', equipo: '', marca: '', proveedor_id: '', costo_unitario: 0, precio1: 0,
+        presentacion: 'Caja', requiere_frio: false, temperatura_almacenamiento: 'Ambiente',
+        temperatura_valor: 20, area_tecnica: 'HEMATOLOGÍA', ean_maestro: '', clase: 'Artículo'
     };
     const [form, setForm] = useState(initialForm);
     const [dialogConfig, setDialogConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
+
+    const [filterClase, setFilterClase] = useState(localStorage.getItem('solcan_cat_filterClase') || 'Todas');
+    const [filterArea, setFilterArea] = useState(localStorage.getItem('solcan_cat_filterArea') || 'Todas');
+    const [filterSubArea, setFilterSubArea] = useState(localStorage.getItem('solcan_cat_filterSubArea') || 'Todas');
+    const [filterEquipo, setFilterEquipo] = useState(localStorage.getItem('solcan_cat_filterEquipo') || 'Todas');
+    const [filterSubcat, setFilterSubcat] = useState(localStorage.getItem('solcan_cat_filterSubcat') || 'Todas');
+
+    // Persist filters to localStorage
+    useEffect(() => {
+        localStorage.setItem('solcan_cat_search', searchTerm);
+        localStorage.setItem('solcan_cat_viewMode', viewMode);
+        localStorage.setItem('solcan_cat_filterClase', filterClase);
+        localStorage.setItem('solcan_cat_filterArea', filterArea);
+        localStorage.setItem('solcan_cat_filterSubArea', filterSubArea);
+        localStorage.setItem('solcan_cat_filterEquipo', filterEquipo);
+        localStorage.setItem('solcan_cat_filterSubcat', filterSubcat);
+    }, [searchTerm, viewMode, filterClase, filterArea, filterSubArea, filterEquipo, filterSubcat]);
 
     const fetchCatalogo = useCallback(async () => {
         setLoading(true);
         try {
             // First try with the 'activo' filter
-            let query = supabase
+            // Fetch everything to allow instant switching between Active/Inactive
+            const { data, error } = await supabase
                 .from('materiales_catalogo')
                 .select('*')
                 .order('nombre', { ascending: true });
 
-            // If we are looking for actives, we also include those where 'activo' is NULL 
-            // because many existing records might not have this column set yet.
-            if (viewMode === 'Activos') {
-                query = query.or('activo.eq.true,activo.is.null');
-            } else {
-                query = query.eq('activo', false);
-            }
-
-            const { data, error } = await query;
             if (error) throw error;
             setCatalogo(data || []);
         } catch (err) {
@@ -167,11 +186,31 @@ export default function MaterialesCatalogo() {
     }, [fetchCatalogo]);
 
     const handleNombreChange = (val) => {
-        const words = val.split(' ');
+        setForm(prev => ({ ...prev, nombre: val }));
+        
+        // Solo sugerir prefijo si el campo está vacío o es un registro nuevo sin prefijo manual
+        if (!form.prefijo || form.prefijo.length <= 2) {
+            const words = val.trim().split(/\s+/);
+            let prefix = '';
+            if (words.length >= 2) {
+                prefix = words[0].substring(0, 2) + (words[1] ? words[1].substring(0, 1) : '');
+            } else {
+                prefix = val.substring(0, 3);
+            }
+            setForm(prev => ({ ...prev, nombre: val, prefijo: prefix.toUpperCase().replace(/[^A-Z0-9]/g, '') }));
+        }
+    };
+
+    const sugerirPrefijo = () => {
+        if (!form.nombre) return;
+        const words = form.nombre.trim().split(/\s+/);
         let prefix = '';
-        if (words.length >= 2) prefix = words[0].substring(0, 1) + words[1].substring(0, 1);
-        else prefix = val.substring(0, 2);
-        setForm({ ...form, nombre: val, prefijo: prefix.toUpperCase() });
+        if (words.length >= 2) {
+            prefix = words.map(w => w[0]).join('').substring(0, 4);
+        } else {
+            prefix = form.nombre.substring(0, 4);
+        }
+        setForm(prev => ({ ...prev, prefijo: prefix.toUpperCase().replace(/[^A-Z0-9]/g, '') }));
     };
 
     const handleEdit = (item) => {
@@ -184,15 +223,41 @@ export default function MaterialesCatalogo() {
         setShowModal(true);
     };
 
+    const updateTemp = (v) => {
+        let cat = 'Ambiente';
+        if (v <= 0) cat = 'Congelado';
+        else if (v <= 10) cat = 'Refrigerado';
+        
+        setForm({
+            ...form, 
+            temperatura_valor: v,
+            temperatura_almacenamiento: cat,
+            requiere_frio: cat !== 'Ambiente'
+        });
+    };
+
     const handleManualSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+
+        // Sanitización para evitar errores de UUID inválido ("")
+        const payload = {
+            ...form,
+            proveedor_id: form.proveedor_id === '' ? null : form.proveedor_id,
+            ean_maestro: form.ean_maestro === '' ? null : form.ean_maestro,
+            sub_area: form.sub_area || 'General',
+            equipo: form.equipo || null,
+            costo_unitario: parseFloat(form.costo_unitario) || 0,
+            precio1: parseFloat(form.precio1) || 0,
+            stock_minimo: parseInt(form.stock_minimo) || 0
+        };
+
         try {
             if (isEditing) {
-                const { error } = await supabase.from('materiales_catalogo').update(form).eq('id', targetItem.id);
+                const { error } = await supabase.from('materiales_catalogo').update(payload).eq('id', targetItem.id);
                 if (error) throw error;
             } else {
-                const { error } = await supabase.from('materiales_catalogo').insert([form]);
+                const { error } = await supabase.from('materiales_catalogo').insert([payload]);
                 if (error) throw error;
             }
             setShowModal(false);
@@ -239,21 +304,73 @@ export default function MaterialesCatalogo() {
             const wb = XLSX.read(bstr, { type: 'binary' });
             const ws = wb.Sheets[wb.SheetNames[0]];
             const data = XLSX.utils.sheet_to_json(ws);
+            
             const existingPrefixes = new Set(catalogo.map(c => c.prefijo));
-            const duplicates = []; const news = [];
-            data.forEach(row => {
-                const prefixId = row.Prefijo?.toString().toUpperCase();
-                if (existingPrefixes.has(prefixId)) duplicates.push(row);
+            const duplicates = []; 
+            const news = [];
+
+            // Normalization mappings
+            const subcatMap = {
+                'Calibrador': 'Calibradores',
+                'Control': 'Controles',
+                'Reactivo': 'Reactivos',
+                'Insumo': 'General'
+            };
+
+            const areaMap = {
+                'HEMATOLOGIA': 'HEMATOLOGÍA',
+                'QUIMICA CLINICA': 'QUÍMICA CLÍNICA',
+                'UROANALISIS': 'UROANÁLISIS',
+                'MICROBIOLOGIA': 'MICROBIOLOGÍA',
+                'TOMA DE MUESTRA': 'TOMA DE MUESTRA'
+            };
+
+            const normalizedData = data.map(row => {
+                const rawSubcat = (row.Subcategoria || '').trim();
+                const rawArea = (row.Area || '').trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                
+                return {
+                    ...row,
+                    Subcategoria: subcatMap[rawSubcat] || rawSubcat || 'General',
+                    Area: areaMap[rawArea] || (row.Area || 'HEMATOLOGÍA').toUpperCase().trim(),
+                    Prefijo: row.Prefijo?.toString().trim().toUpperCase(),
+                    Material: row.Material?.toString().trim()
+                };
+            });
+
+            normalizedData.forEach(row => {
+                if (!row.Prefijo || !row.Material) return; // Skip invalid rows
+                if (existingPrefixes.has(row.Prefijo)) duplicates.push(row);
                 else news.push(row);
             });
-            setImportData({ all: data, duplicates, news });
+
+            setImportData({ all: normalizedData, duplicates, news });
             setShowImportPreview(true);
+            // Reset input so same file can be uploaded again if needed
+            e.target.value = '';
         };
         reader.readAsBinaryString(file);
     };
 
     const handleDownloadTemplate = () => {
-        const templateData = [{ Material: 'Ejemplo Material 1', Prefijo: 'M1', Area: 'HEMATOLOGÍA', Categoria: 'Consumibles', Unidad: 'Pieza', Minimo: 10 }];
+        const templateData = [{
+            Prefijo: 'C1', 
+            Material: 'Ejemplo de Reactivo',
+            Area: 'QUÍMICA CLÍNICA', 
+            SubArea: 'Inmunología',
+            Equipo: 'Vitros 4600',
+            Categoria: 'Reactivos', 
+            Subcategoria: 'Calibrador',
+            Clase: 'Reactivo',
+            Marca: 'Ortho', 
+            Presentacion: 'Caja c/100', 
+            Unidad: 'Pieza', 
+            Minimo: 10, 
+            Costo: 100.50, 
+            Precio: 150.00,
+            EAN: '1234567890123',
+            Temp_Valor: 20
+        }];
         const ws = XLSX.utils.json_to_sheet(templateData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Plantilla");
@@ -269,8 +386,34 @@ export default function MaterialesCatalogo() {
             dataToProcess.forEach(row => {
                 const prefixId = row.Prefijo?.toString().toUpperCase();
                 if (!prefixId) return;
+
+                // Función auxiliar para limpiar ceros y nulos
+                const clean = (val) => (val === 0 || val === '0' || val === '' || val === undefined || val === null) ? null : val;
+
+                const tempVal = parseFloat(row.Temp_Valor) || 20;
+                let tempCat = 'Ambiente';
+                if (tempVal <= 0) tempCat = 'Congelado';
+                else if (tempVal <= 10) tempCat = 'Refrigerado';
+
                 itemsMap.set(prefixId, {
-                    nombre: row.Material || row.Nombre, prefijo: prefixId, unidad: row.Unidad || 'Pieza', stock_minimo: parseInt(row.Minimo || 10), categoria: row.Categoria || 'Consumibles', marca: row.Marca || '', proveedor: row.Proveedor || '', costo_unitario: parseFloat(row.Costo || 0), presentacion: row.Presentacion || 'Unidad', requiere_frio: row.Frio === 'Si' || row.Frio === true, area_tecnica: row.Area || 'HEMATOLOGÍA', ean_maestro: row.EAN || row.Codigo_Maestro || '', clase: row.Clase || 'Artículo', precio1: parseFloat(row.Saldo || row.Precio || 0)
+                    nombre: row.Material || row.Nombre, 
+                    prefijo: prefixId, 
+                    unidad: row.Unidad || 'Pieza', 
+                    stock_minimo: parseInt(row.Minimo || 10), 
+                    categoria: row.Categoria || 'Reactivos', 
+                    subcategoria: clean(row.Subcategoria) || 'General',
+                    sub_area: clean(row.SubArea) || 'General',
+                    equipo: clean(row.Equipo),
+                    marca: clean(row.Marca), 
+                    costo_unitario: parseFloat(row.Costo || 0), 
+                    presentacion: row.Presentacion || 'Unidad', 
+                    requiere_frio: tempCat !== 'Ambiente', 
+                    temperatura_almacenamiento: tempCat,
+                    temperatura_valor: tempVal,
+                    area_tecnica: row.Area || 'HEMATOLOGÍA', 
+                    ean_maestro: clean(row.EAN), 
+                    clase: row.Clase || 'Artículo', 
+                    precio1: parseFloat(row.Precio || 0)
                 });
             });
             await supabase.from('materiales_catalogo').upsert(Array.from(itemsMap.values()), { onConflict: 'prefijo' });
@@ -284,47 +427,150 @@ export default function MaterialesCatalogo() {
         }
     };
 
-    const filteredCatalogo = catalogo.filter(c => 
-        c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        c.prefijo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.area_tecnica?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+
+
+    // Extract unique values for dynamic filters
+    const subAreas = Array.from(new Set(catalogo.map(c => c.sub_area).filter(Boolean))).sort();
+    const equipos = Array.from(new Set(catalogo.map(c => c.equipo).filter(Boolean))).sort();
+
+    const filteredCatalogo = catalogo.filter(c => {
+        const matchesSearch = c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                             c.prefijo.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesClase = filterClase === 'Todas' || c.clase === filterClase;
+        const matchesArea = filterArea === 'Todas' || c.area_tecnica === filterArea;
+        const matchesSubArea = filterSubArea === 'Todas' || c.sub_area === filterSubArea;
+        const matchesEquipo = filterEquipo === 'Todas' || 
+                             (filterEquipo === 'Sin Equipo (N/A)' ? !c.equipo : c.equipo === filterEquipo);
+        const matchesSubcat = filterSubcat === 'Todas' || c.subcategoria === filterSubcat;
+        
+        const matchesViewMode = viewMode === 'Activos' ? c.activo !== false : c.activo === false;
+        
+        return matchesViewMode && matchesSearch && matchesClase && matchesArea && matchesSubArea && matchesEquipo && matchesSubcat;
+    });
+
+    // Reset pagination when filters change
+    useEffect(() => {
+        setVisibleCount(50);
+    }, [searchTerm, filterClase, filterArea, filterSubArea, filterEquipo, filterSubcat, viewMode]);
+
+    const displayedCatalogo = filteredCatalogo.slice(0, visibleCount);
 
     return (
         <div className={styles.container}>
             <button className={styles.mobileBackBtn} onClick={() => navigate('/almacen')}>
-                <span className="material-symbols-rounded">arrow_back</span>
-                Menú Almacén
+                <span className="material-symbols-rounded">arrow_back</span> Regresar al Almacén
             </button>
 
             <header className={styles.header}>
-                <div className={styles.titleArea}>
-                    <h1><span className="material-symbols-rounded">category</span> Catálogo de Materiales</h1>
-                    <p>Gestión de Insumos y Reactivos</p>
+                <div className={styles.headerLeft}>
+                    <div className={styles.titleIcon}>
+                        <span className="material-symbols-rounded">inventory_2</span>
+                    </div>
+                    <div>
+                        <h1>Catálogo de Materiales</h1>
+                        <p>Gestión técnica de insumos y reactivos de laboratorio</p>
+                    </div>
                 </div>
-                <div className={styles.actions}>
-                    <div className={styles.viewToggle}>
-                        <button className={viewMode === 'Activos' ? styles.toggleActive : ''} onClick={() => setViewMode('Activos')}>Activos</button>
-                        <button className={viewMode === 'Inactivos' ? styles.toggleActive : ''} onClick={() => setViewMode('Inactivos')}>Inactivos</button>
-                    </div>
-                    <div className={styles.searchBox}>
-                      <span className="material-symbols-rounded">search</span>
-                      <input type="text" placeholder="Buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                    </div>
-                    <button className={styles.secondaryBtn} onClick={() => { setIsEditing(false); setForm(initialForm); setShowModal(true); }}>
-                        <span className="material-symbols-rounded">add_business</span> <span className={styles.btnText}>Nuevo</span>
+                <div className={styles.headerActions}>
+                    <button className={styles.secondaryBtn} onClick={handleDownloadTemplate} title="Descargar plantilla Excel">
+                        <span className="material-symbols-rounded">download</span>
+                        Plantilla
                     </button>
-                    <div className={styles.importGroup}>
-                        <button className={styles.templateBtn} onClick={handleDownloadTemplate} title="Plantilla"><span className="material-symbols-rounded">download</span></button>
-                        <div className={styles.importBtn}>
-                            <input type="file" id="bulk" accept=".csv, .xlsx" onChange={handleFileUpload} hidden />
-                            <label htmlFor="bulk"><span className="material-symbols-rounded">upload_file</span> <span className={styles.btnText}>Carga</span></label>
-                        </div>
-                    </div>
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        style={{ display: 'none' }} 
+                        accept=".xlsx, .xls" 
+                        onChange={handleFileUpload} 
+                    />
+                    <button className={styles.secondaryBtn} onClick={() => fileInputRef.current.click()}>
+                        <span className="material-symbols-rounded">upload_file</span>
+                        Carga Masiva
+                    </button>
+                    <button className={styles.primaryBtn} onClick={() => { setForm(initialForm); setIsEditing(false); setShowModal(true); }}>
+                        <span className="material-symbols-rounded">add</span>
+                        Nuevo Material
+                    </button>
                 </div>
             </header>
 
             <main className={styles.mainContent}>
+                <div className={styles.controlsSection}>
+                    <div className={styles.searchRow}>
+                        <div className={styles.searchWrapper}>
+                            <span className="material-symbols-rounded">search</span>
+                            <input 
+                                type="text" 
+                                placeholder="Buscar por nombre, código o marca..." 
+                                value={searchTerm} 
+                                onChange={e => setSearchTerm(e.target.value)} 
+                            />
+                        </div>
+                        <div className={styles.viewToggle}>
+                            <button className={viewMode === 'Activos' ? styles.activeTab : ''} onClick={() => setViewMode('Activos')}>
+                                Activos <span>{catalogo.filter(c => c.activo !== false).length}</span>
+                            </button>
+                            <button className={viewMode === 'Inactivos' ? styles.activeTab : ''} onClick={() => setViewMode('Inactivos')}>
+                                Inactivos <span>{catalogo.filter(c => c.activo === false).length}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className={styles.filtersGrid}>
+                        <div className={styles.filterGroup}>
+                            <label>Clase</label>
+                            <select value={filterClase} onChange={e => setFilterClase(e.target.value)}>
+                                <option value="Todas">Todas</option>
+                                <option value="Reactivo">Reactivos</option>
+                                <option value="Artículo">Artículos</option>
+                                <option value="Consumible">Consumibles</option>
+                                <option value="Equipo">Equipos</option>
+                            </select>
+                        </div>
+
+                        <div className={styles.filterGroup}>
+                            <label>Área Técnica</label>
+                            <select value={filterArea} onChange={e => setFilterArea(e.target.value)}>
+                                <option value="Todas">Todas</option>
+                                <option value="HEMATOLOGÍA">Hematología</option>
+                                <option value="QUÍMICA CLÍNICA">Química Clínica</option>
+                                <option value="UROANÁLISIS">Uroanálisis</option>
+                                <option value="MICROBIOLOGÍA">Microbiología</option>
+                                <option value="TOMA DE MUESTRA">Toma de Muestra</option>
+                            </select>
+                        </div>
+
+                        <div className={styles.filterGroup}>
+                            <label>Sub-Área</label>
+                            <select value={filterSubArea} onChange={e => setFilterSubArea(e.target.value)}>
+                                <option value="Todas">Todas</option>
+                                {subAreas.map(sa => <option key={sa} value={sa}>{sa}</option>)}
+                            </select>
+                        </div>
+
+                        <div className={styles.filterGroup}>
+                            <label>Equipo</label>
+                            <select value={filterEquipo} onChange={e => setFilterEquipo(e.target.value)}>
+                                <option value="Todas">Todos</option>
+                                <option value="Sin Equipo (N/A)">Sin Equipo (N/A)</option>
+                                {equipos.map(eq => <option key={eq} value={eq}>{eq}</option>)}
+                            </select>
+                        </div>
+
+                        <div className={styles.filterGroup}>
+                            <label>Subcategoría</label>
+                            <select value={filterSubcat} onChange={e => setFilterSubcat(e.target.value)}>
+                                <option value="Todas">Todas</option>
+                                <option value="General">Insumo General</option>
+                                <option value="Reactivos">Reactivo Trabajo</option>
+                                <option value="Controles">Controles</option>
+                                <option value="Calibradores">Calibradores</option>
+                                <option value="Inmunología">Inmunología</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 {loading ? <div className={styles.loader}>Cargando catálogo...</div> : (
                     <>
                         <div className={`${styles.tableWrapper} ${styles.desktopView}`}>
@@ -333,28 +579,45 @@ export default function MaterialesCatalogo() {
                                     <tr>
                                         <th>Cód.</th>
                                         <th>Nombre / Marca</th>
-                                        <th>Clase</th>
+                                        <th>Clasificación</th>
                                         <th>Área Técnica</th>
                                         <th className={styles.textCenter}>Costo</th>
                                         <th className={styles.textCenter}>Precio</th>
-                                        <th className={styles.textCenter}>Frío</th>
+                                        <th className={styles.textCenter}>T°</th>
                                         <th className={styles.textRight}>Unidad</th>
                                         <th className={styles.textCenter}>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredCatalogo.map(item => (
+                                    {displayedCatalogo.map(item => (
                                         <tr key={item.id} className={item.requiere_frio ? styles.frioRow : ''}>
                                             <td className={styles.codeCell}>{item.prefijo}</td>
                                             <td className={styles.nameCell}>
                                                 <strong>{item.nombre}</strong>
                                                 <div className={styles.subInfo}>{item.marca || 'Genérico'} • {item.presentacion}</div>
                                             </td>
-                                            <td>{item.clase || '---'}</td>
+                                            <td className={styles.techCell}>
+                                                <div className={styles.techTop}>
+                                                    <span className={styles.claseBadge}>{item.clase}</span>
+                                                    <strong>{item.sub_area || 'General'}</strong>
+                                                </div>
+                                                <div className={styles.techBottom}>
+                                                    <span className={styles.equipoSmall}>{item.equipo || 'Sin Equipo'}</span>
+                                                    <span className={styles.divider}>|</span>
+                                                    <span>{item.subcategoria}</span>
+                                                </div>
+                                            </td>
                                             <td><span className={styles.categoryTag}>{item.area_tecnica || 'Admin'}</span></td>
                                             <td className={styles.textCenter}>${parseFloat(item.costo_unitario || 0).toFixed(2)}</td>
                                             <td className={styles.textCenter}>${parseFloat(item.precio1 || 0).toFixed(2)}</td>
-                                            <td className={styles.textCenter}>{item.requiere_frio && <span className="material-symbols-rounded" style={{color: '#3b82f6', fontSize: '18px'}}>ac_unit</span>}</td>
+                                            <td className={styles.textCenter}>
+                                                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '0.8rem', fontWeight: '600'}}>
+                                                    {item.temperatura_almacenamiento === 'Ambiente' && <span className="material-symbols-rounded" title="Ambiente" style={{color: '#94a3b8', fontSize: '18px'}}>home</span>}
+                                                    {item.temperatura_almacenamiento === 'Refrigerado' && <span className="material-symbols-rounded" title="Refrigerado" style={{color: '#3b82f6', fontSize: '18px'}}>thermostat</span>}
+                                                    {item.temperatura_almacenamiento === 'Congelado' && <span className="material-symbols-rounded" title="Congelado" style={{color: '#6366f1', fontSize: '18px'}}>ac_unit</span>}
+                                                    <span>{item.temperatura_valor ?? (item.requiere_frio ? '2-8' : '20')}°</span>
+                                                </div>
+                                            </td>
                                             <td className={styles.textRight}>{item.unidad}</td>
                                             <td className={styles.textCenter}>
                                                 <div style={{display: 'flex', gap: '5px', justifyContent: 'center'}}>
@@ -377,10 +640,19 @@ export default function MaterialesCatalogo() {
                         </div>
 
                         <div className={styles.mobileView}>
-                            {filteredCatalogo.map(item => (
+                            {displayedCatalogo.map(item => (
                                 <MaterialCard key={item.id} item={item} onEdit={handleEdit} onDelete={handleDelete} onReactivate={handleReactivate} viewMode={viewMode} user={user} />
                             ))}
                         </div>
+
+                        {visibleCount < filteredCatalogo.length && (
+                            <div className={styles.loadMoreContainer}>
+                                <button className={styles.loadMoreBtn} onClick={() => setVisibleCount(prev => prev + 50)}>
+                                    <span className="material-symbols-rounded">expand_more</span>
+                                    Ver 50 más ({filteredCatalogo.length - visibleCount} restantes)
+                                </button>
+                            </div>
+                        )}
                     </>
                 )}
             </main>
@@ -393,45 +665,144 @@ export default function MaterialesCatalogo() {
                             <button className={styles.closeBtn} onClick={() => { setShowModal(false); setIsEditing(false); }}>&times;</button>
                         </div>
                         <form onSubmit={handleManualSubmit} className={styles.fullForm}>
-                            <div className={styles.formGrid}>
-                                <section className={styles.formSection}>
-                                    <h4><span className="material-symbols-rounded">description</span> Información</h4>
-                                    <div className={styles.fieldGroup}><label>Nombre</label><input ref={nombreInputRef} required value={form.nombre} onChange={e => handleNombreChange(e.target.value)} /></div>
-                                    <div className={styles.row}>
-                                        <div className={styles.fieldGroup}><label>Prefijo</label><input required value={form.prefijo} onChange={e=>setForm({...form, prefijo: e.target.value.toUpperCase()})} /></div>
+                            <div className={styles.formContent}>
+                                <div className={styles.formGrid}>
+                                    <section className={styles.formSection}>
+                                        <h4><span className="material-symbols-rounded">description</span> Información Técnica</h4>
                                         <div className={styles.fieldGroup}>
-                                            <label>Área Técnica</label>
-                                            <select value={form.area_tecnica} onChange={e=>setForm({...form, area_tecnica: e.target.value})}>
-                                                <option value="HEMATOLOGÍA">Hematología</option>
-                                                <option value="QUÍMICA CLÍNICA">Química Clínica</option>
-                                                <option value="UROANÁLISIS">Uroanálisis</option>
-                                                <option value="MICROBIOLOGÍA">Microbiología</option>
-                                                <option value="TOMA DE MUESTRA">Toma de Muestra</option>
-                                                <option value="PAPELERÍA">Papelería</option>
-                                                <option value="OTROS">Otros</option>
-                                            </select>
+                                            <label>Nombre del Material / Reactivo</label>
+                                            <input ref={nombreInputRef} required value={form.nombre} onChange={e => handleNombreChange(e.target.value)} placeholder="Ej. Tubo EDTA 4ml" />
                                         </div>
-                                    </div>
-                                </section>
-                                <section className={styles.formSection}>
-                                    <h4><span className="material-symbols-rounded">payments</span> Comercial</h4>
-                                    <div className={styles.fieldGroup}><label>Proveedor</label><SupplierPicker value={form.proveedor_id} onChange={(val) => setForm({...form, proveedor_id: val})} /></div>
-                                    <div className={styles.row}>
-                                        <div className={styles.fieldGroup}><label>Costo ($)</label><input type="number" step="0.01" value={form.costo_unitario} onChange={e=>setForm({...form, costo_unitario: parseFloat(e.target.value) || 0})} /></div>
-                                        <div className={styles.fieldGroup}><label>Precio ($)</label><input type="number" step="0.01" value={form.precio1} onChange={e=>setForm({...form, precio1: parseFloat(e.target.value) || 0})} /></div>
-                                    </div>
-                                </section>
-                                <section className={styles.formSection}>
-                                    <h4><span className="material-symbols-rounded">warehouse</span> Logística</h4>
-                                    <div className={styles.row}>
+                                        <div className={styles.row}>
+                                            <div className={styles.fieldGroup}>
+                                                <label>Prefijo/Código</label>
+                                                <div className={styles.inputWithAction}>
+                                                    <input required value={form.prefijo} onChange={e=>setForm({...form, prefijo: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')})} placeholder="Ej. EDTA" />
+                                                    <button 
+                                                            type="button" 
+                                                            className={styles.suggestBtn} 
+                                                            onClick={sugerirPrefijo} 
+                                                            title={form.prefijo ? "Código ya asignado" : "Sugerir código"}
+                                                            disabled={!!form.prefijo}
+                                                        >
+                                                            <span className="material-symbols-rounded">magic_button</span>
+                                                        </button>
+                                                </div>
+                                            </div>
+                                            <div className={styles.fieldGroup}>
+                                                <label>Área Técnica</label>
+                                                <select value={form.area_tecnica} onChange={e=>setForm({...form, area_tecnica: e.target.value})}>
+                                                    <option value="HEMATOLOGÍA">Hematología</option>
+                                                    <option value="QUÍMICA CLÍNICA">Química Clínica</option>
+                                                    <option value="UROANÁLISIS">Uroanálisis</option>
+                                                    <option value="MICROBIOLOGÍA">Microbiología</option>
+                                                    <option value="TOMA DE MUESTRA">Toma de Muestra</option>
+                                                    <option value="PAPELERÍA">Papelería</option>
+                                                    <option value="OTROS">Otros</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className={styles.row}>
+                                            <div className={styles.fieldGroup}>
+                                                <label>Sub-Área / Especialidad</label>
+                                                <input type="text" placeholder="Ej. Inmunología..." value={form.sub_area} onChange={e => setForm({...form, sub_area: e.target.value})} />
+                                            </div>
+                                            <div className={styles.fieldGroup}>
+                                                <label>Equipo / Analizador</label>
+                                                <input type="text" placeholder="Ej. Vitros 4600..." value={form.equipo} onChange={e => setForm({...form, equipo: e.target.value})} />
+                                            </div>
+                                        </div>
+                                        <div className={styles.row}>
+                                            <div className={styles.fieldGroup}>
+                                                <label>Clase</label>
+                                                <select value={form.clase} onChange={e=>setForm({...form, clase: e.target.value})}>
+                                                    <option value="Artículo">Artículo</option>
+                                                    <option value="Reactivo">Reactivo</option>
+                                                    <option value="Consumible">Consumible</option>
+                                                    <option value="Equipo">Equipo</option>
+                                                </select>
+                                            </div>
+                                            <div className={styles.fieldGroup}>
+                                                <label>Subcategoría / Tipo</label>
+                                                <select value={form.subcategoria} onChange={e=>setForm({...form, subcategoria: e.target.value})}>
+                                                    <option value="General">Insumo General</option>
+                                                    <option value="Reactivos">Reactivo de Trabajo</option>
+                                                    <option value="Controles">Control de Calidad</option>
+                                                    <option value="Calibradores">Calibrador</option>
+                                                    <option value="Estándares">Estándar / Patrón</option>
+                                                    <option value="Inmunología">Inmunología</option>
+                                                    <option value="Detergentes">Detergente / Limpiador</option>
+                                                    <option value="Consumibles">Consumible</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    <section className={styles.formSection}>
+                                        <h4><span className="material-symbols-rounded">inventory_2</span> Detalles de Producto</h4>
+                                        <div className={styles.row}>
+                                            <div className={styles.fieldGroup}><label>Marca</label><input value={form.marca} onChange={e=>setForm({...form, marca: e.target.value})} placeholder="Ej. BD, Roche..." /></div>
+                                            <div className={styles.fieldGroup}><label>Presentación</label><input value={form.presentacion} onChange={e=>setForm({...form, presentacion: e.target.value})} placeholder="Ej. Caja c/100" /></div>
+                                        </div>
+                                        <div className={styles.row}>
+                                            <div className={styles.fieldGroup}>
+                                                <label>Unidad de Medida</label>
+                                                <select value={form.unidad} onChange={e=>setForm({...form, unidad: e.target.value})}>
+                                                    <option value="Pieza">Pieza</option>
+                                                    <option value="Caja">Caja</option>
+                                                    <option value="Kit">Kit</option>
+                                                    <option value="Frasco">Frasco</option>
+                                                    <option value="Bolsa">Bolsa</option>
+                                                    <option value="Prueba">Prueba</option>
+                                                    <option value="Paquete">Paquete</option>
+                                                    <option value="Rollo">Rollo</option>
+                                                    <option value="Litro">Litro</option>
+                                                </select>
+                                            </div>
+                                            <div className={styles.fieldGroup}><label>Código EAN</label><input value={form.ean_maestro} onChange={e=>setForm({...form, ean_maestro: e.target.value})} placeholder="Código de barras" /></div>
+                                        </div>
+                                    </section>
+
+                                    <section className={styles.formSection}>
+                                        <h4><span className="material-symbols-rounded">payments</span> Comercial</h4>
+                                        <div className={styles.fieldGroup}><label>Proveedor Sugerido</label><SupplierPicker value={form.proveedor_id} onChange={(val) => setForm({...form, proveedor_id: val})} /></div>
+                                        <div className={styles.row}>
+                                            <div className={styles.fieldGroup}><label>Costo ($)</label><input type="number" step="0.01" value={form.costo_unitario} onChange={e=>setForm({...form, costo_unitario: parseFloat(e.target.value) || 0})} /></div>
+                                            <div className={styles.fieldGroup}><label>Precio ($)</label><input type="number" step="0.01" value={form.precio1} onChange={e=>setForm({...form, precio1: parseFloat(e.target.value) || 0})} /></div>
+                                        </div>
+                                    </section>
+
+                                    <section className={styles.formSection}>
+                                        <h4><span className="material-symbols-rounded">warehouse</span> Almacén</h4>
                                         <div className={styles.fieldGroup}><label>Stock Mínimo</label><input type="number" value={form.stock_minimo} onChange={e=>setForm({...form, stock_minimo: parseInt(e.target.value) || 0})} /></div>
-                                        <div className={styles.fieldGroup}><label>Frío</label><input type="checkbox" checked={form.requiere_frio} onChange={e=>setForm({...form, requiere_frio: e.target.checked})} /></div>
-                                    </div>
-                                </section>
+                                        <div className={styles.fieldGroup}>
+                                            <label>Almacenamiento</label>
+                                            <div className={styles.tempControlWrapper}>
+                                                <div className={styles.tempInputRow}>
+                                                    <select value={form.temperatura_almacenamiento} onChange={e => { const val = e.target.value; let defVal = 20; if (val === 'Refrigerado') defVal = 4; if (val === 'Congelado') defVal = -20; setForm({...form, temperatura_almacenamiento: val, temperatura_valor: defVal, requiere_frio: val !== 'Ambiente'}); }}>
+                                                        <option value="Ambiente">🏠 Ambiente</option>
+                                                        <option value="Refrigerado">❄️ Refrigerado</option>
+                                                        <option value="Congelado">🧊 Congelado</option>
+                                                    </select>
+                                                    <div className={styles.tempValueBox}>
+                                                        <button type="button" onClick={() => setForm({...form, temperatura_valor: (form.temperatura_valor || 0) - 1})}>-</button>
+                                                        <input type="number" value={form.temperatura_valor} onChange={e => setForm({...form, temperatura_valor: parseInt(e.target.value) || 0})} />
+                                                        <button type="button" onClick={() => setForm({...form, temperatura_valor: (form.temperatura_valor || 0) + 1})}>+</button>
+                                                        <span className={styles.unitText}>°C</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
                             </div>
+
                             <div className={styles.modalActions}>
-                                <button type="button" onClick={()=>{ setShowModal(false); setIsEditing(false); }}>Cerrar</button>
-                                <button type="submit" className={styles.primaryBtn}>{isEditing ? 'Actualizar' : 'Guardar'}</button>
+                                <button type="button" onClick={() => { setShowModal(false); setIsEditing(false); }}>Cancelar</button>
+                                <button type="submit" className={styles.primaryBtn} disabled={loading}>
+                                    <span className="material-symbols-rounded">save</span>
+                                    {loading ? 'Guardando...' : (isEditing ? 'Actualizar Material' : 'Registrar Material')}
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -480,14 +851,43 @@ export default function MaterialesCatalogo() {
                                 <h4>Vista Previa de Datos</h4>
                                 <div className={styles.tableWrapper}>
                                     <table>
-                                        <thead><tr><th>Código</th><th>Material</th><th>Área</th><th>Categoría</th></tr></thead>
+                                        <thead>
+                                            <tr>
+                                                <th>Código</th>
+                                                <th>Material</th>
+                                                <th>Área</th>
+                                                <th>SubArea</th>
+                                                <th>Equipo</th>
+                                                <th>Categoría</th>
+                                                <th>Subcategoría</th>
+                                                <th>Marca</th>
+                                                <th>Pres.</th>
+                                                <th>Unidad</th>
+                                                <th>Mín.</th>
+                                                <th>Costo</th>
+                                                <th>Precio</th>
+                                                <th>EAN</th>
+                                                <th>T°</th>
+                                            </tr>
+                                        </thead>
                                         <tbody>
                                             {importData.all.slice(0, 10).map((row, i) => (
                                                 <tr key={i}>
                                                     <td>{row.Prefijo}</td>
                                                     <td>{row.Material || row.Nombre}</td>
                                                     <td>{row.Area}</td>
+                                                    <td>{row.SubArea || '---'}</td>
+                                                    <td>{row.Equipo || '---'}</td>
                                                     <td>{row.Categoria}</td>
+                                                    <td>{row.Subcategoria || '---'}</td>
+                                                    <td>{row.Marca || '---'}</td>
+                                                    <td>{row.Presentacion || '---'}</td>
+                                                    <td>{row.Unidad || '---'}</td>
+                                                    <td>{row.Minimo || 0}</td>
+                                                    <td>${row.Costo || 0}</td>
+                                                    <td>${row.Precio || 0}</td>
+                                                    <td>{row.EAN || '---'}</td>
+                                                    <td>{row.Temp_Valor || 20}°</td>
                                                 </tr>
                                             ))}
                                         </tbody>
