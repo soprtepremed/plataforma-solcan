@@ -17,13 +17,13 @@ const BitacoraResultadosQuimica = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [newResult, setNewResult] = useState({
-    folio: '',
-    paciente: '',
+  const [commonData, setCommonData] = useState({
     fecha: new Date().toISOString().split('T')[0],
-    estudio_enviado: '',
-    archivo: null
+    estudio_enviado: ''
   });
+  const [entries, setEntries] = useState([
+    { id: Date.now(), folio: '', paciente: '', archivo: null }
+  ]);
 
   useEffect(() => {
     fetchResultados();
@@ -57,78 +57,77 @@ const BitacoraResultadosQuimica = () => {
   const handleUpload = async (e) => {
     e.preventDefault();
     
-    // Si no es edición, el archivo es obligatorio
-    if (!editingId && !newResult.archivo) {
-      setStatusModal({ show: true, type: 'error', message: 'Por favor selecciona un archivo PDF.' });
+    // Validar que haya al menos una entrada válida
+    const validEntries = entries.filter(ent => ent.folio && ent.paciente && (editingId || ent.archivo));
+    if (validEntries.length === 0) {
+      setStatusModal({ show: true, type: 'error', message: 'Por favor completa al menos un paciente con su archivo.' });
       return;
     }
 
-    if (!newResult.folio || !newResult.paciente) {
-      setStatusModal({ show: true, type: 'error', message: 'El folio y el nombre del paciente son obligatorios.' });
+    if (!commonData.estudio_enviado) {
+      setStatusModal({ show: true, type: 'error', message: 'El nombre del estudio es obligatorio.' });
       return;
     }
 
     setUploading(true);
     try {
-      let publicUrl = null;
+      const recordsToSave = [];
 
-      // Solo subir archivo si se seleccionó uno nuevo
-      if (newResult.archivo) {
-        const file = newResult.archivo;
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${newResult.folio}_${Date.now()}.${fileExt}`;
-        const filePath = `${newResult.fecha}/${fileName}`;
+      for (const entry of validEntries) {
+        let publicUrl = null;
 
-        const { error: uploadError } = await supabase.storage
-          .from('resultados_quimica')
-          .upload(filePath, file);
+        // Subir archivo si existe
+        if (entry.archivo) {
+          const file = entry.archivo;
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${entry.folio}_${Date.now()}.${fileExt}`;
+          const filePath = `${commonData.fecha}/${fileName}`;
 
-        if (uploadError) throw uploadError;
+          const { error: uploadError } = await supabase.storage
+            .from('resultados_quimica')
+            .upload(filePath, file);
 
-        const { data: { publicUrl: url } } = supabase.storage
-          .from('resultados_quimica')
-          .getPublicUrl(filePath);
-        
-        publicUrl = url;
+          if (uploadError) throw uploadError;
+
+          const { data: { publicUrl: url } } = supabase.storage
+            .from('resultados_quimica')
+            .getPublicUrl(filePath);
+          
+          publicUrl = url;
+        }
+
+        recordsToSave.push({
+          folio: entry.folio,
+          paciente: entry.paciente.toUpperCase(),
+          fecha: commonData.fecha,
+          estudio_enviado: commonData.estudio_enviado,
+          pdf_url: publicUrl || (editingId ? undefined : null)
+        });
       }
 
-      // 3. Registrar en Tabla (Insert o Update)
       if (editingId) {
-        const updateData = {
-          folio: newResult.folio,
-          paciente: newResult.paciente.toUpperCase(),
-          fecha: newResult.fecha,
-          estudio_enviado: newResult.estudio_enviado
-        };
-        if (publicUrl) updateData.pdf_url = publicUrl;
-
+        // En edición solo tomamos el primer registro válido
         const { error: dbError } = await supabase
           .from('bitacora_resultados_quimica')
-          .update(updateData)
+          .update(recordsToSave[0])
           .eq('id', editingId);
         if (dbError) throw dbError;
       } else {
         const { error: dbError } = await supabase
           .from('bitacora_resultados_quimica')
-          .insert([{
-            folio: newResult.folio,
-            paciente: newResult.paciente.toUpperCase(),
-            fecha: newResult.fecha,
-            estudio_enviado: newResult.estudio_enviado,
-            pdf_url: publicUrl
-          }]);
+          .insert(recordsToSave);
         if (dbError) throw dbError;
       }
 
       setStatusModal({ 
         show: true, 
         type: 'success', 
-        message: editingId ? 'Registro de maquila actualizado correctamente.' : 'Estudio mandado a maquila registrado con éxito.' 
+        message: editingId ? 'Registro actualizado correctamente.' : `Se han registrado ${recordsToSave.length} estudios con éxito.` 
       });
       
       setShowModal(false);
       setEditingId(null);
-      setNewResult({ folio: '', paciente: '', fecha: filterDate, estudio_enviado: '', archivo: null });
+      resetForm();
       fetchResultados();
     } catch (e) {
       console.error(e);
@@ -136,6 +135,25 @@ const BitacoraResultadosQuimica = () => {
     } finally {
       setUploading(false);
     }
+  };
+
+  const resetForm = () => {
+    setCommonData({ fecha: filterDate || new Date().toISOString().split('T')[0], estudio_enviado: '' });
+    setEntries([{ id: Date.now(), folio: '', paciente: '', archivo: null }]);
+  };
+
+  const addEntry = () => {
+    setEntries([...entries, { id: Date.now(), folio: '', paciente: '', archivo: null }]);
+  };
+
+  const removeEntry = (id) => {
+    if (entries.length > 1) {
+      setEntries(entries.filter(e => e.id !== id));
+    }
+  };
+
+  const updateEntry = (id, field, value) => {
+    setEntries(entries.map(e => e.id === id ? { ...e, [field]: value } : e));
   };
 
   const handleDeleteClick = (id) => {
@@ -164,13 +182,16 @@ const BitacoraResultadosQuimica = () => {
   };
 
   const handleEdit = (res) => {
-    setNewResult({
+    setCommonData({
+      fecha: res.fecha,
+      estudio_enviado: res.estudio_enviado
+    });
+    setEntries([{
+      id: res.id,
       folio: res.folio,
       paciente: res.paciente,
-      fecha: res.fecha,
-      estudio_enviado: res.estudio_enviado,
       archivo: null
-    });
+    }]);
     setEditingId(res.id);
     setShowModal(true);
   };
@@ -313,104 +334,145 @@ const BitacoraResultadosQuimica = () => {
                 <span className="material-symbols-rounded">close</span>
               </button>
             </div>
-            <form onSubmit={handleUpload} className={styles.modalBody}>
-              <div className={styles.field}>
-                <label>Fecha de Envío</label>
-                <input 
-                  type="date" 
-                  className={styles.inputMinimal}
-                  value={newResult.fecha || ''}
-                  onChange={(e) => setNewResult({...newResult, fecha: e.target.value})}
-                  required
-                />
-              </div>
-              <div className={styles.field}>
-                <label>Folio del Examen</label>
-                <input 
-                  type="text" 
-                  placeholder="Ej. 45678" 
-                  className={styles.inputMinimal}
-                  value={newResult.folio || ''}
-                  onChange={(e) => setNewResult({...newResult, folio: e.target.value})}
-                  required
-                />
-              </div>
-              <div className={styles.field} style={{gridColumn: 'span 2'}}>
-                <label>Nombre del Paciente</label>
-                <input 
-                  type="text" 
-                  placeholder="NOMBRE COMPLETO" 
-                  className={styles.inputMinimal}
-                  value={newResult.paciente || ''}
-                  onChange={(e) => setNewResult({...newResult, paciente: e.target.value})}
-                  required
-                />
-              </div>
-              <div className={styles.field} style={{gridColumn: 'span 2'}}>
-                <label>Estudio Mandado a Maquilar</label>
-                <input 
-                  type="text" 
-                  placeholder="Ej. Perfil de Lípidos, Inmunoglobulinas..." 
-                  className={styles.inputMinimal}
-                  value={newResult.estudio_enviado || ''}
-                  onChange={(e) => setNewResult({...newResult, estudio_enviado: e.target.value})}
-                  required
-                />
-              </div>
-              <div className={styles.field} style={{gridColumn: 'span 2'}}>
-                <label>Comprobante / Resultado (PDF)</label>
-                <div 
-                  className={styles.fileDragArea}
-                  onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = '#10B981'; }}
-                  onDragLeave={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = '#E2E8F0'; }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.style.borderColor = '#E2E8F0';
-                    const file = e.dataTransfer.files[0];
-                    if (file && file.type === 'application/pdf') {
-                      setNewResult({...newResult, archivo: file});
-                    } else {
-                      alert('Solo se permiten archivos PDF');
-                    }
-                  }}
-                >
+            <form onSubmit={handleUpload} className={styles.modalBody} style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
+              {/* Datos Comunes */}
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', padding: '1.5rem', background: '#F8FAFC', borderRadius: '20px', border: '1px solid #E2E8F0'}}>
+                <div className={styles.field} style={{margin: 0}}>
+                  <label>Fecha de Envío</label>
                   <input 
-                    type="file" 
-                    accept="application/pdf" 
-                    onChange={(e) => setNewResult({...newResult, archivo: e.target.files[0]})}
-                    className={styles.fileInput}
-                    id="pdfFile"
+                    type="date" 
+                    className={styles.inputMinimal}
+                    value={commonData.fecha || ''}
+                    onChange={(e) => setCommonData({...commonData, fecha: e.target.value})}
+                    required
                   />
-                  <label htmlFor="pdfFile" style={{cursor: 'pointer', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                    <span className="material-symbols-rounded" style={{fontSize: '3rem', color: '#10B981', display: 'block', marginBottom: '10px'}}>upload_file</span>
-                    <p style={{margin: 0, fontWeight: 700, color: '#1E293B'}}>{newResult.archivo ? newResult.archivo.name : 'Arrastra aquí el PDF o haz clic para buscar'}</p>
-                    <p style={{margin: 0, fontSize: '0.8rem', color: '#64748B'}}>Formato permitido: PDF únicamente</p>
-                    
-                    {newResult.archivo && (
-                      <button 
-                        type="button"
-                        className={styles.removeFileBtn}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setNewResult({...newResult, archivo: null});
-                        }}
-                      >
-                        <span className="material-symbols-rounded" style={{fontSize: '18px'}}>delete_forever</span>
-                        Quitar archivo
-                      </button>
-                    )}
-                  </label>
+                </div>
+                <div className={styles.field} style={{margin: 0}}>
+                  <label>Estudio Mandado a Maquilar</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ej. Perfil de Lípidos..." 
+                    className={styles.inputMinimal}
+                    value={commonData.estudio_enviado || ''}
+                    onChange={(e) => setCommonData({...commonData, estudio_enviado: e.target.value})}
+                    required
+                  />
                 </div>
               </div>
-              <div style={{gridColumn: 'span 2', marginTop: '10px'}}>
+
+              {/* Lista de Pacientes */}
+              <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
+                <h4 style={{margin: 0, fontSize: '0.9rem', color: '#64748B', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px'}}>Pacientes a Registrar</h4>
+                
+                {entries.map((entry, index) => (
+                  <div key={entry.id} style={{
+                    padding: '1.5rem', 
+                    background: 'white', 
+                    borderRadius: '20px', 
+                    border: '1px solid #E2E8F0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '15px',
+                    position: 'relative',
+                    animation: 'slideIn 0.3s ease-out'
+                  }}>
+                    {entries.length > 1 && (
+                      <button 
+                        type="button" 
+                        onClick={() => removeEntry(entry.id)}
+                        style={{position: 'absolute', top: '10px', right: '10px', background: '#FEF2F2', color: '#EF4444', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}
+                      >
+                        <span className="material-symbols-rounded" style={{fontSize: '18px'}}>close</span>
+                      </button>
+                    )}
+
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '15px'}}>
+                      <div className={styles.field} style={{margin: 0}}>
+                        <label>Folio</label>
+                        <input 
+                          type="text" 
+                          placeholder="Folio" 
+                          className={styles.inputMinimal}
+                          value={entry.folio || ''}
+                          onChange={(e) => updateEntry(entry.id, 'folio', e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className={styles.field} style={{margin: 0}}>
+                        <label>Nombre del Paciente</label>
+                        <input 
+                          type="text" 
+                          placeholder="Nombre Completo" 
+                          className={styles.inputMinimal}
+                          value={entry.paciente || ''}
+                          onChange={(e) => updateEntry(entry.id, 'paciente', e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className={styles.fileInputWrapper}>
+                      <input 
+                        type="file" 
+                        accept=".pdf" 
+                        onChange={(e) => updateEntry(entry.id, 'archivo', e.target.files[0])}
+                        className={styles.fileInput}
+                        id={`pdfFile-${entry.id}`}
+                      />
+                      <label htmlFor={`pdfFile-${entry.id}`} className={styles.fileDragArea} style={{minHeight: '100px', padding: '1rem'}}>
+                        <span className="material-symbols-rounded" style={{fontSize: '2rem', color: '#10B981'}}>upload_file</span>
+                        <p style={{margin: 0, fontWeight: 700, fontSize: '0.9rem'}}>{entry.archivo ? entry.archivo.name : 'Subir PDF de este estudio'}</p>
+                        
+                        {entry.archivo && (
+                          <button 
+                            type="button"
+                            className={styles.removeFileBtn}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              updateEntry(entry.id, 'archivo', null);
+                            }}
+                          >
+                            <span className="material-symbols-rounded" style={{fontSize: '16px'}}>delete</span> Quitar
+                          </button>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+                ))}
+
+                {!editingId && (
+                  <button 
+                    type="button" 
+                    onClick={addEntry}
+                    style={{
+                      padding: '15px', 
+                      background: '#F1F5F9', 
+                      color: '#3B82F6', 
+                      border: '2px dashed #CBD5E1', 
+                      borderRadius: '16px', 
+                      fontWeight: 800, 
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '10px'
+                    }}
+                  >
+                    <span className="material-symbols-rounded">person_add</span>
+                    Agregar otro paciente a este estudio
+                  </button>
+                )}
+              </div>
+
+              <div style={{marginTop: '10px'}}>
                 <button 
                   type="submit" 
                   className={styles.btnPrimarySmall} 
                   style={{width: '100%', padding: '18px', background: '#10B981', borderRadius: '16px', fontSize: '1rem'}}
                   disabled={uploading}
                 >
-                  {uploading ? 'Procesando...' : (editingId ? 'Actualizar Registro' : 'Guardar en Bitácora')}
+                  {uploading ? 'Procesando Carga...' : (editingId ? 'Actualizar Registro' : `Guardar ${entries.length} Registros`)}
                 </button>
               </div>
             </form>
