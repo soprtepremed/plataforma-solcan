@@ -439,7 +439,15 @@ const BitacoraResultadosQuimica = () => {
                 r.folio?.includes(searchTerm)
               ).map(res => (
                 <tr key={res.id} style={{borderBottom: '1px solid #F1F5F9'}}>
-                  <td style={{padding: '1.2rem', fontWeight: 800, color: '#F59E0B'}}>#{res.folio}</td>
+                  <td style={{
+                    padding: '1.2rem', 
+                    fontFamily: 'Consolas, monaco, monospace', 
+                    fontWeight: 900, 
+                    fontSize: '1.1rem',
+                    color: '#0F172A'
+                  }}>
+                    {res.folio}
+                  </td>
                   <td style={{fontWeight: 700}}>{res.paciente}</td>
                   <td style={{fontSize: '0.9rem', color: '#1E293B', fontWeight: 600}}>{res.estudio_enviado || '-'}</td>
                   <td style={{textAlign: 'center'}}>
