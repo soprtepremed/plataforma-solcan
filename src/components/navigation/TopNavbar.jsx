@@ -196,6 +196,7 @@ export default function TopNavbar() {
           { label: 'Dashboard Área', path: '/area/quimica-clinica', icon: 'dashboard_customize' },
           { label: 'Inventario y Calidad', path: '/area/quimica-clinica/inventario', icon: 'inventory_2' },
           { label: 'Parámetros Derivados', path: '/area/quimica-clinica/derivados', icon: 'calculate' },
+          { label: 'Bitácora Maquilas', path: '/area/quimica-clinica/bitacora', icon: 'list_alt' },
           { label: 'Acciones QC (FO-DO-012)', path: '/area/quimica-clinica/control-calidad', icon: 'fact_check' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
           { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }

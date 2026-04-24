@@ -52,6 +52,13 @@ const QuimicaClinicaDashboard = () => {
       color: '#0EA5E9'
     },
     {
+      title: 'Bitácora Maquilas',
+      desc: 'Control de estudios externos para conciliación de reactivos y reposición de costos.',
+      icon: 'list_alt',
+      path: '/area/quimica-clinica/bitacora',
+      color: '#F59E0B'
+    },
+    {
       title: 'Bitácora Logística',
       desc: 'Seguimiento de muestras y folios recibidos (FO-DO-017).',
       icon: 'assignment_turned_in',
