@@ -8,7 +8,7 @@ const BitacoraResultadosQuimica = () => {
   const [resultados, setResultados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+  const [filterDate, setFilterDate] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [statusModal, setStatusModal] = useState({ show: false, type: 'success', message: '' });
@@ -32,12 +32,20 @@ const BitacoraResultadosQuimica = () => {
   const fetchResultados = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('bitacora_resultados_quimica')
         .select('*')
-        .eq('fecha', filterDate)
-        .order('created_at', { ascending: false });
+        .order('fecha', { ascending: false });
 
+      if (filterDate) {
+        query = query.eq('fecha', filterDate);
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        console.error(error);
+        return;
+      }
       if (data) setResultados(data);
     } catch (e) {
       console.error(e);
@@ -167,6 +175,12 @@ const BitacoraResultadosQuimica = () => {
     setShowModal(true);
   };
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
   const exportToExcel = () => {
     const dataToExport = resultados.map(r => ({
       Folio: r.folio,
@@ -193,32 +207,95 @@ const BitacoraResultadosQuimica = () => {
         </div>
       </header>
 
-      <div className={styles.tableHeader} style={{marginBottom: '1.5rem', background: 'white', padding: '1.5rem', borderRadius: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'}}>
-        <div style={{display:'flex', gap:'20px', flexWrap:'wrap', alignItems:'center'}}>
-          <div className={styles.searchBox} style={{flex: 1, minWidth: '250px'}}>
-            <span className="material-symbols-rounded">search</span>
-            <input 
-              placeholder="Buscar por paciente o folio..." 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
-            />
-          </div>
-          <div className={styles.field} style={{margin: 0}}>
-            <input 
-              type="date" 
-              className={styles.inputMinimal} 
-              value={filterDate} 
-              onChange={(e) => setFilterDate(e.target.value)} 
-            />
-          </div>
-          <button className={styles.btnPrimarySmall} style={{background: '#10B981', padding: '10px 20px'}} onClick={() => setShowModal(true)}>
-            <span className="material-symbols-rounded">add_notes</span> Registrar Maquila
+      <div style={{
+        marginBottom: '2rem', 
+        background: 'rgba(255, 255, 255, 0.7)', 
+        backdropFilter: 'blur(10px)',
+        padding: '1.5rem', 
+        borderRadius: '24px', 
+        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)',
+        border: '1px solid rgba(255, 255, 255, 0.5)',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '15px',
+        alignItems: 'center'
+      }}>
+        <div style={{
+          flex: 1, 
+          minWidth: '300px', 
+          background: 'white', 
+          borderRadius: '16px', 
+          padding: '8px 15px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '10px',
+          border: '1px solid #E2E8F0',
+          boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)'
+        }}>
+          <span className="material-symbols-rounded" style={{color: '#94A3B8'}}>search</span>
+          <input 
+            placeholder="Buscar por paciente o folio..." 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)} 
+            style={{
+              border: 'none',
+              background: 'transparent',
+              width: '100%',
+              outline: 'none',
+              fontSize: '0.95rem',
+              fontWeight: 500,
+              color: '#1E293B'
+            }}
+          />
+        </div>
+
+        <div style={{
+          display:'flex', 
+          alignItems:'center', 
+          gap:'8px', 
+          background: 'white', 
+          padding: '8px 15px', 
+          borderRadius: '16px', 
+          border: '1px solid #E2E8F0',
+          boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.05)'
+        }}>
+          <span className="material-symbols-rounded" style={{fontSize: '20px', color: '#64748B'}}>calendar_today</span>
+          <input 
+            type="date" 
+            style={{border: 'none', background: 'transparent', outline: 'none', fontSize: '0.9rem', color: '#1E293B', fontWeight: 600}}
+            value={filterDate} 
+            onChange={(e) => setFilterDate(e.target.value)} 
+          />
+          {filterDate && (
+            <button 
+              onClick={() => setFilterDate('')}
+              style={{
+                border: 'none', 
+                background: '#FEF2F2', 
+                cursor: 'pointer', 
+                display: 'flex', 
+                alignItems: 'center', 
+                color: '#EF4444',
+                padding: '4px',
+                borderRadius: '8px',
+                transition: 'all 0.2s'
+              }}
+              title="Limpiar filtro"
+            >
+              <span className="material-symbols-rounded" style={{fontSize: '18px'}}>close</span>
+            </button>
+          )}
+        </div>
+
+        <div style={{display: 'flex', gap: '10px'}}>
+          <button className={styles.btnPrimarySmall} style={{background: '#10B981', padding: '12px 20px', borderRadius: '16px'}} onClick={() => setShowModal(true)}>
+            <span className="material-symbols-rounded">add</span> Nuevo Registro
           </button>
-          <button className={styles.btnPrimarySmall} style={{background: '#3B82F6', padding: '10px 20px'}} onClick={exportToExcel}>
-            <span className="material-symbols-rounded">table_view</span> Exportar Excel
+          <button className={styles.btnPrimarySmall} style={{background: '#3B82F6', padding: '12px 20px', borderRadius: '16px'}} onClick={exportToExcel}>
+            <span className="material-symbols-rounded">download</span> Excel
           </button>
-          <button className={styles.btnPrimarySmall} style={{background: '#F59E0B', padding: '10px 20px'}} onClick={fetchResultados}>
-            <span className="material-symbols-rounded">refresh</span> Actualizar
+          <button className={styles.btnPrimarySmall} style={{background: '#F59E0B', padding: '12px 20px', borderRadius: '16px'}} onClick={fetchResultados}>
+            <span className="material-symbols-rounded">refresh</span>
           </button>
         </div>
       </div>
@@ -427,6 +504,7 @@ const BitacoraResultadosQuimica = () => {
             <thead style={{background: '#F8FAFC'}}>
               <tr>
                 <th style={{padding: '1.2rem'}}>Folio</th>
+                <th>Fecha de Envío</th>
                 <th>Paciente</th>
                 <th>Estudio Maquilado</th>
                 <th style={{textAlign: 'center'}}>Comprobante (PDF)</th>
@@ -434,77 +512,92 @@ const BitacoraResultadosQuimica = () => {
               </tr>
             </thead>
             <tbody>
-              {resultados.filter(r => 
-                r.paciente?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                r.folio?.includes(searchTerm)
-              ).map(res => (
-                <tr key={res.id} style={{borderBottom: '1px solid #F1F5F9'}}>
-                  <td style={{
-                    padding: '1.2rem', 
-                    fontFamily: 'Consolas, monaco, monospace', 
-                    fontWeight: 900, 
-                    fontSize: '1.1rem',
-                    color: '#0F172A'
-                  }}>
-                    {res.folio}
-                  </td>
-                  <td style={{fontWeight: 700}}>{res.paciente}</td>
-                  <td style={{fontSize: '0.9rem', color: '#1E293B', fontWeight: 600}}>{res.estudio_enviado || '-'}</td>
-                  <td style={{textAlign: 'center'}}>
-                    <div style={{display:'flex', justifyContent:'center', color:'#64748B'}}>
-                      <span className="material-symbols-rounded">verified_user</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div style={{display:'flex', gap:'8px', justifyContent: 'center'}}>
-                      <button 
-                        className={styles.btnAction} 
-                        style={{background: '#EFF6FF', color: '#3B82F6'}} 
-                        title="Ver Evidencia"
-                        onClick={() => {
-                          setPreviewUrl(res.pdf_url);
-                          setShowPreview(true);
-                        }}
-                      >
-                        <span className="material-symbols-rounded">visibility</span>
-                      </button>
-                      <button 
-                        className={styles.btnAction} 
-                        style={{background: '#F1F5F9', color: '#475569'}} 
-                        title="Editar"
-                        onClick={() => handleEdit(res)}
-                      >
-                        <span className="material-symbols-rounded">edit</span>
-                      </button>
-                      <button 
-                        className={styles.btnAction} 
-                        style={{background: '#FEF2F2', color: '#EF4444'}} 
-                        title="Eliminar"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleDeleteClick(res.id);
-                        }}
-                      >
-                        <span className="material-symbols-rounded" style={{pointerEvents: 'none'}}>delete</span>
-                      </button>
-                      <a 
-                        href={res.pdf_url} 
-                        download 
-                        className={styles.btnAction} 
-                        style={{background: '#F0FDF4', color: '#10B981', display:'flex', alignItems:'center', justifyContent:'center'}} 
-                        title="Descargar"
-                      >
-                        <span className="material-symbols-rounded">download</span>
-                      </a>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {(() => {
+                const filtered = resultados.filter(r => {
+                  const term = searchTerm.toLowerCase().trim();
+                  return (
+                    r.paciente?.toLowerCase().includes(term) || 
+                    r.folio?.toString().toLowerCase().includes(term)
+                  );
+                });
+
+                const folioCounts = filtered.reduce((acc, curr) => {
+                  acc[curr.folio] = (acc[curr.folio] || 0) + 1;
+                  return acc;
+                }, {});
+
+                return filtered.map(res => {
+                  const isDuplicate = folioCounts[res.folio] > 1;
+                  return (
+                    <tr key={res.id} style={{ borderBottom: '1px solid #F1F5F9', transition: 'background 0.2s' }}>
+                      <td style={{
+                        padding: '1.2rem', 
+                        fontFamily: 'Consolas, monaco, monospace', 
+                        fontWeight: 900, 
+                        fontSize: '1.1rem',
+                        color: '#0F172A',
+                        borderLeft: isDuplicate ? '5px solid #F59E0B' : '5px solid transparent',
+                        background: isDuplicate ? '#FFFBEB' : 'transparent',
+                        position: 'relative'
+                      }} title={isDuplicate ? "Este folio tiene múltiples estudios asociados" : ""}>
+                        {res.folio}
+                        {isDuplicate && <span style={{
+                          position: 'absolute', top: '2px', left: '8px', fontSize: '8px', 
+                          color: '#D97706', textTransform: 'uppercase', fontWeight: 800
+                        }}>Múltiple</span>}
+                      </td>
+                      <td style={{fontSize: '0.95rem', color: '#1E293B', fontWeight: 700}}>
+                        {formatDate(res.fecha)}
+                      </td>
+                      <td style={{fontWeight: 700}}>{res.paciente}</td>
+                      <td style={{fontSize: '0.9rem', color: '#1E293B', fontWeight: 600}}>{res.estudio_enviado || '-'}</td>
+                      <td style={{textAlign: 'center'}}>
+                        <div style={{display:'flex', justifyContent:'center', color:'#64748B'}}>
+                          <span className="material-symbols-rounded">verified_user</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{display:'flex', gap:'8px', justifyContent: 'center'}}>
+                          <button 
+                            className={styles.btnAction} 
+                            style={{background: '#EFF6FF', color: '#3B82F6'}} 
+                            onClick={() => { setPreviewUrl(res.pdf_url); setShowPreview(true); }}
+                          >
+                            <span className="material-symbols-rounded">visibility</span>
+                          </button>
+                          <button 
+                            className={styles.btnAction} 
+                            style={{background: '#F1F5F9', color: '#475569'}} 
+                            onClick={() => handleEdit(res)}
+                          >
+                            <span className="material-symbols-rounded">edit</span>
+                          </button>
+                          <button 
+                            className={styles.btnAction} 
+                            style={{background: '#FEF2F2', color: '#EF4444'}} 
+                            onClick={(e) => { e.preventDefault(); handleDeleteClick(res.id); }}
+                          >
+                            <span className="material-symbols-rounded" style={{pointerEvents: 'none'}}>delete</span>
+                          </button>
+                          <a 
+                            href={res.pdf_url} 
+                            download 
+                            className={styles.btnAction} 
+                            style={{background: '#F0FDF4', color: '#10B981', display:'flex', alignItems:'center', justifyContent:'center'}}
+                          >
+                            <span className="material-symbols-rounded">download</span>
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                });
+              })()}
               {resultados.length === 0 && !loading && (
                 <tr>
                   <td colSpan="6" style={{padding: '4rem', textAlign: 'center', color: '#94A3B8'}}>
                     <span className="material-symbols-rounded" style={{fontSize: '48px', display: 'block', marginBottom: '10px'}}>search_off</span>
-                    No hay resultados registrados para esta fecha.
+                    No hay resultados registrados.
                   </td>
                 </tr>
               )}
