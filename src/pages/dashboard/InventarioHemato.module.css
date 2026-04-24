@@ -256,62 +256,83 @@ td {
 
 .confirmBox {
   background: white;
-  width: 90%;
-  max-width: 400px;
-  padding: 2rem;
-  border-radius: 20px;
+  width: 95%;
+  max-width: 420px;
+  padding: 2.5rem;
+  border-radius: 28px;
   text-align: center;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  animation: modalIn 0.3s ease-out;
+  gap: 1rem;
+  animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-@keyframes modalIn {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+.confirmHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
-.confirmBox h3 {
-  font-size: 1.2rem;
-  font-weight: 800;
+.confirmHeader h3 {
+  font-size: 1.5rem;
+  font-weight: 900;
   color: #1E293B;
   margin: 0;
+  letter-spacing: -0.5px;
 }
 
-.confirmBox p {
+.confirmMessage {
   color: #64748B;
-  line-height: 1.5;
-  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin: 0.5rem 0 1.5rem 0;
+  font-weight: 500;
 }
 
 .confirmActions {
   display: flex;
-  gap: 10px;
-  justify-content: center;
+  gap: 12px;
+  width: 100%;
 }
 
 .btnConfirm {
-  background: #DC2626;
+  background: linear-gradient(135deg, #0EA5E9 0%, #2563EB 100%);
   color: white;
-  padding: 0.8rem 1.5rem;
-  border-radius: 12px;
-  font-weight: 700;
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  font-weight: 800;
   border: none;
   cursor: pointer;
-  flex: 1;
+  flex: 2;
+  font-size: 0.95rem;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+  transition: all 0.2s;
+}
+
+.btnConfirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 20px -3px rgba(37, 99, 235, 0.4);
 }
 
 .btnCancel {
   background: #F1F5F9;
-  color: #475569;
-  padding: 0.8rem 1.5rem;
-  border-radius: 12px;
-  font-weight: 700;
+  color: #64748B;
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  font-weight: 800;
   border: none;
   cursor: pointer;
   flex: 1;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.btnCancel:hover {
+  background: #E2E8F0;
+  color: #1E293B;
 }
 
 .btnPrimary {
@@ -669,4 +690,325 @@ td {
         font-size: 1.2rem;
         line-height: 1.2;
     }
+}
+
+.derivedSection {
+  background: white;
+  border-radius: 24px;
+  padding: 3rem;
+  text-align: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  margin-top: 1rem;
+}
+
+.derivedHero {
+  margin-bottom: 3rem;
+}
+
+.derivedHero h2 {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #1E293B;
+  margin: 1rem 0;
+}
+
+.derivedHero p {
+  color: #64748B;
+  font-size: 1.1rem;
+}
+
+.emptyState {
+  background: #F8FAFC;
+  padding: 4rem;
+  border-radius: 20px;
+  border: 2px dashed #E2E8F0;
+  color: #94A3B8;
+}
+
+.emptyState span {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.emptyState h3 {
+  font-weight: 800;
+  color: #64748B;
+  margin-bottom: 0.5rem;
+}
+
+.dateInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dateInputWrapper input {
+  padding-right: 40px !important;
+}
+
+.clearDateBtn {
+  position: absolute;
+  right: 8px;
+  background: #F1F5F9;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748B;
+  transition: all 0.2s;
+  padding: 0;
+  z-index: 5;
+}
+
+.clearDateBtn:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+  transform: scale(1.1);
+}
+
+.clearDateBtn span {
+  font-size: 16px;
+}
+.quantityStepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.quantityStepper input {
+  flex: 1;
+  text-align: center;
+  border: none !important;
+  background: transparent !important;
+  font-weight: 800;
+  font-size: 1.1rem;
+  padding: 8px 0 !important;
+  width: 60px;
+}
+
+.quantityStepper input::-webkit-inner-spin-button,
+.quantityStepper input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.stepperBtn {
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #1E293B;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.stepperBtn:hover {
+  background: #0EA5E9;
+  color: white;
+  border-color: #0EA5E9;
+  transform: translateY(-1px);
+}
+
+.stepperBtn:active {
+  transform: scale(0.95);
+}
+.groupedList {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.materialGroup {
+  background: white;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.groupHeader {
+  background: #F8FAFC;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.groupInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.groupInfo span { color: #0EA5E9; }
+
+.groupInfo h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #1E293B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lotCount {
+  background: #E2E8F0;
+  color: #64748B;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.lotsGrid {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lotRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  background: white;
+  border: 1px solid #F1F5F9;
+  transition: all 0.2s;
+}
+
+.lotActive {
+  border: 2px solid #10B981;
+  background: #F0FDF4;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+}
+
+.lotFinished {
+  opacity: 0.6;
+  background: #F8FAFC;
+}
+
+.lotMain {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex: 1;
+}
+
+.lotTag {
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+}
+
+.lotTag label {
+  font-size: 0.6rem;
+  font-weight: 900;
+  color: #94A3B8;
+  text-transform: uppercase;
+}
+
+.lotTag span {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1E293B;
+}
+
+.lotDetails {
+  display: flex;
+  gap: 3rem;
+}
+
+.detailItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.detailItem label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #94A3B8;
+  text-transform: uppercase;
+}
+
+.detailItem span {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.lotActions {
+  display: flex;
+  gap: 8px;
+}
+
+.miniActionBtn {
+  background: white;
+  border: 1px solid #E2E8F0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #0EA5E9;
+}
+
+.miniActionBtn:hover {
+  background: #F8FAFC;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.textMuted { color: #94A3B8; }
+.textInfo { color: #0EA5E9; font-weight: 800; }
+
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 5px solid #F3F3F3;
+  border-top: 5px solid #0EA5E9;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .lotMain {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .lotDetails {
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .lotRow {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+  .lotActions {
+    justify-content: flex-end;
+  }
 }

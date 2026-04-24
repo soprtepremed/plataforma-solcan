@@ -97,7 +97,7 @@ export default function InventarioArea() {
     analisis_desempeno: "ST/SUERO",
     observaciones: "N/A",
     solicitud_id: "",
-    fecha_solicitud_almacen: new Date().toISOString().substring(0, 16),
+    fecha_solicitud_almacen: new Date().toISOString().substring(0, 10),
     fecha_inicio_uso: "",
     fecha_termino_uso: "",
     nuevo_lote: false,
@@ -152,7 +152,7 @@ export default function InventarioArea() {
   };
 
   const handleEdit = (item) => {
-    setForm({ ...item, fecha_solicitud_almacen: item.fecha_solicitud_almacen ? item.fecha_solicitud_almacen.substring(0, 16) : "" });
+    setForm({ ...item, fecha_solicitud_almacen: item.fecha_solicitud_almacen ? item.fecha_solicitud_almacen.substring(0, 10) : "" });
     setEditingId(item.id); setModalMode('edit'); setShowModal(true);
   };
 
@@ -199,10 +199,15 @@ export default function InventarioArea() {
         try {
           const { id, ...payload } = form;
           
+          // Limpiar el payload: Convertir strings vacíos de fechas a null real
           const cleanPayload = { 
             ...payload, 
             area_id: normalizedAreaId, 
-            stock_actual: payload.stock_actual || 0 
+            stock_actual: payload.stock_actual || 0,
+            fecha_inicio_uso: payload.fecha_inicio_uso || null,
+            fecha_termino_uso: payload.fecha_termino_uso || null,
+            fecha_solicitud_almacen: payload.fecha_solicitud_almacen || null,
+            caducidad: payload.caducidad || null
           };
           
           const response = modalMode === 'edit' 
@@ -231,60 +236,105 @@ export default function InventarioArea() {
 
   const filteredItems = items.filter(i => (i.descripcion||"").toLowerCase().includes(searchTerm.toLowerCase()) || (i.codigo||"").toLowerCase().includes(searchTerm.toLowerCase()));
 
+  // Lógica de Agrupación
+  const groupedItems = filteredItems.reduce((acc, item) => {
+    const key = item.descripcion;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(item);
+    return acc;
+  }, {});
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.title}><span className="material-symbols-rounded" style={{color: '#0EA5E9', fontSize: '2.5rem'}}>{displayIcon}</span> {displayTitle}</div>
-        <button className={styles.btnPrimary} onClick={() => { setForm({...initialForm, area_id: areaKey, sub_area: displayTitle.toUpperCase()}); setShowModal(true); }}>
+        <button className={styles.btnPrimary} onClick={() => { 
+          setForm({...initialForm, area_id: areaKey, sub_area: displayTitle.toUpperCase()}); 
+          setModalMode('add'); 
+          setEditingId(null); 
+          setShowModal(true); 
+        }}>
           <span className="material-symbols-rounded">add_box</span> Registrar Material
         </button>
       </header>
 
       <div className={styles.statsGrid}>
         <div className={styles.statCard}><div className={styles.statIcon} style={{background:'#E0F2FE'}}><span className="material-symbols-rounded">inventory</span></div>
-          <div><p>Ítems en Stock</p><h3>{items.length}</h3></div>
+          <div><p>Ítems Únicos</p><h3>{Object.keys(groupedItems).length}</h3></div>
+        </div>
+        <div className={styles.statCard}><div className={styles.statIcon} style={{background:'#DCFCE7'}}><span className="material-symbols-rounded">layers</span></div>
+          <div><p>Total de Lotes</p><h3>{items.length}</h3></div>
         </div>
       </div>
 
       <div className={styles.inventoryTable}>
         <div className={styles.tableHeader}>
           <div className={styles.searchBox}><span className="material-symbols-rounded">search</span>
-            <input placeholder="Buscar por código o descripción..." value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} />
+            <input placeholder="Buscar reactivo o código..." value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} />
           </div>
         </div>
 
         <div className={styles.tableContainer}>
-          <div className={styles.desktopView}>
-            <table>
-              <thead>
-                <tr><th>ID#</th><th>Descripción</th><th>Código</th><th>Lote</th><th>Caducidad</th><th>Inicio Uso</th><th>Stock</th><th>QC</th><th>Acciones</th></tr>
-              </thead>
-              <tbody>
-                {loading ? (<tr><td colSpan="9" style={{textAlign:'center', padding:'3rem'}}>Cargando...</td></tr>) : filteredItems.length === 0 ? (<tr><td colSpan="9" style={{textAlign:'center', padding:'3rem'}}>No hay materiales registrados.</td></tr>) : filteredItems.map(item => (
-                  <tr key={item.id}>
-                    <td style={{fontWeight: 700}}>{item.solicitud_id || '---'}</td>
-                    <td style={{fontWeight: 700}}>{item.descripcion}</td>
-                    <td><span className={styles.badge} style={{background:'#F1F5F9'}}>{item.codigo}</span></td>
-                    <td>{item.lote || 'N/A'}</td>
-                    <td style={{color: new Date(item.caducidad) < new Date() ? 'red' : 'inherit'}}>{item.caducidad ? new Date(item.caducidad).toLocaleDateString() : '---'}</td>
-                    <td>{item.fecha_inicio_uso ? new Date(item.fecha_inicio_uso).toLocaleDateString() : 'PENDIENTE'}</td>
-                    <td><span className={`${styles.badge} ${item.stock_actual < 5 ? styles.badgeDanger : styles.badgeSuccess}`}>{item.stock_actual}</span></td>
-                    <td><span className={item.aceptado ? styles.badgeSuccess : styles.badgeDanger}>{item.aceptado ? 'ACEPTADO' : 'RECH'}</span></td>
-                    <td>
-                      <div style={{display:'flex', gap:'5px'}}>
-                        {!item.fecha_inicio_uso && <button onClick={()=>handleQuickStart(item.id)} className={styles.btnAction} style={{background:'#0EA5E9', color:'white'}}><span className="material-symbols-rounded">play_arrow</span></button>}
-                        {item.fecha_inicio_uso && !item.fecha_termino_uso && <button onClick={()=>handleQuickEnd(item.id)} className={styles.btnAction} style={{background:'#EF4444', color:'white'}}><span className="material-symbols-rounded">stop</span></button>}
-                        <button onClick={()=>handleEdit(item)} className={styles.btnAction} style={{background:'#F1F5F9'}}><span className="material-symbols-rounded">edit</span></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className={styles.mobileView}>
-            <div className={styles.cardsGridMobile}>{filteredItems.map(item => (<InventoryCard key={item.id} item={item} onEdit={handleEdit} onQuickStart={handleQuickStart} onQuickEnd={handleQuickEnd} />))}</div>
-          </div>
+          {loading ? (
+            <div style={{textAlign:'center', padding:'5rem'}}><div className={styles.loader}></div><p>Cargando inventario técnico...</p></div>
+          ) : Object.keys(groupedItems).length === 0 ? (
+            <div style={{textAlign:'center', padding:'5rem', color: '#64748B'}}>
+              <span className="material-symbols-rounded" style={{fontSize:'4rem'}}>inventory_2</span>
+              <p>No se encontraron materiales registrados.</p>
+            </div>
+          ) : (
+            <div className={styles.groupedList}>
+              {Object.entries(groupedItems).map(([name, lots]) => (
+                <div key={name} className={styles.materialGroup}>
+                  <div className={styles.groupHeader}>
+                    <div className={styles.groupInfo}>
+                      <span className="material-symbols-rounded">label</span>
+                      <h3>{name}</h3>
+                      <span className={styles.lotCount}>{lots.length} {lots.length === 1 ? 'lote' : 'lotes'}</span>
+                    </div>
+                  </div>
+                  <div className={styles.lotsGrid}>
+                    {lots.sort((a,b) => {
+                      // Priorizar el que está en uso
+                      if (a.fecha_inicio_uso && !a.fecha_termino_uso) return -1;
+                      if (b.fecha_inicio_uso && !b.fecha_termino_uso) return 1;
+                      return 0;
+                    }).map(item => {
+                      const isActive = item.fecha_inicio_uso && !item.fecha_termino_uso;
+                      const isPending = !item.fecha_inicio_uso;
+                      const isFinished = item.fecha_termino_uso;
+
+                      return (
+                        <div key={item.id} className={`${styles.lotRow} ${isActive ? styles.lotActive : ''} ${isFinished ? styles.lotFinished : ''}`}>
+                          <div className={styles.lotMain}>
+                            <div className={styles.lotTag}>
+                              <label>LOTE</label>
+                              <span>{item.lote || 'N/A'}</span>
+                            </div>
+                            <div className={styles.lotDetails}>
+                              <div className={styles.detailItem}><label>Caducidad</label><span style={{color: new Date(item.caducidad) < new Date() ? '#EF4444' : 'inherit'}}>{item.caducidad ? new Date(item.caducidad).toLocaleDateString() : '---'}</span></div>
+                              <div className={styles.detailItem}><label>Stock</label><span className={item.stock_actual < 5 ? styles.textDanger : ''}>{item.stock_actual}</span></div>
+                              <div className={styles.detailItem}>
+                                <label>Estado</label>
+                                <span className={isActive ? styles.textSuccess : isFinished ? styles.textMuted : styles.textInfo}>
+                                  {isActive ? 'EN USO' : isFinished ? 'TERMINADO' : 'EN RESERVA'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className={styles.lotActions}>
+                            {!item.fecha_inicio_uso && <button onClick={()=>handleQuickStart(item.id)} className={styles.miniActionBtn} title="Iniciar Uso"><span className="material-symbols-rounded">play_arrow</span></button>}
+                            {item.fecha_inicio_uso && !item.fecha_termino_uso && <button onClick={()=>handleQuickEnd(item.id)} className={styles.miniActionBtn} style={{color:'#EF4444'}} title="Terminar Uso"><span className="material-symbols-rounded">stop</span></button>}
+                            <button onClick={()=>handleEdit(item)} className={styles.miniActionBtn} style={{color:'#64748B'}} title="Editar"><span className="material-symbols-rounded">edit</span></button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -308,13 +358,44 @@ export default function InventarioArea() {
                 <div className={styles.inputGroup}><label>Número de Lote</label><input required value={form.lote} onChange={e => setForm({...form, lote: e.target.value})} />
                   {loteStatus === 'new' && <div style={{fontSize: '0.7rem', fontWeight: 800, color: '#0369A1', marginTop: '4px', background: '#E0F2FE', padding: '4px 8px', borderRadius: '6px'}}>✨ ¡NUEVO LOTE DETECTADO!</div>}
                 </div>
-                <div className={styles.inputGroup}><label>FECHA DE SOLICITUD A ALMACÉN</label><input type="datetime-local" value={form.fecha_solicitud_almacen} onChange={e => setForm({...form, fecha_solicitud_almacen: e.target.value})} /></div>
+                <div className={styles.inputGroup}><label>FECHA DE SOLICITUD A ALMACÉN</label><input type="date" value={form.fecha_solicitud_almacen} onChange={e => setForm({...form, fecha_solicitud_almacen: e.target.value})} /></div>
               </div>
 
               <div className={styles.formGrid} style={{marginTop: '1rem'}}>
-                <div className={styles.inputGroup}><label>FECHA DE INICIO</label><input type="date" value={form.fecha_inicio_uso} onChange={e => setForm({...form, fecha_inicio_uso: e.target.value})} /></div>
-                <div className={styles.inputGroup}><label>FECHA DE TÉRMINO</label><input type="date" value={form.fecha_termino_uso} onChange={e => setForm({...form, fecha_termino_uso: e.target.value})} /></div>
-                <div className={styles.inputGroup}><label>CANTIDAD QUE INGRESA</label><input type="number" required value={form.stock_actual} onChange={e => setForm({...form, stock_actual: parseInt(e.target.value)})} /></div>
+                <div className={styles.inputGroup}>
+                  <label>FECHA DE INICIO</label>
+                  <div className={styles.dateInputWrapper}>
+                    <input type="date" value={form.fecha_inicio_uso} onChange={e => setForm({...form, fecha_inicio_uso: e.target.value})} />
+                    {form.fecha_inicio_uso && (
+                      <button type="button" className={styles.clearDateBtn} onClick={() => setForm({...form, fecha_inicio_uso: ""})}>
+                        <span className="material-symbols-rounded">close</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className={styles.inputGroup}>
+                  <label>FECHA DE TÉRMINO</label>
+                  <div className={styles.dateInputWrapper}>
+                    <input type="date" value={form.fecha_termino_uso} onChange={e => setForm({...form, fecha_termino_uso: e.target.value})} />
+                    {form.fecha_termino_uso && (
+                      <button type="button" className={styles.clearDateBtn} onClick={() => setForm({...form, fecha_termino_uso: ""})}>
+                        <span className="material-symbols-rounded">close</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className={styles.inputGroup}>
+                  <label>CANTIDAD QUE INGRESA</label>
+                  <div className={styles.quantityStepper}>
+                    <button type="button" onClick={() => setForm({...form, stock_actual: Math.max(0, (form.stock_actual || 0) - 1)})} className={styles.stepperBtn}>
+                      <span className="material-symbols-rounded">remove</span>
+                    </button>
+                    <input type="number" required min="0" value={form.stock_actual} onChange={e => setForm({...form, stock_actual: Math.max(0, parseInt(e.target.value) || 0)})} />
+                    <button type="button" onClick={() => setForm({...form, stock_actual: (form.stock_actual || 0) + 1})} className={styles.stepperBtn}>
+                      <span className="material-symbols-rounded">add</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className={styles.qcSection} style={{marginTop: '1.5rem'}}>
@@ -348,8 +429,16 @@ export default function InventarioArea() {
       )}
       {confirmDialog.show && (
         <div className={styles.modalOverlay} style={{zIndex: 2000}}>
-          <div className={styles.confirmBox}><h3>Confirmar Acción</h3><p>{confirmDialog.message}</p>
-            <div className={styles.confirmActions}><button onClick={() => setConfirmDialog({show: false})}>Cancelar</button><button onClick={confirmDialog.onConfirm}>Aceptar y Continuar</button></div>
+          <div className={styles.confirmBox}>
+            <div className={styles.confirmHeader}>
+              <span className="material-symbols-rounded" style={{fontSize: '3rem', color: '#0EA5E9'}}>help_outline</span>
+              <h3>Confirmar Acción</h3>
+            </div>
+            <p className={styles.confirmMessage}>{confirmDialog.message}</p>
+            <div className={styles.confirmActions}>
+              <button className={styles.btnCancel} onClick={() => setConfirmDialog({show: false})}>Cancelar</button>
+              <button className={styles.btnConfirm} onClick={confirmDialog.onConfirm}>Aceptar y Continuar</button>
+            </div>
           </div>
         </div>
       )}
