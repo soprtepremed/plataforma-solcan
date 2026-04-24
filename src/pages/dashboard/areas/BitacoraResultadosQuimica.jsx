@@ -11,6 +11,7 @@ const BitacoraResultadosQuimica = () => {
   const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [statusModal, setStatusModal] = useState({ show: false, type: 'success', message: '' });
   const [deleteId, setDeleteId] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -47,29 +48,41 @@ const BitacoraResultadosQuimica = () => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!newResult.archivo || !newResult.folio || !newResult.paciente) {
-      alert('Por favor completa todos los campos y selecciona un archivo PDF.');
+    
+    // Si no es edición, el archivo es obligatorio
+    if (!editingId && !newResult.archivo) {
+      setStatusModal({ show: true, type: 'error', message: 'Por favor selecciona un archivo PDF.' });
+      return;
+    }
+
+    if (!newResult.folio || !newResult.paciente) {
+      setStatusModal({ show: true, type: 'error', message: 'El folio y el nombre del paciente son obligatorios.' });
       return;
     }
 
     setUploading(true);
     try {
-      const file = newResult.archivo;
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${newResult.folio}_${Date.now()}.${fileExt}`;
-      const filePath = `${newResult.fecha}/${fileName}`;
+      let publicUrl = null;
 
-      // 1. Subir a Storage
-      const { error: uploadError } = await supabase.storage
-        .from('resultados_quimica')
-        .upload(filePath, file);
+      // Solo subir archivo si se seleccionó uno nuevo
+      if (newResult.archivo) {
+        const file = newResult.archivo;
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${newResult.folio}_${Date.now()}.${fileExt}`;
+        const filePath = `${newResult.fecha}/${fileName}`;
 
-      if (uploadError) throw uploadError;
+        const { error: uploadError } = await supabase.storage
+          .from('resultados_quimica')
+          .upload(filePath, file);
 
-      // 2. Obtener URL pública
-      const { data: { publicUrl } } = supabase.storage
-        .from('resultados_quimica')
-        .getPublicUrl(filePath);
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl: url } } = supabase.storage
+          .from('resultados_quimica')
+          .getPublicUrl(filePath);
+        
+        publicUrl = url;
+      }
 
       // 3. Registrar en Tabla (Insert o Update)
       if (editingId) {
@@ -99,14 +112,19 @@ const BitacoraResultadosQuimica = () => {
         if (dbError) throw dbError;
       }
 
-      alert(editingId ? 'Maquila actualizada' : 'Maquila registrada exitosamente');
+      setStatusModal({ 
+        show: true, 
+        type: 'success', 
+        message: editingId ? 'Registro de maquila actualizado correctamente.' : 'Estudio mandado a maquila registrado con éxito.' 
+      });
+      
       setShowModal(false);
       setEditingId(null);
       setNewResult({ folio: '', paciente: '', fecha: filterDate, estudio_enviado: '', archivo: null });
       fetchResultados();
     } catch (e) {
       console.error(e);
-      alert('Error en el proceso: ' + e.message);
+      setStatusModal({ show: true, type: 'error', message: 'Error en el proceso: ' + e.message });
     } finally {
       setUploading(false);
     }
@@ -127,13 +145,13 @@ const BitacoraResultadosQuimica = () => {
 
       if (error) throw error;
 
-      alert('✅ Registro eliminado correctamente.');
+      setStatusModal({ show: true, type: 'success', message: 'Registro eliminado correctamente.' });
       setShowDeleteConfirm(false);
       setDeleteId(null);
       fetchResultados();
     } catch (e) {
       console.error('Error al eliminar:', e);
-      alert('❌ Error: ' + e.message);
+      setStatusModal({ show: true, type: 'error', message: 'No se pudo eliminar: ' + e.message });
     }
   };
 
@@ -371,6 +389,32 @@ const BitacoraResultadosQuimica = () => {
                 Sí, Eliminar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Estado (Éxito/Error) */}
+      {statusModal.show && (
+        <div className={styles.modalOverlay} style={{zIndex: 3000}}>
+          <div className={styles.modalContent} style={{maxWidth: '400px', padding: '2.5rem', textAlign: 'center'}}>
+            <span className="material-symbols-rounded" style={{
+              fontSize: '5rem', 
+              color: statusModal.type === 'success' ? '#10B981' : '#EF4444', 
+              marginBottom: '1rem'
+            }}>
+              {statusModal.type === 'success' ? 'check_circle' : 'error'}
+            </span>
+            <h3 style={{fontSize: '1.5rem', marginBottom: '10px'}}>
+              {statusModal.type === 'success' ? '¡Logrado!' : 'Hubo un problema'}
+            </h3>
+            <p style={{color: '#64748B', marginBottom: '2rem'}}>{statusModal.message}</p>
+            <button 
+              className={styles.btnPrimarySmall} 
+              style={{width: '100%', padding: '15px', background: statusModal.type === 'success' ? '#10B981' : '#EF4444'}}
+              onClick={() => setStatusModal({ ...statusModal, show: false })}
+            >
+              Entendido
+            </button>
           </div>
         </div>
       )}
