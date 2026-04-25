@@ -11,11 +11,28 @@ const QuimicaClinicaDashboard = () => {
     caducidad: 0,
     enUso: 0
   });
+  const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchStats();
+    fetchAlerts();
   }, []);
+
+  const fetchAlerts = async () => {
+    try {
+      const { data } = await supabase
+        .from('notificaciones')
+        .select('*')
+        .or('role.eq.quimica_clinica,role.eq.admin')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      if (data) setAlerts(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -59,11 +76,25 @@ const QuimicaClinicaDashboard = () => {
       color: '#F59E0B'
     },
     {
+      title: 'Calculadoras Especializadas',
+      desc: 'Cálculo de parámetros derivados: Bilirrubinas, Lípidos, Orinas 24h, Renal e Inmunología.',
+      icon: 'calculate',
+      path: '/area/quimica-clinica/derivados',
+      color: '#8B5CF6'
+    },
+    {
       title: 'Bitácora Logística',
       desc: 'Seguimiento de muestras y folios recibidos (FO-DO-017).',
       icon: 'assignment_turned_in',
       path: '/logistica/bitacora',
       color: '#10B981'
+    },
+    {
+      title: 'Temperaturas del Área',
+      desc: 'Monitoreo y registro de temperaturas ambientales y de equipos de refrigeración.',
+      icon: 'device_thermostat',
+      path: '/area/quimica-clinica/temperaturas',
+      color: '#F43F5E'
     }
   ];
 
@@ -117,45 +148,48 @@ const QuimicaClinicaDashboard = () => {
         ))}
       </div>
 
-      <div className={styles.equipmentSection}>
-        <div className={styles.sectionHeader}>
-          <span className="material-symbols-rounded">precision_manufacturing</span>
-          <h3>Estatus de Plataformas Analíticas (VITROS)</h3>
-        </div>
-        <div className={styles.equipmentGrid}>
-          <div className={styles.eqCard}>
-            <div className={styles.eqStatus} style={{background: '#10B981'}}></div>
-            <h4>VITROS 5600 / XT</h4>
-            <p>Operativo - 45 Reactivos On-Board</p>
-          </div>
-          <div className={styles.eqCard}>
-            <div className={styles.eqStatus} style={{background: '#F59E0B'}}></div>
-            <h4>VITROS 3600</h4>
-            <p>Mantenimiento Preventivo Pendiente</p>
-          </div>
-        </div>
-      </div>
-
       <div className={styles.alertSection}>
         <div className={styles.sectionHeader}>
           <span className="material-symbols-rounded">notifications_active</span>
-          <h3>Alertas de Calibración y Control</h3>
+          <h3>Alertas y Avisos del Área</h3>
         </div>
         <div className={styles.alertList}>
-          <div className={styles.alertItem}>
-            <span className="material-symbols-rounded" style={{color: '#EF4444'}}>warning</span>
-            <div>
-              <strong>Calibrador de Glucosa</strong>
-              <p>Vence en 48 horas. Lote: 4567A</p>
+          {/* Alertas Automáticas de Inventario */}
+          {stats.critico > 0 && (
+            <div className={styles.alertItem} style={{borderLeft: '4px solid #EF4444'}}>
+              <span className="material-symbols-rounded" style={{color: '#EF4444'}}>inventory_2</span>
+              <div>
+                <strong>Stock Crítico Detectado</strong>
+                <p>Hay {stats.critico} reactivos con existencias por debajo del mínimo de seguridad.</p>
+              </div>
             </div>
-          </div>
-          <div className={styles.alertItem}>
-            <span className="material-symbols-rounded" style={{color: '#F59E0B'}}>info</span>
-            <div>
-              <strong>Control de Calidad Nivel 1</strong>
-              <p>Cambio de frasco requerido para turno vespertino.</p>
+          )}
+          {stats.caducidad > 0 && (
+            <div className={styles.alertItem} style={{borderLeft: '4px solid #F59E0B'}}>
+              <span className="material-symbols-rounded" style={{color: '#F59E0B'}}>event_busy</span>
+              <div>
+                <strong>Caducidad Próxima</strong>
+                <p>{stats.caducidad} materiales vencerán en los próximos 30 días. Revisar lotes.</p>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Notificaciones del Sistema */}
+          {alerts.length > 0 ? alerts.map(a => (
+            <div key={a.id} className={styles.alertItem}>
+              <span className="material-symbols-rounded" style={{color: a.type === 'error' ? '#EF4444' : '#F59E0B'}}>
+                {a.type === 'error' ? 'warning' : 'info'}
+              </span>
+              <div>
+                <strong>{a.title}</strong>
+                <p>{a.message}</p>
+              </div>
+            </div>
+          )) : (
+            !stats.critico && !stats.caducidad && (
+              <p style={{padding: '10px', color: '#94A3B8', textAlign: 'center'}}>No hay alertas activas para esta área.</p>
+            )
+          )}
         </div>
       </div>
     </div>

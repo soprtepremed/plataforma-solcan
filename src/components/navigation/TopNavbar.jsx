@@ -118,6 +118,9 @@ export default function TopNavbar() {
     if (r === 'admin' || r === 'captura' || r.includes('técnico') || r.includes('tecnico')) {
       options.push({ label: 'Captura Resultados', path: '/captura', icon: 'add_task' });
       options.push({ label: 'Resultados Listos', path: '/resultados', icon: 'verified_user' });
+      // Acceso directo a temperaturas si es un rol de área
+      const areaKey = r === 'admin' ? 'hematologia' : r.replace('_', '-');
+      options.push({ label: 'Temperaturas', path: `/area/${areaKey}/temperaturas`, icon: 'device_thermostat' });
     }
 
     // Químico Central (Matriz)
@@ -164,6 +167,7 @@ export default function TopNavbar() {
         label: 'Hematología', path: '/area/hematologia', icon: 'bloodtype',
         children: [
           { label: 'Dashboard Área', path: '/area/hematologia', icon: 'dashboard_customize' },
+          { label: 'Temperaturas del Área', path: '/area/hematologia/temperaturas', icon: 'device_thermostat' },
           { label: 'Inventario y Calidad', path: '/area/hematologia/inventario', icon: 'inventory_2' },
           { label: 'Acciones QC (FO-DO-012)', path: '/area/hematologia/control-calidad', icon: 'fact_check' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
@@ -174,6 +178,7 @@ export default function TopNavbar() {
         label: 'Microbiología', path: '/area/microbiologia', icon: 'biotech',
         children: [
           { label: 'Dashboard Área', path: '/area/microbiologia', icon: 'dashboard_customize' },
+          { label: 'Temperaturas del Área', path: '/area/microbiologia/temperaturas', icon: 'device_thermostat' },
           { label: 'Inventario y Calidad', path: '/area/microbiologia/inventario', icon: 'inventory_2' },
           { label: 'Acciones QC (FO-DO-012)', path: '/area/microbiologia/control-calidad', icon: 'fact_check' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
@@ -184,6 +189,7 @@ export default function TopNavbar() {
         label: 'Urianálisis', path: '/area/urianalisis', icon: 'science',
         children: [
           { label: 'Dashboard Área', path: '/area/urianalisis', icon: 'dashboard_customize' },
+          { label: 'Temperaturas del Área', path: '/area/urianalisis/temperaturas', icon: 'device_thermostat' },
           { label: 'Inventario y Calidad', path: '/area/urianalisis/inventario', icon: 'inventory_2' },
           { label: 'Acciones QC (FO-DO-012)', path: '/area/urianalisis/control-calidad', icon: 'fact_check' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_cart_checkout' },
@@ -194,6 +200,7 @@ export default function TopNavbar() {
         label: 'Química Clínica', path: '/area/quimica-clinica', icon: 'science',
         children: [
           { label: 'Dashboard Área', path: '/area/quimica-clinica', icon: 'dashboard_customize' },
+          { label: 'Temperaturas del Área', path: '/area/quimica-clinica/temperaturas', icon: 'device_thermostat' },
           { label: 'Inventario y Calidad', path: '/area/quimica-clinica/inventario', icon: 'inventory_2' },
           { label: 'Parámetros Derivados', path: '/area/quimica-clinica/derivados', icon: 'calculate' },
           { label: 'Bitácora Maquilas', path: '/area/quimica-clinica/bitacora', icon: 'list_alt' },
@@ -206,6 +213,7 @@ export default function TopNavbar() {
         label: 'Serología', path: '/area/serologia', icon: 'bloodtype',
         children: [
           { label: 'Dashboard Área', path: '/area/serologia', icon: 'dashboard_customize' },
+          { label: 'Temperaturas del Área', path: '/area/serologia/temperaturas', icon: 'device_thermostat' },
           { label: 'Inventario y Calidad', path: '/area/serologia/inventario', icon: 'inventory_2' },
           { label: 'Acciones QC (FO-DO-012)', path: '/area/serologia/control-calidad', icon: 'fact_check' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_cart_checkout' },

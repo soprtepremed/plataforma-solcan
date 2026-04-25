@@ -7,6 +7,8 @@ const ParametrosDerivados = () => {
   // Estados adicionales para visualización en pantalla
   const [protRes, setProtRes] = useState({ glob: '--', ag: '--' });
   const [orinaRes, setOrinaRes] = useState({ dep: '--', sc: '--', exc: '--', unit: '' });
+  const [vol24, setVol24] = useState('');
+  const [orinaValues, setOrinaValues] = useState({});
   const [inmunoRes, setInmunoRes] = useState({ itl: '--', yp: '--', psa: '--' });
 
   // Estados para Bilirrubinas
@@ -112,7 +114,7 @@ const ParametrosDerivados = () => {
           <span className="material-symbols-rounded">water_drop</span> Perfil Lipídico
         </button>
         <button className={activeTab === 'proteinas' ? styles.tabActive : styles.tab} onClick={() => setActiveTab('proteinas')}>
-          <span className="material-symbols-rounded">Egg</span> Proteínas
+          <span className="material-symbols-rounded">egg</span> Proteínas
         </button>
         <button className={activeTab === 'renal' ? styles.tabActive : styles.tab} onClick={() => setActiveTab('renal')}>
           <span className="material-symbols-rounded">biotech</span> Renal (BUN/Urea)
@@ -162,13 +164,39 @@ const ParametrosDerivados = () => {
                 </div>
               </div>
 
-              <button className={styles.btnCopyAction} style={{width: '100%', marginBottom: '20px'}} onClick={() => {
-                copyToClipboard(`Globulinas: ${protRes.glob} g/dL, Relación A/G: ${protRes.ag}`, 'Perfil Proteico');
-              }}>Copiar Resultados</button>
+              <div style={{display:'flex', gap:'15px', marginBottom: '20px'}}>
+                <button className={styles.btnPrimarySmall} style={{flex: 1, marginBottom: 0}} onClick={() => {
+                  calcProt(document.getElementById('protTot').value, document.getElementById('albSer').value);
+                }}>
+                  <span className="material-symbols-rounded">calculate</span> Calcular Parámetros
+                </button>
+                <button className={styles.btnCopyAction} style={{flex: 1}} onClick={() => {
+                  copyToClipboard(`Globulinas: ${protRes.glob} g/dL, Relación A/G: ${protRes.ag}`, 'Perfil Proteico');
+                }}>
+                  <span className="material-symbols-rounded">content_copy</span> Copiar Resultados
+                </button>
+              </div>
               
               <div className={styles.infoBox} style={{background: '#F5F3FF', borderColor: '#DDD6FE', color: '#5B21B6'}}>
                 <span className="material-symbols-rounded">info</span>
                 <p>La Globulina se obtiene por diferencia técnica (PT - ALB). La relación A/G normal suele oscilar entre 1.0 y 2.0.</p>
+              </div>
+
+              {/* Fórmulas de Referencia Detalladas */}
+              <div className={styles.formulaSection}>
+                <h4><span className="material-symbols-rounded">menu_book</span> Glosario y Fórmulas de Referencia</h4>
+                <div className={styles.formulaList}>
+                  <div className={styles.formulaItem}>
+                    <label>Globulinas (g/dL)</label>
+                    <code>Proteínas Totales - Albúmina</code>
+                    <p style={{fontSize:'0.7rem', color:'#64748B', marginTop:'4px'}}>Representa la fracción de proteínas no constituidas por albúmina.</p>
+                  </div>
+                  <div className={styles.formulaItem}>
+                    <label>Relación Albúmina/Globulina (A/G)</label>
+                    <code>Albúmina / Globulinas</code>
+                    <p style={{fontSize:'0.7rem', color:'#64748B', marginTop:'4px'}}>Evaluación del balance proteico en suero.</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -180,16 +208,26 @@ const ParametrosDerivados = () => {
               <span className="material-symbols-rounded" style={{color: '#8B5CF6'}}>history_toggle_off</span>
               <h3>Suite de Orinas (24h y Osmolaridad)</h3>
             </div>
-            <div className={styles.calcBody}>
+             <div className={styles.calcBody}>
+              {/* Volumen Global 24h */}
+              <div className={styles.field} style={{maxWidth: '300px', marginBottom: '2rem'}}>
+                <label style={{color: '#8B5CF6'}}>Volumen Total (24h)</label>
+                <div className={styles.inputWithUnit}>
+                  <input type="number" value={vol24} onChange={(e) => setVol24(e.target.value)} placeholder="Ej: 1500" className={styles.inputMinimal} style={{borderColor: '#8B5CF6', background: '#F5F3FF'}} />
+                  <span style={{color: '#8B5CF6'}}>mL</span>
+                </div>
+              </div>
+
               {/* Sección de Depuración */}
               <div style={{marginBottom: '2rem', borderBottom: '2px dashed #E2E8F0', paddingBottom: '2rem'}}>
-                <h4 style={{marginBottom: '1rem', color: '#1E293B'}}>1. Depuración de Creatinina (Clearence)</h4>
+                <h4 style={{marginBottom: '1rem', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <span className="material-symbols-rounded" style={{color: '#8B5CF6'}}>analytics</span> 1. Depuración de Creatinina (Clearence)
+                </h4>
                 <div className={styles.inputGrid} style={{gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))'}}>
-                  <div className={styles.field}><label>Peso (kg)</label><input type="number" id="peso" onChange={() => calcDep(document.getElementById('peso').value, document.getElementById('talla').value, document.getElementById('volTotal').value, document.getElementById('creaOrina').value, document.getElementById('creaSuero').value)} placeholder="0" className={styles.inputMinimal} /></div>
-                  <div className={styles.field}><label>Estatura (cm)</label><input type="number" id="talla" onChange={() => calcDep(document.getElementById('peso').value, document.getElementById('talla').value, document.getElementById('volTotal').value, document.getElementById('creaOrina').value, document.getElementById('creaSuero').value)} placeholder="0" className={styles.inputMinimal} /></div>
-                  <div className={styles.field}><label>Vol. Total (mL)</label><input type="number" id="volTotal" onChange={() => calcDep(document.getElementById('peso').value, document.getElementById('talla').value, document.getElementById('volTotal').value, document.getElementById('creaOrina').value, document.getElementById('creaSuero').value)} placeholder="0" className={styles.inputMinimal} /></div>
-                  <div className={styles.field}><label>Crea Orina</label><input type="number" id="creaOrina" onChange={() => calcDep(document.getElementById('peso').value, document.getElementById('talla').value, document.getElementById('volTotal').value, document.getElementById('creaOrina').value, document.getElementById('creaSuero').value)} placeholder="0" className={styles.inputMinimal} /></div>
-                  <div className={styles.field}><label>Crea Suero</label><input type="number" id="creaSuero" onChange={() => calcDep(document.getElementById('peso').value, document.getElementById('talla').value, document.getElementById('volTotal').value, document.getElementById('creaOrina').value, document.getElementById('creaSuero').value)} placeholder="0" className={styles.inputMinimal} /></div>
+                  <div className={styles.field}><label>Peso (kg)</label><input type="number" id="peso" placeholder="0" className={styles.inputMinimal} /></div>
+                  <div className={styles.field}><label>Estatura (cm)</label><input type="number" id="talla" placeholder="0" className={styles.inputMinimal} /></div>
+                  <div className={styles.field}><label>Crea Orina</label><input type="number" id="creaOrina" placeholder="0" className={styles.inputMinimal} /></div>
+                  <div className={styles.field}><label>Crea Suero</label><input type="number" id="creaSuero" placeholder="0" className={styles.inputMinimal} /></div>
                 </div>
                 
                 <div className={styles.resultsRow} style={{background: '#F5F3FF', marginTop: '15px', marginBottom: '15px'}}>
@@ -203,65 +241,179 @@ const ParametrosDerivados = () => {
                   </div>
                 </div>
 
-                <button className={styles.btnPrimarySmall} onClick={() => {
-                  copyToClipboard(`Depuración de Creatinina: ${orinaRes.dep} mL/min (S.C: ${orinaRes.sc} m²)`, 'Depuración');
-                }}>Copiar Depuración</button>
-              </div>
-
-              {/* Sección de Excreción y Osmolaridad */}
-              <div className={styles.inputGrid}>
-                <div className={styles.field}>
-                  <label>Prueba de Excreción / Calculada</label>
-                  <select id="tipoExcrecion" className={styles.inputMinimal}>
-                    <option value="urea">Urea (g/24h)</option>
-                    <option value="crea">Creatinina (mg/24h)</option>
-                    <option value="urico">Ácido Úrico (mg/24h)</option>
-                    <option value="ca">Calcio (mg/24h)</option>
-                    <option value="mg">Magnesio (mg/24h)</option>
-                    <option value="pro">Proteínas (mg/24h)</option>
-                    <option value="alb">Albúmina (mg/24h)</option>
-                    <option value="na">Sodio (mmol/24h)</option>
-                    <option value="k">Potasio (mmol/24h)</option>
-                    <option value="cl">Cloro (mmol/24h)</option>
-                    <option value="osmo">Osmolaridad (mOsm/L)</option>
-                  </select>
-                </div>
-                <div className={styles.field}>
-                  <label>Valor Vitros / Urea</label>
-                  <input type="number" id="valVitros" placeholder="Resultado Equipo" className={styles.inputMinimal} />
+                 <div style={{display:'flex', gap:'15px', marginBottom: '15px'}}>
+                  <button className={styles.btnPrimarySmall} style={{flex: 1, marginBottom: 0}} onClick={() => {
+                    calcDep(document.getElementById('peso').value, document.getElementById('talla').value, vol24, document.getElementById('creaOrina').value, document.getElementById('creaSuero').value);
+                  }}>
+                    <span className="material-symbols-rounded">calculate</span> Calcular Depuración
+                  </button>
+                  <button className={styles.btnAction} style={{flex: 1, height: 'auto', padding: '10px'}} onClick={() => {
+                    copyToClipboard(`Depuración de Creatinina: ${orinaRes.dep} mL/min (S.C: ${orinaRes.sc} m²)`, 'Depuración');
+                  }}>
+                    <span className="material-symbols-rounded">content_copy</span> Copiar
+                  </button>
                 </div>
               </div>
 
-              <div id="osmoInputs" style={{display: 'none', gap: '15px', marginBottom: '20px'}}>
-                <div className={styles.field}><label>Na+ (mmol/L)</label><input type="number" id="osmoNa" className={styles.inputMinimal} /></div>
-                <div className={styles.field}><label>K+ (mmol/L)</label><input type="number" id="osmoK" className={styles.inputMinimal} /></div>
+              {/* Sección de Excreción Individualizada */}
+              <div>
+                <h4 style={{marginBottom: '1.5rem', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <span className="material-symbols-rounded" style={{color: '#8B5CF6'}}>grid_view</span> 2. Cálculos por Analito Individual
+                </h4>
+                
+                <div className={styles.inputGrid} style={{gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem'}}>
+                  {/* Calcio */}
+                  <div className={styles.eqCard} style={{background: '#FDF2F8', borderColor: '#FBCFE8'}}>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                      <label style={{color:'#BE185D', fontWeight:'800', fontSize:'0.75rem'}}>CALCIO (mg/24h)</label>
+                      <span className="material-symbols-rounded" style={{color:'#BE185D', fontSize:'1.2rem'}}>science</span>
+                    </div>
+                    <input type="number" placeholder="Valor Vitros" className={styles.inputMinimal} onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      const vol = parseFloat(vol24);
+                      if(val && vol) setOrinaValues(prev => ({...prev, ca: ((val * vol) / 100).toFixed(2)}));
+                      else setOrinaValues(prev => ({...prev, ca: '--'}));
+                    }} />
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'10px'}}>
+                      <div style={{fontSize:'1.4rem', fontWeight:'900', color:'#1E293B'}}>{orinaValues.ca || '--'} <span style={{fontSize:'0.7rem', color:'#64748B'}}>mg/24h</span></div>
+                      <button className={styles.btnAction} style={{width:'32px', height:'32px', padding:0}} onClick={() => copyToClipboard(`Calcio 24h: ${orinaValues.ca} mg/24h`, 'Calcio')}>
+                        <span className="material-symbols-rounded" style={{fontSize:'1.1rem'}}>content_copy</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Proteínas */}
+                  <div className={styles.eqCard} style={{background: '#F5F3FF', borderColor: '#DDD6FE'}}>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                      <label style={{color:'#6D28D9', fontWeight:'800', fontSize:'0.75rem'}}>PROTEÍNAS (mg/24h)</label>
+                      <span className="material-symbols-rounded" style={{color:'#6D28D9', fontSize:'1.2rem'}}>water_drop</span>
+                    </div>
+                    <input type="number" placeholder="Valor Vitros" className={styles.inputMinimal} onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      const vol = parseFloat(vol24);
+                      if(val && vol) setOrinaValues(prev => ({...prev, pro: ((val * vol) / 100).toFixed(1)}));
+                      else setOrinaValues(prev => ({...prev, pro: '--'}));
+                    }} />
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'10px'}}>
+                      <div style={{fontSize:'1.4rem', fontWeight:'900', color:'#1E293B'}}>{orinaValues.pro || '--'} <span style={{fontSize:'0.7rem', color:'#64748B'}}>mg/24h</span></div>
+                      <button className={styles.btnAction} style={{width:'32px', height:'32px', padding:0}} onClick={() => copyToClipboard(`Proteínas 24h: ${orinaValues.pro} mg/24h`, 'Proteínas')}>
+                        <span className="material-symbols-rounded" style={{fontSize:'1.1rem'}}>content_copy</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Creatinina */}
+                  <div className={styles.eqCard} style={{background: '#F0F9FF', borderColor: '#BAE6FD'}}>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                      <label style={{color:'#0369A1', fontWeight:'800', fontSize:'0.75rem'}}>CREATININA (mg/24h)</label>
+                      <span className="material-symbols-rounded" style={{color:'#0369A1', fontSize:'1.2rem'}}>biotech</span>
+                    </div>
+                    <input type="number" placeholder="Valor Vitros" className={styles.inputMinimal} onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      const vol = parseFloat(vol24);
+                      if(val && vol) setOrinaValues(prev => ({...prev, crea: ((val * vol) / 100).toFixed(0)}));
+                      else setOrinaValues(prev => ({...prev, crea: '--'}));
+                    }} />
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'10px'}}>
+                      <div style={{fontSize:'1.4rem', fontWeight:'900', color:'#1E293B'}}>{orinaValues.crea || '--'} <span style={{fontSize:'0.7rem', color:'#64748B'}}>mg/24h</span></div>
+                      <button className={styles.btnAction} style={{width:'32px', height:'32px', padding:0}} onClick={() => copyToClipboard(`Creatinina 24h: ${orinaValues.crea} mg/24h`, 'Creatinina')}>
+                        <span className="material-symbols-rounded" style={{fontSize:'1.1rem'}}>content_copy</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Urea */}
+                  <div className={styles.eqCard} style={{background: '#FFF7ED', borderColor: '#FFEDD5'}}>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                      <label style={{color:'#C2410C', fontWeight:'800', fontSize:'0.75rem'}}>UREA (g/24h)</label>
+                      <span className="material-symbols-rounded" style={{color:'#C2410C', fontSize:'1.2rem'}}>scale</span>
+                    </div>
+                    <input type="number" placeholder="Valor Vitros" className={styles.inputMinimal} onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      const vol = parseFloat(vol24);
+                      if(val && vol) setOrinaValues(prev => ({...prev, urea: ((val * 2.14 * vol) / 100000).toFixed(2)}));
+                      else setOrinaValues(prev => ({...prev, urea: '--'}));
+                    }} />
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'10px'}}>
+                      <div style={{fontSize:'1.4rem', fontWeight:'900', color:'#1E293B'}}>{orinaValues.urea || '--'} <span style={{fontSize:'0.7rem', color:'#64748B'}}>g/24h</span></div>
+                      <button className={styles.btnAction} style={{width:'32px', height:'32px', padding:0}} onClick={() => copyToClipboard(`Urea 24h: ${orinaValues.urea} g/24h`, 'Urea')}>
+                        <span className="material-symbols-rounded" style={{fontSize:'1.1rem'}}>content_copy</span>
+                      </button>
+                    </div>
+                  </div>
+                  {/* Ácido Úrico */}
+                  <div className={styles.eqCard} style={{background: '#F0FDF4', borderColor: '#BBF7D0'}}>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                      <label style={{color:'#15803D', fontWeight:'800', fontSize:'0.75rem'}}>ÁCIDO ÚRICO (mg/24h)</label>
+                      <span className="material-symbols-rounded" style={{color:'#15803D', fontSize:'1.2rem'}}>water</span>
+                    </div>
+                    <input type="number" placeholder="Valor Vitros" className={styles.inputMinimal} onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      const vol = parseFloat(vol24);
+                      if(val && vol) setOrinaValues(prev => ({...prev, urico: ((val * vol) / 100).toFixed(1)}));
+                      else setOrinaValues(prev => ({...prev, urico: '--'}));
+                    }} />
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'10px'}}>
+                      <div style={{fontSize:'1.4rem', fontWeight:'900', color:'#1E293B'}}>{orinaValues.urico || '--'} <span style={{fontSize:'0.7rem', color:'#64748B'}}>mg/24h</span></div>
+                      <button className={styles.btnAction} style={{width:'32px', height:'32px', padding:0}} onClick={() => copyToClipboard(`Ácido Úrico 24h: ${orinaValues.urico} mg/24h`, 'Ácido Úrico')}>
+                        <span className="material-symbols-rounded" style={{fontSize:'1.1rem'}}>content_copy</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Sodio */}
+                  <div className={styles.eqCard} style={{background: '#FEF2F2', borderColor: '#FECACA'}}>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                      <label style={{color:'#B91C1C', fontWeight:'800', fontSize:'0.75rem'}}>SODIO (mmol/24h)</label>
+                      <span className="material-symbols-rounded" style={{color:'#B91C1C', fontSize:'1.2rem'}}>bolt</span>
+                    </div>
+                    <input type="number" placeholder="Valor Vitros" className={styles.inputMinimal} onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      const vol = parseFloat(vol24);
+                      if(val && vol) setOrinaValues(prev => ({...prev, na: ((val * vol) / 1000).toFixed(1)}));
+                      else setOrinaValues(prev => ({...prev, na: '--'}));
+                    }} />
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'10px'}}>
+                      <div style={{fontSize:'1.4rem', fontWeight:'900', color:'#1E293B'}}>{orinaValues.na || '--'} <span style={{fontSize:'0.7rem', color:'#64748B'}}>mmol/24h</span></div>
+                      <button className={styles.btnAction} style={{width:'32px', height:'32px', padding:0}} onClick={() => copyToClipboard(`Sodio 24h: ${orinaValues.na} mmol/24h`, 'Sodio')}>
+                        <span className="material-symbols-rounded" style={{fontSize:'1.1rem'}}>content_copy</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.infoBox} style={{marginTop: '2rem'}}>
+                  <span className="material-symbols-rounded">info</span>
+                  <p>Ingresa el Volumen Total una sola vez al inicio para que todos los cálculos se actualicen automáticamente. Los factores de conversión se aplican según el analito seleccionado.</p>
+                </div>
+
+                {/* Fórmulas de Referencia Detalladas para Orina */}
+                <div className={styles.formulaSection}>
+                  <h4><span className="material-symbols-rounded">menu_book</span> Glosario y Fórmulas de Referencia (Orina 24h)</h4>
+                  <div className={styles.formulaList} style={{gridTemplateColumns: '1fr'}}>
+                    <div className={styles.formulaItem}>
+                      <label>1. Depuración de Creatinina (Clearance)</label>
+                      <code style={{display:'block', marginBottom:'8px'}}>((Volumen Total / 1440) × (Creatinina Orina / Creatinina Suero)) × (1.73 / Superficie Corporal)</code>
+                      <p style={{fontSize:'0.7rem', color:'#64748B'}}>Superficie Corporal = √((Peso × Estatura) / 3600). Ajustado a 1.73 m² estándar.</p>
+                    </div>
+                    <div className={styles.formulaItem}>
+                      <label>2. Excreción de Analitos (mg/24h)</label>
+                      <code style={{display:'block', marginBottom:'8px'}}>(Resultado del Equipo × Volumen Total) / 100</code>
+                      <p style={{fontSize:'0.7rem', color:'#64748B'}}>Aplica para: Calcio, Proteínas, Creatinina, Ácido Úrico, Magnesio.</p>
+                    </div>
+                    <div className={styles.formulaItem}>
+                      <label>3. Urea en Orina (g/24h)</label>
+                      <code>(Valor Vitros × 2.14 × Volumen Total) / 100000</code>
+                      <p style={{fontSize:'0.7rem', color:'#64748B'}}>Convierte el nitrógeno ureico (BUN) a Urea total eliminada en gramos.</p>
+                    </div>
+                    <div className={styles.formulaItem}>
+                      <label>4. Electrolitos (mmol/24h)</label>
+                      <code>(Valor Vitros × Volumen Total) / 1000</code>
+                      <p style={{fontSize:'0.7rem', color:'#64748B'}}>Aplica para: Sodio, Potasio y Cloro.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-
-              <button className={styles.btnCopyAction} style={{width: '100%'}} onClick={() => {
-                const tipo = document.getElementById('tipoExcrecion').value;
-                const vol = parseFloat(document.getElementById('volTotal')?.value || 0);
-                
-                if (tipo === 'osmo') {
-                  const na = parseFloat(document.getElementById('osmoNa').value);
-                  const k = parseFloat(document.getElementById('osmoK').value);
-                  const urea = parseFloat(document.getElementById('valVitros').value);
-                  if (na && k && urea) {
-                    const res = (((na + k) * 2) + (urea * 5.6)).toFixed(1);
-                    copyToClipboard(`Osmolaridad: ${res} mOsm/L`, 'Osmolaridad');
-                  }
-                  return;
-                }
-
-                const val = parseFloat(document.getElementById('valVitros').value);
-                if (!val || !vol) return alert('Ingresa valor Vitros y Volumen Total');
-                
-                let res = 0; let unit = '';
-                if (tipo === 'urea') { res = (val * 2.14 * vol) / 100; unit = 'g/24h'; }
-                else if (['crea', 'urico', 'ca', 'mg', 'pro', 'alb'].includes(tipo)) { res = (val * vol) / 100; unit = 'mg/24h'; }
-                else { res = (val * vol) / 1000; unit = 'mmol/24h'; }
-                
-                copyToClipboard(`Resultado ${tipo.toUpperCase()}: ${res.toFixed(2)} ${unit}`, 'Excreción');
-              }}>Calcular y Copiar Resultado</button>
             </div>
           </div>
         )}
@@ -295,13 +447,41 @@ const ParametrosDerivados = () => {
                 </div>
               </div>
 
-              <div style={{display:'flex', gap:'15px'}}>
-                <button className={styles.btnPrimarySmall} onClick={() => {
+               <div style={{display:'flex', gap:'15px', flexWrap: 'wrap'}}>
+                <button className={styles.btnPrimarySmall} style={{flex: '1 1 100%', marginBottom: '10px', background: 'linear-gradient(135deg, #10B981, #059669)'}} onClick={() => {
+                  calcInmuno(document.getElementById('t4t').value, document.getElementById('t3u').value, document.getElementById('psaL').value, document.getElementById('psaT').value);
+                }}>
+                  <span className="material-symbols-rounded">calculate</span> Calcular Inmunología
+                </button>
+                <button className={styles.btnAction} style={{flex: 1, height: 'auto', padding: '10px'}} onClick={() => {
                   copyToClipboard(`ITL: ${inmunoRes.itl}, Yodo Proteico (YP): ${inmunoRes.yp} ug/dL`, 'Perfil Tiroideo');
-                }}>Copiar Perfil Tiroideo</button>
-                <button className={styles.btnPrimarySmall} style={{background: '#10B981'}} onClick={() => {
+                }}>
+                  <span className="material-symbols-rounded">content_copy</span> Perfil Tiroideo
+                </button>
+                <button className={styles.btnAction} style={{flex: 1, height: 'auto', padding: '10px'}} onClick={() => {
                   copyToClipboard(`% PSA Libre: ${inmunoRes.psa}%`, 'PSA');
-                }}>Copiar % PSA Libre</button>
+                }}>
+                  <span className="material-symbols-rounded">content_copy</span> % PSA Libre
+                </button>
+              </div>
+
+              {/* Fórmulas de Referencia Detalladas Inmunología */}
+              <div className={styles.formulaSection}>
+                <h4><span className="material-symbols-rounded">menu_book</span> Glosario y Fórmulas de Referencia (Inmunología)</h4>
+                <div className={styles.formulaList}>
+                  <div className={styles.formulaItem}>
+                    <label>Índice de Tiroxina Libre (ITL)</label>
+                    <code>(T4 Total / 3.33) × T3 Uptake</code>
+                  </div>
+                  <div className={styles.formulaItem}>
+                    <label>Yodo Proteico (YP)</label>
+                    <code>T4 Total × 0.654</code>
+                  </div>
+                  <div className={styles.formulaItem}>
+                    <label>Porcentaje de PSA Libre</label>
+                    <code>(PSA Libre / PSA Total) × 100</code>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -333,9 +513,25 @@ const ParametrosDerivados = () => {
               <div className={styles.mainResult} style={{background: '#F0F9FF', border: '1px solid #BAE6FD'}}>
                 <label>Bilirrubina Total Calculada</label>
                 <div className={styles.resultValue}>{bil.total} <span>mg/dL</span></div>
-                <button className={styles.btnCopyAction} onClick={() => copyToClipboard(`BT: ${bil.total} mg/dL`, 'Bilirrubina Total')}>
-                  <span className="material-symbols-rounded">content_copy</span> Copiar Resultado
-                </button>
+                 <div style={{display:'flex', gap:'15px', marginTop: '20px'}}>
+                  <button className={styles.btnPrimarySmall} style={{flex: 1, marginBottom: 0, background: 'linear-gradient(135deg, #0EA5E9, #0284C7)'}} onClick={() => calcBil(bil.dbil, bil.ibil)}>
+                    <span className="material-symbols-rounded">calculate</span> Calcular Total
+                  </button>
+                  <button className={styles.btnCopyAction} style={{flex: 1}} onClick={() => copyToClipboard(`BT: ${bil.total} mg/dL`, 'Bilirrubina Total')}>
+                    <span className="material-symbols-rounded">content_copy</span> Copiar
+                  </button>
+                </div>
+
+                {/* Fórmulas de Referencia Detalladas Bilirrubinas */}
+                <div className={styles.formulaSection}>
+                  <h4><span className="material-symbols-rounded">menu_book</span> Glosario y Fórmulas de Referencia</h4>
+                  <div className={styles.formulaList}>
+                    <div className={styles.formulaItem}>
+                      <label>Bilirrubina Total (mg/dL)</label>
+                      <code>Bilirrubina Directa + Bilirrubina Indirecta</code>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -376,9 +572,33 @@ const ParametrosDerivados = () => {
                   <div className={styles.val}>{lip.vldl} <span>mg/dL</span></div>
                 </div>
               </div>
-              <button className={styles.btnCopyAction} style={{marginTop: '20px', width: '100%'}} onClick={() => copyToClipboard(`Indices Lipídicos:\nCastelli I: ${lip.castelli1}\nCastelli II: ${lip.castelli2}\nVLDL: ${lip.vldl} mg/dL`, 'Perfil Lipídico')}>
-                <span className="material-symbols-rounded">content_copy</span> Copiar Perfil Completo
-              </button>
+               <div style={{display:'flex', gap:'15px', marginTop: '20px'}}>
+                <button className={styles.btnPrimarySmall} style={{flex: 1, marginBottom: 0, background: 'linear-gradient(135deg, #E11D48, #BE123C)'}} onClick={() => calcLip(lip.total, lip.ldl, lip.hdl)}>
+                  <span className="material-symbols-rounded">calculate</span> Calcular Índices
+                </button>
+                <button className={styles.btnCopyAction} style={{flex: 1}} onClick={() => copyToClipboard(`Indices Lipídicos:\nCastelli I: ${lip.castelli1}\nCastelli II: ${lip.castelli2}\nVLDL: ${lip.vldl} mg/dL`, 'Perfil Lipídico')}>
+                  <span className="material-symbols-rounded">content_copy</span> Copiar Todo
+                </button>
+              </div>
+
+              {/* Fórmulas de Referencia Detalladas Lípidos */}
+              <div className={styles.formulaSection}>
+                <h4><span className="material-symbols-rounded">menu_book</span> Glosario y Fórmulas de Referencia</h4>
+                <div className={styles.formulaList}>
+                  <div className={styles.formulaItem}>
+                    <label>Castelli I (Riesgo Coronario)</label>
+                    <code>Colesterol Total / Colesterol HDL</code>
+                  </div>
+                  <div className={styles.formulaItem}>
+                    <label>Castelli II (Riesgo Aterogénico)</label>
+                    <code>Colesterol LDL / Colesterol HDL</code>
+                  </div>
+                  <div className={styles.formulaItem}>
+                    <label>VLDL (Lipoproteína de Muy Baja Densidad)</label>
+                    <code>Colesterol Total - Colesterol HDL - Colesterol LDL</code>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -410,9 +630,37 @@ const ParametrosDerivados = () => {
                 <span className="material-symbols-rounded">info</span>
                 <p>Al ingresar un valor, el otro se calcula automáticamente aplicando el factor de conversión 2.14.</p>
               </div>
-              <button className={styles.btnCopyAction} style={{marginTop: '20px', width: '100%'}} onClick={() => copyToClipboard(`Urea: ${renal.urea} mg/dL, BUN: ${renal.bun} mg/dL`, 'Perfil Renal')}>
-                <span className="material-symbols-rounded">content_copy</span> Copiar Resultados
-              </button>
+               <div style={{display:'flex', gap:'15px', marginTop: '20px'}}>
+                <button className={styles.btnPrimarySmall} style={{flex: 1, marginBottom: 0, background: 'linear-gradient(135deg, #D97706, #B45309)'}} onClick={() => {
+                  if (renal.autofill === 'bun') handleRenalChange(renal.urea, 'urea');
+                  else if (renal.autofill === 'urea') handleRenalChange(renal.bun, 'bun');
+                  else {
+                    // Si ambos están vacíos o no hay autofill claro, forzar urea -> bun
+                    handleRenalChange(renal.urea, 'urea');
+                  }
+                }}>
+                  <span className="material-symbols-rounded">calculate</span> Calcular
+                </button>
+                <button className={styles.btnCopyAction} style={{flex: 1}} onClick={() => copyToClipboard(`Urea: ${renal.urea} mg/dL, BUN: ${renal.bun} mg/dL`, 'Perfil Renal')}>
+                  <span className="material-symbols-rounded">content_copy</span> Copiar
+                </button>
+              </div>
+
+              {/* Fórmulas de Referencia Detalladas Renal */}
+              <div className={styles.formulaSection}>
+                <h4><span className="material-symbols-rounded">menu_book</span> Glosario y Fórmulas de Referencia</h4>
+                <div className={styles.formulaList}>
+                  <div className={styles.formulaItem}>
+                    <label>Conversión Nitrógeno Ureico (BUN)</label>
+                    <code>BUN = Urea / 2.14</code>
+                    <p style={{fontSize:'0.7rem', color:'#64748B', marginTop:'4px'}}>Factor técnico estandarizado basado en el peso molecular.</p>
+                  </div>
+                  <div className={styles.formulaItem}>
+                    <label>Cálculo de Urea</label>
+                    <code>Urea = BUN × 2.14</code>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

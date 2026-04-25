@@ -11,11 +11,28 @@ const HematologiaDashboard = () => {
     caducidad: 0,
     enUso: 0
   });
+  const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchStats();
+    fetchAlerts();
   }, []);
+
+  const fetchAlerts = async () => {
+    try {
+      const { data } = await supabase
+        .from('notificaciones')
+        .select('*')
+        .or('role.eq.hematologia,role.eq.admin')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      if (data) setAlerts(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -50,6 +67,13 @@ const HematologiaDashboard = () => {
       icon: 'fact_check',
       path: '/area/hematologia/inventario',
       color: '#DC2626'
+    },
+    {
+      title: 'Temperaturas del Área',
+      desc: 'Monitoreo térmico de refrigeradores y equipos analíticos.',
+      icon: 'device_thermostat',
+      path: '/area/hematologia/temperaturas',
+      color: '#F43F5E'
     },
     {
       title: 'Bitácora FO-DO-017',
@@ -107,6 +131,28 @@ const HematologiaDashboard = () => {
             <p>{s.desc}</p>
           </div>
         ))}
+      </div>
+
+      <div className={styles.alertSection} style={{marginTop: '2rem'}}>
+        <div className={styles.sectionHeader}>
+          <span className="material-symbols-rounded">notifications_active</span>
+          <h3>Alertas y Avisos de Hematología</h3>
+        </div>
+        <div className={styles.alertList}>
+          {alerts.length > 0 ? alerts.map(a => (
+            <div key={a.id} className={styles.alertItem}>
+              <span className="material-symbols-rounded" style={{color: a.type === 'error' ? '#EF4444' : '#F59E0B'}}>
+                {a.type === 'error' ? 'warning' : 'info'}
+              </span>
+              <div>
+                <strong>{a.title}</strong>
+                <p>{a.message}</p>
+              </div>
+            </div>
+          )) : (
+            <p style={{padding: '10px', color: '#94A3B8', textAlign: 'center'}}>No hay alertas activas para esta área.</p>
+          )}
+        </div>
       </div>
     </div>
   );

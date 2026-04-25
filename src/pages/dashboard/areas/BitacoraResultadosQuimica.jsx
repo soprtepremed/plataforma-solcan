@@ -11,6 +11,7 @@ const BitacoraResultadosQuimica = () => {
   const [filterDate, setFilterDate] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
   const [statusModal, setStatusModal] = useState({ show: false, type: 'success', message: '' });
   const [deleteId, setDeleteId] = useState(null);
   const [editingId, setEditingId] = useState(null);
@@ -55,8 +56,13 @@ const BitacoraResultadosQuimica = () => {
   };
 
   const handleUpload = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     
+    if (editingId && !showUpdateConfirm) {
+      setShowUpdateConfirm(true);
+      return;
+    }
+
     // Validar que haya al menos una entrada válida
     const validEntries = entries.filter(ent => ent.folio && ent.paciente && (editingId || ent.archivo));
     if (validEntries.length === 0) {
@@ -126,6 +132,7 @@ const BitacoraResultadosQuimica = () => {
       });
       
       setShowModal(false);
+      setShowUpdateConfirm(false);
       setEditingId(null);
       resetForm();
       fetchResultados();
@@ -411,33 +418,35 @@ const BitacoraResultadosQuimica = () => {
                       </div>
                     </div>
 
-                    <div className={styles.fileInputWrapper}>
-                      <input 
-                        type="file" 
-                        accept=".pdf" 
-                        onChange={(e) => updateEntry(entry.id, 'archivo', e.target.files[0])}
-                        className={styles.fileInput}
-                        id={`pdfFile-${entry.id}`}
-                      />
-                      <label htmlFor={`pdfFile-${entry.id}`} className={styles.fileDragArea} style={{minHeight: '100px', padding: '1rem'}}>
-                        <span className="material-symbols-rounded" style={{fontSize: '2rem', color: '#10B981'}}>upload_file</span>
-                        <p style={{margin: 0, fontWeight: 700, fontSize: '0.9rem'}}>{entry.archivo ? entry.archivo.name : 'Subir PDF de este estudio'}</p>
-                        
-                        {entry.archivo && (
-                          <button 
-                            type="button"
-                            className={styles.removeFileBtn}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              updateEntry(entry.id, 'archivo', null);
-                            }}
-                          >
-                            <span className="material-symbols-rounded" style={{fontSize: '16px'}}>delete</span> Quitar
-                          </button>
-                        )}
-                      </label>
-                    </div>
+                    {!editingId && (
+                      <div className={styles.fileInputWrapper}>
+                        <input 
+                          type="file" 
+                          accept=".pdf" 
+                          onChange={(e) => updateEntry(entry.id, 'archivo', e.target.files[0])}
+                          className={styles.fileInput}
+                          id={`pdfFile-${entry.id}`}
+                        />
+                        <label htmlFor={`pdfFile-${entry.id}`} className={styles.fileDragArea} style={{minHeight: '100px', padding: '1rem'}}>
+                          <span className="material-symbols-rounded" style={{fontSize: '2rem', color: '#10B981'}}>upload_file</span>
+                          <p style={{margin: 0, fontWeight: 700, fontSize: '0.9rem'}}>{entry.archivo ? entry.archivo.name : 'Subir PDF de este estudio'}</p>
+                          
+                          {entry.archivo && (
+                            <button 
+                              type="button"
+                              className={styles.removeFileBtn}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                updateEntry(entry.id, 'archivo', null);
+                              }}
+                            >
+                              <span className="material-symbols-rounded" style={{fontSize: '16px'}}>delete</span> Quitar
+                            </button>
+                          )}
+                        </label>
+                      </div>
+                    )}
                   </div>
                 ))}
 
@@ -469,13 +478,40 @@ const BitacoraResultadosQuimica = () => {
                 <button 
                   type="submit" 
                   className={styles.btnPrimarySmall} 
-                  style={{width: '100%', padding: '18px', background: '#10B981', borderRadius: '16px', fontSize: '1rem'}}
+                  style={{width: '100%', padding: '18px', background: editingId ? '#3B82F6' : '#10B981', borderRadius: '16px', fontSize: '1rem'}}
                   disabled={uploading}
                 >
-                  {uploading ? 'Procesando Carga...' : (editingId ? 'Actualizar Registro' : `Guardar ${entries.length} Registros`)}
+                  {uploading ? 'Procesando...' : (editingId ? 'Actualizar Información' : `Guardar ${entries.length} Registros`)}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmación de Actualización */}
+      {showUpdateConfirm && (
+        <div className={styles.modalOverlay} style={{zIndex: 3000}}>
+          <div className={styles.modalContent} style={{maxWidth: '400px', padding: '2.5rem', textAlign: 'center'}}>
+            <span className="material-symbols-rounded" style={{fontSize: '5rem', color: '#3B82F6', marginBottom: '1rem'}}>info</span>
+            <h3 style={{fontSize: '1.5rem', marginBottom: '10px'}}>¿Confirmar Cambios?</h3>
+            <p style={{color: '#64748B', marginBottom: '2rem'}}>Estás a punto de modificar los datos clínicos de este registro. Asegúrate de que la fecha y el folio sean correctos.</p>
+            <div style={{display: 'flex', gap: '10px'}}>
+              <button 
+                className={styles.btnAction} 
+                style={{flex: 1, padding: '15px', background: '#F1F5F9', color: '#475569', borderRadius: '12px', fontWeight: 700}}
+                onClick={() => setShowUpdateConfirm(false)}
+              >
+                Revisar
+              </button>
+              <button 
+                className={styles.btnAction} 
+                style={{flex: 1, padding: '15px', background: '#3B82F6', color: 'white', borderRadius: '12px', fontWeight: 700}}
+                onClick={() => handleUpload()}
+              >
+                Sí, Actualizar
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -39,6 +39,7 @@ import RRHHDashboard from './pages/dashboard/areas/RRHHDashboard';
 import ContabilidadDashboard from './pages/dashboard/areas/ContabilidadDashboard';
 import QuimicaClinicaDashboard from './pages/dashboard/areas/QuimicaClinicaDashboard';
 import ParametrosDerivados from './pages/dashboard/areas/ParametrosDerivados';
+import AreaTemperaturas from './pages/dashboard/areas/AreaTemperaturas';
 import BitacoraResultadosQuimica from './pages/dashboard/areas/BitacoraResultadosQuimica';
 import AdminSidebar from './components/navigation/AdminSidebar';
 import ChatWidget from './components/shared/ChatWidget';
@@ -189,6 +190,7 @@ function App() {
         <Route path="/area/quimica-clinica" element={<AreaRoute requiredRole="quimica_clinica"><DashboardLayout><QuimicaClinicaDashboard /></DashboardLayout></AreaRoute>} />
         <Route path="/area/quimica-clinica/derivados" element={<AreaRoute requiredRole="quimica_clinica"><DashboardLayout><ParametrosDerivados /></DashboardLayout></AreaRoute>} />
         <Route path="/area/quimica-clinica/bitacora" element={<AreaRoute requiredRole="quimica_clinica"><DashboardLayout><BitacoraResultadosQuimica /></DashboardLayout></AreaRoute>} />
+        <Route path="/area/:areaId/temperaturas" element={<PrivateRoute><DashboardLayout><AreaTemperaturas /></DashboardLayout></PrivateRoute>} />
 
       </Routes>
       {user && <ChatWidget />}

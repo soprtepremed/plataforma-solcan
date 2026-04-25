@@ -21,6 +21,7 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
         { label: 'Inicio', path: '/', icon: 'home' },
         { label: 'Captura Resultados', path: '/captura', icon: 'add_task' },
         { label: 'Resultados Listos', path: '/resultados', icon: 'verified_user' },
+        { label: 'Control Temperaturas', path: '/area/quimica-clinica/temperaturas', icon: 'device_thermostat' },
       ]
     },
     {
