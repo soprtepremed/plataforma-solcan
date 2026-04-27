@@ -12,7 +12,9 @@ const AREA_ICONS = {
   'urianalisis': 'science',
   'quimica-clinica': 'science',
   'quimica_clinica': 'science',
-  'serologia': 'bloodtype'
+  'serologia': 'bloodtype',
+  'inmunologia': 'verified',
+  'parasitologia': 'pest_control'
 };
 
 const AREA_NAMES = {
@@ -21,7 +23,9 @@ const AREA_NAMES = {
   'urianalisis': 'Urianálisis',
   'quimica-clinica': 'Química Clínica',
   'quimica_clinica': 'Química Clínica',
-  'serologia': 'Serología'
+  'serologia': 'Serología',
+  'inmunologia': 'Inmunología',
+  'parasitologia': 'Parasitología'
 };
 
 const InventoryCard = ({ item, onEdit, onQuickStart, onQuickEnd }) => {
@@ -74,6 +78,7 @@ export default function InventarioArea() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterSubArea, setFilterSubArea] = useState("TODAS");
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState('add'); 
   const [editingId, setEditingId] = useState(null);
@@ -234,7 +239,17 @@ export default function InventarioArea() {
     }});
   };
 
-  const filteredItems = items.filter(i => (i.descripcion||"").toLowerCase().includes(searchTerm.toLowerCase()) || (i.codigo||"").toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredItems = items.filter(i => {
+    const desc = (i.descripcion || "").toLowerCase();
+    const cod = (i.codigo || "").toLowerCase();
+    const search = (searchTerm || "").toLowerCase();
+    const matchesSearch = desc.includes(search) || cod.includes(search);
+    const matchesSubArea = filterSubArea === "TODAS" || i.sub_area === filterSubArea;
+    return matchesSearch && matchesSubArea;
+  });
+
+  // Obtener lista de sub-áreas únicas para los tabs
+  const subAreas = ["TODAS", ...new Set(items.map(i => i.sub_area).filter(Boolean))];
 
   // Lógica de Agrupación
   const groupedItems = filteredItems.reduce((acc, item) => {
@@ -243,6 +258,16 @@ export default function InventarioArea() {
     acc[key].push(item);
     return acc;
   }, {});
+
+  // Alarmas de caducidad (sobre todos los ítems sin filtro de sub-área)
+  const now = new Date();
+  const in7  = new Date(); in7.setDate(now.getDate() + 7);
+  const in30 = new Date(); in30.setDate(now.getDate() + 30);
+  const expiryAlarms = items
+    .filter(i => i.caducidad && !i.fecha_termino_uso) // solo lotes activos/pendientes
+    .map(i => ({ ...i, expDate: new Date(i.caducidad) }))
+    .filter(i => i.expDate <= in30)
+    .sort((a, b) => a.expDate - b.expDate);
 
   return (
     <div className={styles.container}>
@@ -263,9 +288,84 @@ export default function InventarioArea() {
           <div><p>Ítems Únicos</p><h3>{Object.keys(groupedItems).length}</h3></div>
         </div>
         <div className={styles.statCard}><div className={styles.statIcon} style={{background:'#DCFCE7'}}><span className="material-symbols-rounded">layers</span></div>
-          <div><p>Total de Lotes</p><h3>{items.length}</h3></div>
+          <div><p>Total de Lotes</p><h3>{filteredItems.length}</h3></div>
         </div>
       </div>
+
+      {/* ── PANEL DE ALARMAS DE CADUCIDAD ── */}
+      {expiryAlarms.length > 0 && (
+        <div style={{
+          background: 'linear-gradient(135deg, #FFF7ED 0%, #FEF3C7 100%)',
+          border: '1.5px solid #F59E0B',
+          borderRadius: '16px',
+          padding: '1rem 1.25rem',
+          marginBottom: '1.5rem',
+          boxShadow: '0 2px 12px rgba(245,158,11,0.12)'
+        }}>
+          <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'0.75rem'}}>
+            <span className="material-symbols-rounded" style={{color:'#D97706', fontSize:'1.5rem'}}>warning</span>
+            <strong style={{color:'#92400E', fontSize:'0.95rem'}}>ALERTAS DE CADUCIDAD — {expiryAlarms.length} lote{expiryAlarms.length > 1 ? 's' : ''} próximo{expiryAlarms.length > 1 ? 's' : ''} a vencer</strong>
+          </div>
+          <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+            {expiryAlarms.map(item => {
+              const isExpired  = item.expDate < now;
+              const isCritical = !isExpired && item.expDate <= in7;
+              const color  = isExpired ? '#EF4444' : isCritical ? '#F97316' : '#F59E0B';
+              const bgColor = isExpired ? '#FEE2E2' : isCritical ? '#FFEDD5' : '#FEF9C3';
+              const label   = isExpired ? '⛔ VENCIDO' : isCritical ? '🔴 CRÍTICO' : '⚠️ PRÓXIMO';
+              const daysLeft = Math.ceil((item.expDate - now) / (1000 * 60 * 60 * 24));
+              return (
+                <div key={item.id} style={{
+                  display:'flex', alignItems:'center', justifyContent:'space-between',
+                  background: bgColor, borderRadius:'10px', padding:'8px 12px',
+                  border: `1px solid ${color}22`
+                }}>
+                  <div style={{display:'flex', flexDirection:'column', gap:'2px'}}>
+                    <span style={{fontWeight:700, fontSize:'0.85rem', color:'#1E293B'}}>{item.descripcion}</span>
+                    <span style={{fontSize:'0.75rem', color:'#64748B'}}>Lote: <strong>{item.lote || 'N/A'}</strong></span>
+                  </div>
+                  <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                    <span style={{fontSize:'0.8rem', color:'#475569'}}>
+                      Cad: <strong>{item.expDate.toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'})}</strong>
+                    </span>
+                    <span style={{
+                      fontSize:'0.72rem', fontWeight:800, color:'white',
+                      background: color, borderRadius:'20px', padding:'3px 10px', whiteSpace:'nowrap'
+                    }}>
+                      {isExpired ? label : `${label} (${daysLeft}d)`}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {subAreas.length > 2 && (
+        <div className={styles.tabContainer} style={{marginBottom: '1.5rem', display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '5px'}}>
+          {subAreas.map(sa => (
+            <button 
+              key={sa} 
+              className={filterSubArea === sa ? styles.tabActive : styles.tab}
+              onClick={() => setFilterSubArea(sa)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '20px',
+                border: 'none',
+                background: filterSubArea === sa ? '#0EA5E9' : '#F1F5F9',
+                color: filterSubArea === sa ? 'white' : '#64748B',
+                fontWeight: 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s'
+              }}
+            >
+              {sa === "TODAS" ? "TODAS LAS SUB-ÁREAS" : sa}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className={styles.inventoryTable}>
         <div className={styles.tableHeader}>
@@ -312,12 +412,33 @@ export default function InventarioArea() {
                               <span>{item.lote || 'N/A'}</span>
                             </div>
                             <div className={styles.lotDetails}>
-                              <div className={styles.detailItem}><label>Caducidad</label><span style={{color: new Date(item.caducidad) < new Date() ? '#EF4444' : 'inherit'}}>{item.caducidad ? new Date(item.caducidad).toLocaleDateString() : '---'}</span></div>
+                              <div className={styles.detailItem}>
+                                <label>Caducidad</label>
+                                <span style={{
+                                  color: item.caducidad && new Date(item.caducidad) < now ? '#EF4444'
+                                       : item.caducidad && new Date(item.caducidad) <= in7 ? '#F97316'
+                                       : item.caducidad && new Date(item.caducidad) <= in30 ? '#F59E0B'
+                                       : 'inherit',
+                                  fontWeight: item.caducidad && new Date(item.caducidad) <= in30 ? 700 : 'inherit'
+                                }}>
+                                  {item.caducidad ? new Date(item.caducidad).toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'}) : '---'}
+                                  {item.caducidad && new Date(item.caducidad) < now && <span style={{fontSize:'0.65rem', marginLeft:'4px', background:'#EF4444', color:'white', borderRadius:'4px', padding:'1px 4px'}}>VENCIDO</span>}
+                                  {item.caducidad && new Date(item.caducidad) >= now && new Date(item.caducidad) <= in7 && <span style={{fontSize:'0.65rem', marginLeft:'4px', background:'#F97316', color:'white', borderRadius:'4px', padding:'1px 4px'}}>CRÍTICO</span>}
+                                </span>
+                              </div>
                               <div className={styles.detailItem}><label>Stock</label><span className={item.stock_actual < 5 ? styles.textDanger : ''}>{item.stock_actual}</span></div>
                               <div className={styles.detailItem}>
                                 <label>Estado</label>
                                 <span className={isActive ? styles.textSuccess : isFinished ? styles.textMuted : styles.textInfo}>
                                   {isActive ? 'EN USO' : isFinished ? 'TERMINADO' : 'EN RESERVA'}
+                                </span>
+                              </div>
+                              <div className={styles.detailItem}>
+                                <label>Sol. Almacén</label>
+                                <span style={{fontSize:'0.78rem', color:'#64748B'}}>
+                                  {item.fecha_solicitud_almacen
+                                    ? new Date(item.fecha_solicitud_almacen).toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'})
+                                    : '---'}
                                 </span>
                               </div>
                             </div>

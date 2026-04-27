@@ -12,6 +12,7 @@ const QuimicaClinicaDashboard = () => {
     enUso: 0
   });
   const [alerts, setAlerts] = useState([]);
+  const [expiryAlarms, setExpiryAlarms] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,8 +44,8 @@ const QuimicaClinicaDashboard = () => {
 
       if (data) {
         const now = new Date();
-        const nextMonth = new Date();
-        nextMonth.setDate(now.getDate() + 30);
+        const in7  = new Date(); in7.setDate(now.getDate() + 7);
+        const nextMonth = new Date(); nextMonth.setDate(now.getDate() + 30);
 
         setStats({
           total: data.length,
@@ -52,6 +53,14 @@ const QuimicaClinicaDashboard = () => {
           caducidad: data.filter(i => i.caducidad && new Date(i.caducidad) <= nextMonth).length,
           enUso: data.filter(i => i.fecha_inicio_uso && !i.fecha_termino_uso).length
         });
+
+        // Alarmas de lotes próximos a caducar
+        const alarms = data
+          .filter(i => i.caducidad && !i.fecha_termino_uso)
+          .map(i => ({ ...i, expDate: new Date(i.caducidad) }))
+          .filter(i => i.expDate <= nextMonth)
+          .sort((a, b) => a.expDate - b.expDate);
+        setExpiryAlarms(alarms);
       }
     } catch (e) {
       console.error(e);
@@ -154,7 +163,32 @@ const QuimicaClinicaDashboard = () => {
           <h3>Alertas y Avisos del Área</h3>
         </div>
         <div className={styles.alertList}>
-          {/* Alertas Automáticas de Inventario */}
+
+          {/* Alarmas automáticas de lotes por caducar */}
+          {expiryAlarms.map(item => {
+            const now2 = new Date();
+            const in7b = new Date(); in7b.setDate(now2.getDate() + 7);
+            const isExpired  = item.expDate < now2;
+            const isCritical = !isExpired && item.expDate <= in7b;
+            const color   = isExpired ? '#EF4444' : isCritical ? '#F97316' : '#F59E0B';
+            const icon    = isExpired ? 'dangerous' : 'event_busy';
+            const label   = isExpired ? '⛔ VENCIDO' : isCritical ? '🔴 CRÍTICO' : '⚠️ PRÓXIMO';
+            const daysLeft= Math.ceil((item.expDate - now2) / (1000 * 60 * 60 * 24));
+            return (
+              <div key={`exp-${item.id}`} className={styles.alertItem} style={{borderLeft: `4px solid ${color}`}}>
+                <span className="material-symbols-rounded" style={{color}}>{icon}</span>
+                <div>
+                  <strong>{item.descripcion} — Lote {item.lote || 'N/A'}</strong>
+                  <p>
+                    Caduca el {item.expDate.toLocaleDateString('es-MX', {day:'2-digit', month:'long', year:'numeric'})}.
+                    {' '}<span style={{fontWeight:700, color}}>{isExpired ? label : `${label} (${daysLeft}d)`}</span>
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Stock crítico */}
           {stats.critico > 0 && (
             <div className={styles.alertItem} style={{borderLeft: '4px solid #EF4444'}}>
               <span className="material-symbols-rounded" style={{color: '#EF4444'}}>inventory_2</span>
@@ -164,19 +198,10 @@ const QuimicaClinicaDashboard = () => {
               </div>
             </div>
           )}
-          {stats.caducidad > 0 && (
-            <div className={styles.alertItem} style={{borderLeft: '4px solid #F59E0B'}}>
-              <span className="material-symbols-rounded" style={{color: '#F59E0B'}}>event_busy</span>
-              <div>
-                <strong>Caducidad Próxima</strong>
-                <p>{stats.caducidad} materiales vencerán en los próximos 30 días. Revisar lotes.</p>
-              </div>
-            </div>
-          )}
 
-          {/* Notificaciones del Sistema */}
-          {alerts.length > 0 ? alerts.map(a => (
-            <div key={a.id} className={styles.alertItem}>
+          {/* Notificaciones del sistema */}
+          {alerts.map(a => (
+            <div key={a.id} className={styles.alertItem} style={{borderLeft: `4px solid ${a.type === 'error' ? '#EF4444' : '#F59E0B'}`}}>
               <span className="material-symbols-rounded" style={{color: a.type === 'error' ? '#EF4444' : '#F59E0B'}}>
                 {a.type === 'error' ? 'warning' : 'info'}
               </span>
@@ -185,10 +210,10 @@ const QuimicaClinicaDashboard = () => {
                 <p>{a.message}</p>
               </div>
             </div>
-          )) : (
-            !stats.critico && !stats.caducidad && (
-              <p style={{padding: '10px', color: '#94A3B8', textAlign: 'center'}}>No hay alertas activas para esta área.</p>
-            )
+          ))}
+
+          {expiryAlarms.length === 0 && !stats.critico && alerts.length === 0 && (
+            <p style={{padding: '10px', color: '#94A3B8', textAlign: 'center'}}>No hay alertas activas para esta área.</p>
           )}
         </div>
       </div>

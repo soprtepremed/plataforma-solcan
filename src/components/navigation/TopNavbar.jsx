@@ -76,7 +76,8 @@ export default function TopNavbar() {
       'microbiologia': 'Microbiología',
       'urianalisis': 'Urianálisis',
       'quimica_clinica': 'Química Clínica',
-      'serologia': 'Serología'
+      'serologia': 'Serología',
+      'especiales': 'Especiales'
     };
     return names[r] || user?.name?.split(' ')[0] || 'Usuario';
   };
@@ -221,6 +222,16 @@ export default function TopNavbar() {
         ]
       },
       'toma_de_muestra': { label: 'Relación de Folios', path: '/area/toma-muestra', icon: 'note_add' },
+      'especiales': {
+        label: 'Especiales', path: '/especiales', icon: 'labs',
+        children: [
+          { label: 'Dashboard', path: '/especiales', icon: 'dashboard_customize' },
+          { label: 'Bitácora de Maquilas', path: '/especiales/bitacora', icon: 'labs' },
+          { label: 'Costos y Conciliación', path: '/especiales/costos', icon: 'receipt_long' },
+          { label: 'Pendientes de Resultado', path: '/especiales/pendientes', icon: 'pending_actions' },
+          { label: 'Reportes', path: '/especiales/reportes', icon: 'bar_chart_4_bars' }
+        ]
+      },
     };
 
     if (areasConfig[r]) options.push(areasConfig[r]);

@@ -55,6 +55,10 @@ export default function Login() {
       {/* Mantenemos el fondo decorativo 3D solicitado */}
       <div className={styles.backgroundGraphics}></div>
 
+      {/* Aurora Blobs for Gloop Style */}
+      <div className={`${styles.blob} ${styles.blob1}`}></div>
+      <div className={`${styles.blob} ${styles.blob2}`}></div>
+
       <div className={styles.loginCard}>
         <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
           <Logo size="lg" />

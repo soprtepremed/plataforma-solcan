@@ -21,12 +21,13 @@ import AdminPromociones from './pages/dashboard/AdminPromociones';
 import Sucursales from './pages/Sucursales';
 import InventarioArea from './pages/dashboard/InventarioArea';
 import ControlCalidadArea from './pages/dashboard/ControlCalidadArea';
-import InventarioHemato from './pages/dashboard/InventarioHemato';
+
 import NuevaRequisicion from './pages/dashboard/NuevaRequisicion';
 import GestionRequisiciones from './pages/dashboard/GestionRequisiciones';
 import HistorialRequisicionesArea from './pages/dashboard/HistorialRequisicionesArea';
 import RelacionFoliosGeneral from './pages/dashboard/RelacionFoliosGeneral';
 import PortalPacientes from './pages/PortalPacientes';
+import CatalogoPublico from './pages/CatalogoPublico';
 
 // Áreas Modulares
 import HematologiaDashboard from './pages/dashboard/areas/HematologiaDashboard';
@@ -41,6 +42,9 @@ import QuimicaClinicaDashboard from './pages/dashboard/areas/QuimicaClinicaDashb
 import ParametrosDerivados from './pages/dashboard/areas/ParametrosDerivados';
 import AreaTemperaturas from './pages/dashboard/areas/AreaTemperaturas';
 import BitacoraResultadosQuimica from './pages/dashboard/areas/BitacoraResultadosQuimica';
+import EspecialesDashboard from './pages/dashboard/areas/EspecialesDashboard';
+import BitacoraMaquilas from './pages/dashboard/BitacoraMaquilas';
+import CatalogoEspeciales from './pages/dashboard/areas/CatalogoEspeciales';
 import AdminSidebar from './components/navigation/AdminSidebar';
 import ChatWidget from './components/shared/ChatWidget';
 
@@ -128,6 +132,7 @@ function App() {
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
         <Route path="/portal" element={<PortalPacientes />} />
         <Route path="/portal/:code" element={<PortalPacientes />} />
+        <Route path="/catalogo-especiales" element={<CatalogoPublico />} />
 
         {/* Rutas Privadas (Protegidas, requieren sesión) */}
         <Route path="/" element={
@@ -172,7 +177,7 @@ function App() {
 
         {/* Áreas Modulares */}
         <Route path="/area/hematologia" element={<AreaRoute requiredRole="hematologia"><DashboardLayout><HematologiaDashboard /></DashboardLayout></AreaRoute>} />
-        <Route path="/area/hematologia/inventario" element={<AreaRoute requiredRole="hematologia"><DashboardLayout><InventarioHemato /></DashboardLayout></AreaRoute>} />
+
         <Route path="/area/requisiciones/historial" element={<PrivateRoute><DashboardLayout><HistorialRequisicionesArea /></DashboardLayout></PrivateRoute>} />
         <Route path="/area/requisicion" element={<PrivateRoute><DashboardLayout><NuevaRequisicion /></DashboardLayout></PrivateRoute>} />
         
@@ -191,6 +196,11 @@ function App() {
         <Route path="/area/quimica-clinica/derivados" element={<AreaRoute requiredRole="quimica_clinica"><DashboardLayout><ParametrosDerivados /></DashboardLayout></AreaRoute>} />
         <Route path="/area/quimica-clinica/bitacora" element={<AreaRoute requiredRole="quimica_clinica"><DashboardLayout><BitacoraResultadosQuimica /></DashboardLayout></AreaRoute>} />
         <Route path="/area/:areaId/temperaturas" element={<PrivateRoute><DashboardLayout><AreaTemperaturas /></DashboardLayout></PrivateRoute>} />
+
+        {/* Módulo Especiales — Maquilas */}
+        <Route path="/especiales" element={<AreaRoute requiredRole="especiales"><DashboardLayout><EspecialesDashboard /></DashboardLayout></AreaRoute>} />
+        <Route path="/especiales/bitacora" element={<AreaRoute requiredRole="especiales"><DashboardLayout><BitacoraMaquilas /></DashboardLayout></AreaRoute>} />
+        <Route path="/especiales/catalogo" element={<AreaRoute requiredRole="especiales"><DashboardLayout><CatalogoEspeciales /></DashboardLayout></AreaRoute>} />
 
       </Routes>
       {user && <ChatWidget />}

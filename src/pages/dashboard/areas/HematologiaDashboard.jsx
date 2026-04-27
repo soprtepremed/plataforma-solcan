@@ -5,13 +5,9 @@ import styles from './HematologiaDashboard.module.css';
 
 const HematologiaDashboard = () => {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({
-    total: 0,
-    critico: 0,
-    caducidad: 0,
-    enUso: 0
-  });
+  const [stats, setStats] = useState({ total: 0, critico: 0, caducidad: 0, enUso: 0 });
   const [alerts, setAlerts] = useState([]);
+  const [expiryAlarms, setExpiryAlarms] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,62 +23,48 @@ const HematologiaDashboard = () => {
         .or('role.eq.hematologia,role.eq.admin')
         .order('created_at', { ascending: false })
         .limit(5);
-      
       if (data) setAlerts(data);
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const fetchStats = async () => {
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('inventario_areas')
         .select('*')
         .eq('area_id', 'hematologia');
 
       if (data) {
         const now = new Date();
-        const nextMonth = new Date();
-        nextMonth.setDate(now.getDate() + 30);
+        const in7  = new Date(); in7.setDate(now.getDate() + 7);
+        const in30 = new Date(); in30.setDate(now.getDate() + 30);
 
         setStats({
-          total: data.length,
-          critico: data.filter(i => i.stock_actual < 5 && i.stock_actual > 0).length,
-          caducidad: data.filter(i => i.caducidad && new Date(i.caducidad) <= nextMonth).length,
-          enUso: data.filter(i => i.fecha_inicio_uso && !i.fecha_termino_uso).length
+          total:    data.length,
+          critico:  data.filter(i => i.stock_actual < 5 && i.stock_actual > 0).length,
+          caducidad:data.filter(i => i.caducidad && new Date(i.caducidad) <= in30).length,
+          enUso:    data.filter(i => i.fecha_inicio_uso && !i.fecha_termino_uso).length
         });
+
+        const alarms = data
+          .filter(i => i.caducidad && !i.fecha_termino_uso)
+          .map(i => ({ ...i, expDate: new Date(i.caducidad) }))
+          .filter(i => i.expDate <= in30)
+          .sort((a, b) => a.expDate - b.expDate);
+        setExpiryAlarms(alarms);
       }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   };
 
   const sections = [
-    {
-      title: 'Inventario y Calidad',
-      desc: 'Control de reactivos, lotes y bitácora de aceptación técnica.',
-      icon: 'fact_check',
-      path: '/area/hematologia/inventario',
-      color: '#DC2626'
-    },
-    {
-      title: 'Temperaturas del Área',
-      desc: 'Monitoreo térmico de refrigeradores y equipos analíticos.',
-      icon: 'device_thermostat',
-      path: '/area/hematologia/temperaturas',
-      color: '#F43F5E'
-    },
-    {
-      title: 'Bitácora FO-DO-017',
-      desc: 'Seguimiento de muestras recibidas por bio-logística.',
-      icon: 'assignment_turned_in',
-      path: '/logistica/bitacora',
-      color: '#3B82F6'
-    }
+    { title: 'Inventario y Calidad',   desc: 'Control de reactivos, lotes y bitácora de aceptación técnica.', icon: 'fact_check',         path: '/area/hematologia/inventario',  color: '#DC2626' },
+    { title: 'Temperaturas del Área',  desc: 'Monitoreo térmico de refrigeradores y equipos analíticos.',     icon: 'device_thermostat',   path: '/area/hematologia/temperaturas', color: '#F43F5E' },
+    { title: 'Bitácora Logística',     desc: 'Seguimiento de muestras recibidas por bio-logística.',          icon: 'assignment_turned_in',path: '/logistica/bitacora',            color: '#3B82F6' }
   ];
+
+  const now = new Date();
+  const in7  = new Date(); in7.setDate(now.getDate() + 7);
 
   return (
     <div className={styles.container}>
@@ -94,6 +76,7 @@ const HematologiaDashboard = () => {
         <p>Suministros y Control Operativo del Área Técnica.</p>
       </header>
 
+      {/* ── STAT CARDS ── */}
       <div className={styles.statsGrid}>
         <div className={styles.statCard} style={{ borderLeft: '6px solid #3B82F6' }}>
           <p className={styles.statLabel}>Inventario Total</p>
@@ -117,31 +100,53 @@ const HematologiaDashboard = () => {
         </div>
       </div>
 
+      {/* ── SECTION CARDS ── */}
       <div className={styles.sectionsGrid}>
         {sections.map(s => (
-          <div 
-            key={s.path}
-            onClick={() => navigate(s.path)}
-            className={styles.sectionCard}
-          >
-            <span className={`material-symbols-rounded ${styles.sectionIcon}`} style={{ color: s.color }}>
-              {s.icon}
-            </span>
+          <div key={s.path} onClick={() => navigate(s.path)} className={styles.sectionCard}>
+            <span className={`material-symbols-rounded ${styles.sectionIcon}`} style={{ color: s.color }}>{s.icon}</span>
             <h3>{s.title}</h3>
             <p>{s.desc}</p>
           </div>
         ))}
       </div>
 
-      <div className={styles.alertSection} style={{marginTop: '2rem'}}>
+      {/* ── ALERTAS ── */}
+      <div className={styles.alertSection} style={{ marginTop: '2rem' }}>
         <div className={styles.sectionHeader}>
           <span className="material-symbols-rounded">notifications_active</span>
           <h3>Alertas y Avisos de Hematología</h3>
         </div>
         <div className={styles.alertList}>
-          {alerts.length > 0 ? alerts.map(a => (
-            <div key={a.id} className={styles.alertItem}>
-              <span className="material-symbols-rounded" style={{color: a.type === 'error' ? '#EF4444' : '#F59E0B'}}>
+
+          {/* Alarmas automáticas de caducidad */}
+          {expiryAlarms.map(item => {
+            const isExpired  = item.expDate < now;
+            const isCritical = !isExpired && item.expDate <= in7;
+            const color   = isExpired ? '#EF4444' : isCritical ? '#F97316' : '#F59E0B';
+            const icon    = isExpired ? 'dangerous' : 'event_busy';
+            const label   = isExpired ? '⛔ VENCIDO' : isCritical ? '🔴 CRÍTICO' : '⚠️ PRÓXIMO';
+            const daysLeft= Math.ceil((item.expDate - now) / (1000 * 60 * 60 * 24));
+            return (
+              <div key={`exp-${item.id}`} className={styles.alertItem} style={{ borderLeft: `4px solid ${color}` }}>
+                <span className="material-symbols-rounded" style={{ color }}>{icon}</span>
+                <div>
+                  <strong>{item.descripcion} — Lote {item.lote || 'N/A'}</strong>
+                  <p>
+                    Caduca el {item.expDate.toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}.{' '}
+                    <span style={{ fontWeight: 700, color }}>
+                      {isExpired ? label : `${label} (${daysLeft} días restantes)`}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Notificaciones del sistema */}
+          {alerts.map(a => (
+            <div key={a.id} className={styles.alertItem} style={{ borderLeft: `4px solid ${a.type === 'error' ? '#EF4444' : '#F59E0B'}` }}>
+              <span className="material-symbols-rounded" style={{ color: a.type === 'error' ? '#EF4444' : '#F59E0B' }}>
                 {a.type === 'error' ? 'warning' : 'info'}
               </span>
               <div>
@@ -149,8 +154,12 @@ const HematologiaDashboard = () => {
                 <p>{a.message}</p>
               </div>
             </div>
-          )) : (
-            <p style={{padding: '10px', color: '#94A3B8', textAlign: 'center'}}>No hay alertas activas para esta área.</p>
+          ))}
+
+          {expiryAlarms.length === 0 && alerts.length === 0 && (
+            <p style={{ padding: '10px', color: '#94A3B8', textAlign: 'center' }}>
+              No hay alertas activas para esta área.
+            </p>
           )}
         </div>
       </div>
