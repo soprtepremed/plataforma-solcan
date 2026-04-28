@@ -1,37 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = 'https://ybhfsvkwpmhzwuboynre.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InliaGZzdmt3cG1oend1Ym95bnJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NTM1MzEsImV4cCI6MjA5MDMyOTUzMX0.sBEHzl_Rc8U9xwR9Gf9LJi1a20WVk2mjO1StI1mN6wc';
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function inspectTable() {
-  console.log('--- Inspeccionando Tabla equipos_calibracion ---');
+  console.log('--- Inspeccionando Tabla logistica_envios ---');
   
-  // Intentamos obtener una fila para ver las columnas
   const { data, error } = await supabase
-    .from('equipos_calibracion')
+    .from('logistica_envios')
     .select('*')
     .limit(1);
 
   if (error) {
     console.error('Error al inspeccionar:', error.message);
-    console.log('Código:', error.code);
   } else {
-    console.log('Columnas encontradas:', data.length > 0 ? Object.keys(data[0]) : 'Sin datos para inspeccionar');
-    
-    // Si no hay datos, intentamos un insert mínimo para ver qué falla
-    console.log('Intentando insert de prueba...');
-    const { error: insError } = await supabase
-      .from('equipos_calibracion')
-      .insert({ area_id: 'test', nombre: 'test', puntos: [] });
-    
-    if (insError) {
-      console.error('Fallo en INSERT:', insError.message);
-      console.log('Código:', insError.code);
+    if (data.length > 0) {
+      console.log('Columnas encontradas:');
+      console.log(Object.keys(data[0]).sort().join('\n'));
     } else {
-      console.log('INSERT exitoso.');
-      await supabase.from('equipos_calibracion').delete().eq('nombre', 'test');
+      console.log('Sin datos para inspeccionar.');
     }
   }
   process.exit(0);

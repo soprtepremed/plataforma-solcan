@@ -788,34 +788,142 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-}.areaQuickSelect {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
 }
 
-.areaBtnPill {
-  padding: 10px 18px;
-  border-radius: 12px;
+.container {
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.header {
   background: white;
-  border: 2px solid #E2E8F0;
-  color: #64748B;
-  font-weight: 700;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: #64748b;
   font-size: 0.9rem;
+}
+
+.filterBar {
+  padding: 1.5rem 2rem;
+  display: flex;
+  gap: 12px;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.filterBtn {
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.areaBtnPill:hover {
-  border-color: var(--co-accent);
-  color: var(--co-accent);
-  background: #F0FDFA;
+.activeFilter {
+  background: var(--co-primary);
+  color: white;
+  border-color: var(--co-primary);
+}
+
+.mainContent {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 2rem;
+}
+
+.card {
+  background: white;
+  border-radius: 24px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.cardHeader {
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.miniAreaStatusLine {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.miniAreaBadge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+.badgeSigned {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.statusBadge {
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.status_Pendiente { background: #fef9c3; color: #854d0e; }
+.status_En_Trǭnsito { background: #dbeafe; color: #1e40af; }
+.status_Recibido { background: #dcfce7; color: #166534; }
+
+.areaQuickSelect {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.areaBtnPill {
+  padding: 8px 16px;
+  border-radius: 100px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .areaBtnPillActive {
-  background: var(--co-accent);
-  border-color: var(--co-accent);
   color: white;
   box-shadow: 0 4px 12px rgba(11, 206, 205, 0.2);
 }
