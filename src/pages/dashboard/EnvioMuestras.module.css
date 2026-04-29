@@ -89,11 +89,29 @@
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
+.itemIcon span {
+  font-size: 1.4rem;
+}
+
 .itemLabel {
   flex: 1;
   font-weight: 700;
   color: var(--co-primary);
   font-size: 1rem;
+}
+
+.itemMain {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.itemLabelBox {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
 }
 
 .itemControls {
@@ -385,7 +403,8 @@
   color: white;
   transform: rotate(90deg) scale(1.1);
 }
-
+.removeBtn {
+  position: absolute;
   top: -5px;
   right: -5px;
   width: 20px;
@@ -453,6 +472,26 @@
   padding: 3rem;
   border-radius: 40px;
   text-align: center;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+}
+
+.successIcon {
+  width: 80px;
+  height: 80px;
+  background: #DCFCE7;
+  color: #10B981;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.successIcon span {
+  font-size: 3rem;
+}
 .successCard h2 {
   font-size: 2rem;
   font-weight: 800;
@@ -665,3 +704,64 @@
     flex-direction: column;
   }
 }
+
+.folioDisplay {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+.folioLabel {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.folioBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: white;
+  border: 2px solid #CBD5E1;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.folioBadge strong {
+  font-size: 1.5rem;
+  font-family: 'Roboto Mono', monospace;
+  color: #1E293B;
+  letter-spacing: 1px;
+}
+
+.copyBtn {
+  background: #F1F5F9;
+  border: none;
+  color: #64748B;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  transition: all 0.2s;
+}
+
+.copyBtn:hover {
+  background: #E2E8F0;
+  color: #2563EB;
+}
+
+.folioHint {
+  display: block;
+  margin-top: 0.75rem;
+  color: #94A3B8;
+  font-size: 0.8rem;
+}
+

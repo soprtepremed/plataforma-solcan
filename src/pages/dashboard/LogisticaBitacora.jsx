@@ -322,7 +322,7 @@ export default function LogisticaBitacora() {
         item.s_lila || 0,
         item.s_celeste || 0,
         item.s_verde || 0,
-        item.s_papel || 0,
+        item.s_sec_orina || 0,
         item.s_orina_24h || 0,
         item.s_medio_transporte || 0,
         item.s_hisopo || 0,
@@ -537,7 +537,7 @@ export default function LogisticaBitacora() {
                   <td className={styles.cellQty}>{renderQty(item.s_celeste)}</td>
                   <td className={styles.cellQty}>{renderQty(item.s_verde)}</td>
                   
-                  <td className={styles.cellQty}>{renderQty(item.s_papel)}</td>
+                  <td className={styles.cellQty}>{renderQty(item.s_sec_orina)}</td>
                   <td className={styles.cellQty}>{renderQty(item.s_orina_24h)}</td>
                   <td className={styles.cellQty}>{renderQty(item.s_medio_transporte)}</td>
                   <td className={styles.cellQty}>{renderQty(item.s_hisopo)}</td>

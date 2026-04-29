@@ -7,16 +7,22 @@ export default function RelacionFoliosGeneral() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     sucursal: 'Todas',
-    fecha: new Date().toISOString().split('T')[0],
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+    selectedPaquete: 'Todos',
     searchTerm: ''
   });
 
   const [sucursales, setSucursales] = useState([]);
+  const [paquetesDisponibles, setPaquetesDisponibles] = useState([]);
 
   useEffect(() => {
     fetchSucursales();
+  }, []);
+
+  useEffect(() => {
     fetchRelacion();
-  }, [filters.sucursal, filters.fecha]);
+  }, [filters.sucursal, filters.startDate, filters.endDate, filters.selectedPaquete]);
 
   const fetchSucursales = async () => {
     const { data: list } = await supabase.from('sucursales').select('nombre');
@@ -31,102 +37,163 @@ export default function RelacionFoliosGeneral() {
       .order('created_at', { ascending: false });
 
     if (filters.sucursal !== 'Todas') {
-      query = query.eq('sucursal', filters.sucursal);
+      query = query.ilike('sucursal', `%${filters.sucursal}%`);
     }
     
-    // Filtrar por el día de creación de la relación
-    if (filters.fecha) {
-      const start = `${filters.fecha}T00:00:00`;
-      const end = `${filters.fecha}T23:59:59`;
-      query = query.gte('created_at', start).lte('created_at', end);
+    if (filters.startDate) {
+      query = query.gte('created_at', `${filters.startDate}T00:00:00`);
+    }
+    if (filters.endDate) {
+      query = query.lte('created_at', `${filters.endDate}T23:59:59`);
     }
 
-    const { data: res, error } = await query;
-    if (!error) setData(res);
+    if (filters.selectedPaquete !== 'Todos') {
+      query = query.eq('paquete_folio', filters.selectedPaquete);
+    }
+
+    const { data: res, error } = await query.limit(500);
+    
+    if (!error && res) {
+      setData(res);
+      // Extraer paquetes únicos para el selector basado en los resultados actuales
+      const pkgs = [...new Set(res.map(item => item.paquete_folio).filter(Boolean))];
+      setPaquetesDisponibles(['Todos', ...pkgs]);
+    }
     setLoading(false);
   };
 
   const filteredData = data.filter(item => 
     item.folio_paciente.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-    item.estudios?.toLowerCase().includes(filters.searchTerm.toLowerCase())
+    item.estudios?.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+    item.paquete_folio?.toLowerCase().includes(filters.searchTerm.toLowerCase())
   );
+
+  const stats = {
+    total: filteredData.length,
+    parciales: filteredData.filter(d => d.entrega_tipo === 'Parcial').length,
+    paquetes: new Set(filteredData.map(d => d.paquete_folio)).size
+  };
 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.titleBox}>
-          <h1><span className="material-symbols-rounded">list_alt</span> Bitácora Maestra de Folios</h1>
-          <p>Consulta centralizada de muestras enviadas por sucursales y promesas de entrega</p>
+          <h1>
+            <span className="material-symbols-rounded">analytics</span> 
+            Bitácora Maestra
+          </h1>
+          <p>Supervisión perpetua de muestras y trazabilidad Solcan</p>
         </div>
-        <div className={styles.stats}>
-          <div className={styles.statItem}>
-            <span className={styles.statVal}>{data.length}</span>
-            <span className={styles.statLab}>Folios hoy</span>
+        
+        <div className={styles.statsGrid}>
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>Folios en Rango</span>
+            <span className={styles.statValue}>{stats.total}</span>
+          </div>
+          <div className={`${styles.statCard} ${styles.parcialCard}`}>
+            <span className={styles.statLabel}>Parcialidades</span>
+            <span className={styles.statValue}>{stats.parciales}</span>
+          </div>
+          <div className={`${styles.statCard} ${styles.totalCard}`}>
+            <span className={styles.statLabel}>Paquetes/Hieleras</span>
+            <span className={styles.statValue}>{stats.paquetes}</span>
           </div>
         </div>
       </header>
 
-      <div className={styles.filterBar}>
-        <div className={styles.inputGroup}>
-          <label>Sucursal</label>
-          <select value={filters.sucursal} onChange={e => setFilters({...filters, sucursal: e.target.value})}>
-            {sucursales.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-        <div className={styles.inputGroup}>
-          <label>Día de Registro</label>
-          <input type="date" value={filters.fecha} onChange={e => setFilters({...filters, fecha: e.target.value})} />
-        </div>
-        <div className={styles.inputGroup} style={{flex: 1}}>
-          <label>Búsqueda Rápida (Folio / Estudio)</label>
-          <div className={styles.searchWrapper}>
-             <span className="material-symbols-rounded">search</span>
-             <input 
+      <div className={styles.filterSection}>
+        <div className={styles.filtersGlass}>
+          <div className={styles.filterRow}>
+            <div className={styles.inputGroup}>
+              <label><span className="material-symbols-rounded">store</span> Sucursal</label>
+              <select value={filters.sucursal} onChange={e => setFilters({...filters, sucursal: e.target.value})}>
+                {sucursales.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            
+            <div className={styles.inputGroup}>
+              <label><span className="material-symbols-rounded">calendar_month</span> Desde</label>
+              <input type="date" value={filters.startDate} onChange={e => setFilters({...filters, startDate: e.target.value})} />
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label><span className="material-symbols-rounded">event_repeat</span> Hasta</label>
+              <input type="date" value={filters.endDate} onChange={e => setFilters({...filters, endDate: e.target.value})} />
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label><span className="material-symbols-rounded">inventory_2</span> Paquete Específico</label>
+              <select value={filters.selectedPaquete} onChange={e => setFilters({...filters, selectedPaquete: e.target.value})}>
+                {paquetesDisponibles.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className={styles.filterRow}>
+            <div className={`${styles.inputGroup} ${styles.searchGroup}`}>
+              <label><span className="material-symbols-rounded">search</span> Buscador Inteligente (Folio, Paciente, Estudio o ID Paquete)</label>
+              <input 
                 type="text" 
-                placeholder="Ej: S-202..." 
+                placeholder="Escribe para buscar..." 
                 value={filters.searchTerm} 
                 onChange={e => setFilters({...filters, searchTerm: e.target.value})} 
-             />
+              />
+            </div>
+            <button className={styles.refreshBtn} onClick={fetchRelacion} title="Sincronizar Datos">
+               <span className="material-symbols-rounded">sync</span>
+            </button>
           </div>
         </div>
-        <button className={styles.refreshBtn} onClick={fetchRelacion}>
-           <span className="material-symbols-rounded">refresh</span>
-        </button>
       </div>
 
-      <main className={styles.main}>
+      <main className={styles.mainContent}>
         {loading ? (
-          <div className={styles.loader}>Cargando bitácora...</div>
+          <div className={styles.loadingContainer}>
+             <div className={styles.spinner}></div>
+             <p>Consultando base de datos perpetua...</p>
+          </div>
         ) : filteredData.length === 0 ? (
-          <div className={styles.empty}>
-             <span className="material-symbols-rounded">inventory</span>
-             <h3>Sin registros para este filtro</h3>
-             <p>No se encontraron folios cargados para la sucursal y fecha seleccionadas.</p>
+          <div className={styles.emptyState}>
+             <span className="material-symbols-rounded">folder_open</span>
+             <h3>Sin resultados</h3>
+             <p>No se encontraron registros para el rango y sucursal seleccionados.</p>
           </div>
         ) : (
-          <div className={styles.tableCard}>
+          <div className={styles.tableContainer}>
             <table className={styles.table}>
               <thead>
                 <tr>
                   <th>Sucursal</th>
                   <th>Folio</th>
+                  <th>Toma</th>
+                  <th>Paquete</th>
                   <th>Estudios</th>
-                  <th>Fecha Entrega</th>
-                  <th>Estatus</th>
+                  <th>Entrega</th>
+                  <th>Tipo</th>
                   <th>Observaciones</th>
-                  <th>Hora Registro</th>
+                  <th>Hora</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredData.map(item => (
-                  <tr key={item.id}>
-                    <td><span className={styles.sucursalBadge}>{item.sucursal}</span></td>
-                    <td><strong>{item.folio_paciente}</strong></td>
-                    <td className={styles.studiesText}>{item.estudios}</td>
+                  <tr key={item.id} className={item.entrega_tipo === 'Parcial' ? styles.rowParcial : ''}>
+                    <td><span className={styles.sucursalBadge}>{item.sucursal?.split(' ')[0]}</span></td>
+                    <td><span className={styles.folioText}>{item.folio_paciente}</span></td>
                     <td>
-                      <div className={styles.deliveryBox}>
-                        <span className="material-symbols-rounded">calendar_month</span>
-                        {item.fecha_entrega || 'No definida'}
+                      <div className={styles.tomaCell}>
+                        <span className="material-symbols-rounded">medical_services</span>
+                        {item.hora_toma || '---'}
+                      </div>
+                    </td>
+                    <td>
+                      <div className={styles.packageCell}>
+                        {item.paquete_folio}
+                      </div>
+                    </td>
+                    <td className={styles.studiesCell}>{item.estudios}</td>
+                    <td>
+                      <div className={styles.dateCell}>
+                        {item.fecha_entrega}
                       </div>
                     </td>
                     <td>
@@ -134,8 +201,10 @@ export default function RelacionFoliosGeneral() {
                          {item.entrega_tipo}
                        </span>
                     </td>
-                    <td className={styles.obsCell}>{item.observaciones || '---'}</td>
-                    <td className={styles.timeCell}>{new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                    <td className={styles.obsCell}>{item.observaciones}</td>
+                    <td className={styles.timeCell}>
+                      {new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </td>
                   </tr>
                 ))}
               </tbody>

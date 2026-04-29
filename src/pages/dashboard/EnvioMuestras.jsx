@@ -1,3 +1,9 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabaseClient';
+import styles from './EnvioMuestras.module.css';
+
 const SECTIONS = [
   {
     id: "primarios",
@@ -63,6 +69,7 @@ export default function EnvioMuestras() {
   const [observaciones, setObservaciones] = useState("");
   const [loading, setLoading] = useState(false);
   const [sentSuccess, setSentSuccess] = useState(false);
+  const [lastGeneratedFolio, setLastGeneratedFolio] = useState("");
   const [tempAmb, setTempAmb] = useState(24.5);
   const [tempRef, setTempRef] = useState(4.2);
   const [photos, setPhotos] = useState([]);
@@ -100,47 +107,75 @@ export default function EnvioMuestras() {
     return { ambAlert, refAlert };
   };
 
-  // Sound Management
+  // Sound Management Optimizado
   const [audioCtx, setAudioCtx] = useState(null);
+  const [masterGain, setMasterGain] = useState(null);
+
   useEffect(() => {
-    return () => { if (audioCtx) audioCtx.close(); };
-  }, [audioCtx]);
+    // Inicializar Contexto solo una vez al detectar cambio o interacción
+    const initAudio = () => {
+      if (!audioCtx) {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const gain = ctx.createGain();
+        gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(0, ctx.currentTime);
+        setAudioCtx(ctx);
+        setMasterGain(gain);
+      }
+    };
+    
+    // Iniciar al mover temperaturas (interacción del usuario)
+    initAudio();
+    
+    return () => { if (audioCtx && audioCtx.state !== 'closed') audioCtx.close(); };
+  }, []);
 
   const playDing = () => {
-    try {
-      let ctx = audioCtx;
-      if (!ctx) {
-        ctx = new (window.AudioContext || window.webkitAudioContext)();
-        setAudioCtx(ctx);
-      }
-      const playNote = (freq, start, duration) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
-        gain.gain.setValueAtTime(0, ctx.currentTime + start);
-        gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + start + 0.01); 
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + start + duration);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(ctx.currentTime + start); osc.stop(ctx.currentTime + start + duration);
-      };
-      for (let i = 0; i < 4; i++) {
-        const offset = i * 0.7;
-        playNote(1567.98, offset, 0.3);
-        playNote(1174.66, offset + 0.12, 0.5);
-      }
-    } catch (err) { console.warn("Audio blocked:", err); }
+    if (!audioCtx || !masterGain) return;
+    
+    // Aseguramos que el nodo maestro esté activo
+    masterGain.gain.setValueAtTime(1, audioCtx.currentTime);
+
+    const playNote = (freq, start, duration) => {
+      const osc = audioCtx.createOscillator();
+      const noteGain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime + start);
+      
+      noteGain.gain.setValueAtTime(0, audioCtx.currentTime + start);
+      noteGain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + start + 0.01); 
+      noteGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + start + duration);
+      
+      osc.connect(noteGain); 
+      noteGain.connect(masterGain);
+      
+      osc.start(audioCtx.currentTime + start); 
+      osc.stop(audioCtx.currentTime + start + duration);
+    };
+
+    // Un solo par de pings por ciclo (evita solapamiento)
+    playNote(1567.98, 0, 0.2);
+    playNote(1174.66, 0.1, 0.3);
   };
 
   useEffect(() => {
     const alerts = checkAlerts();
     let interval;
+    
     if (alerts.ambAlert || alerts.refAlert) {
+      if (audioCtx?.state === 'suspended') audioCtx.resume();
       playDing();
-      interval = setInterval(playDing, 4000);
+      interval = setInterval(playDing, 2500);
+    } else if (masterGain && audioCtx) {
+      // CORTE INMEDIATO
+      masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.03);
     }
-    return () => { if (interval) clearInterval(interval); };
-  }, [tempAmb, tempRef]);
+
+    return () => { 
+      if (interval) clearInterval(interval);
+      if (masterGain && audioCtx) masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    };
+  }, [tempAmb, tempRef, audioCtx, masterGain]);
 
   const uploadPhotos = async () => {
     const uploadedUrls = [];
@@ -160,23 +195,39 @@ export default function EnvioMuestras() {
       setLoading(true);
       const photoPath = await uploadPhotos();
       
+      // GENERACIÓN DE FOLIO
+      const today = new Date();
+      const dateStr = today.toISOString().split('T')[0];
+      const { count } = await supabase
+        .from('logistica_envios')
+        .select('*', { count: 'exact', head: true })
+        .eq('sucursal', sucursal)
+        .gte('created_at', `${dateStr}T00:00:00`)
+        .lte('created_at', `${dateStr}T23:59:59`);
+      
+      const sucursalNombre = sucursal || "GEN";
+      const sucursalSiglas = sucursalNombre.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 3);
+      const dayMonth = `${String(today.getDate()).padStart(2, '0')}${String(today.getMonth() + 1).padStart(2, '0')}`;
+      const sequence = String((count || 0) + 1).padStart(3, '0');
+      const generatedFolio = `${sucursalSiglas}-${dayMonth}-${sequence}`;
+
       const payload = {
         sucursal,
         status: "Pendiente",
+        folio_envio: generatedFolio,
         // Primarios
-        s_rojo: counts.rojo || 0,
+        s_rojo: (counts.rojo || 0) + (counts.suero || 0),
         s_dorado: counts.dorado || 0,
         s_lila: counts.lila || 0,
         s_celeste: counts.celeste || 0,
         s_verde: counts.verde || 0,
-        // Secundarios (Mapeo a columnas de la BD)
+        // Secundarios
         s_suero: counts.suero || 0,
         s_sec_edta: counts.plasma_edta || 0,
         s_sec_citrato: counts.plasma_citrato || 0,
-        s_sec_orina: counts.orina_alic || 0,
+        s_sec_orina: (counts.orina_azar || 0) + (counts.orina_alic || 0),
         s_sec_dialisis: counts.dialisis_alic || 0,
         // Varias y Micro
-        s_sec_orina: (counts.orina_azar || 0) + (counts.orina_alic || 0), // Consolidado
         s_orina_24h: counts.orina_24h || 0,
         s_petri: counts.petri || 0,
         s_mycoplasma: counts.mycoplasma || 0,
@@ -206,10 +257,12 @@ export default function EnvioMuestras() {
       const { error } = await supabase.from("logistica_envios").insert([payload]);
       if (error) throw error;
       
+      setLastGeneratedFolio(generatedFolio);
+
       await supabase.from("notificaciones").insert([{
         role: "mensajero",
         title: "📦 Nueva Recolección: " + sucursal,
-        message: `Hielera registrada con material completo (Micro/Admin).`,
+        message: `Hielera registrada con material completo (Micro/Admin). Folio: ${generatedFolio}`,
         type: "info",
         metadata: { sucursal }
       }]);
@@ -247,18 +300,18 @@ export default function EnvioMuestras() {
             <div className={styles.tempGrid}>
               <div className={`${styles.tempBox} ${isAmbAlert ? styles.alert : ''}`}>
                 <label>Ambiente (°C)</label>
-                <div className={styles.stepper}>
-                  <button onClick={() => setTempAmb(prev => parseFloat((prev - 0.5).toFixed(1)))}>-</button>
+                <div className={styles.stepperContainer}>
+                  <button className={styles.stepperBtn} onClick={() => setTempAmb(prev => parseFloat((prev - 0.5).toFixed(1)))}>-</button>
                   <input type="number" step="0.1" value={tempAmb} onChange={e => setTempAmb(parseFloat(e.target.value))} />
-                  <button onClick={() => setTempAmb(prev => parseFloat((prev + 0.5).toFixed(1)))}>+</button>
+                  <button className={styles.stepperBtn} onClick={() => setTempAmb(prev => parseFloat((prev + 0.5).toFixed(1)))}>+</button>
                 </div>
               </div>
               <div className={`${styles.tempBox} ${isRefAlert ? styles.alert : ''}`}>
                 <label>Refrigerado (°C)</label>
-                <div className={styles.stepper}>
-                  <button onClick={() => setTempRef(prev => parseFloat((prev - 0.5).toFixed(1)))}>-</button>
+                <div className={styles.stepperContainer}>
+                  <button className={styles.stepperBtn} onClick={() => setTempRef(prev => parseFloat((prev - 0.5).toFixed(1)))}>-</button>
                   <input type="number" step="0.1" value={tempRef} onChange={e => setTempRef(parseFloat(e.target.value))} />
-                  <button onClick={() => setTempRef(prev => parseFloat((prev + 0.5).toFixed(1)))}>+</button>
+                  <button className={styles.stepperBtn} onClick={() => setTempRef(prev => parseFloat((prev + 0.5).toFixed(1)))}>+</button>
                 </div>
               </div>
             </div>
@@ -268,9 +321,9 @@ export default function EnvioMuestras() {
           {SECTIONS.map(section => (
             <div key={section.id} className={styles.card}>
               <h2 className={styles.sectionTitle}><span className="material-symbols-rounded">{section.icon}</span> {section.title}</h2>
-              <div className={styles.itemsList}>
+              <div className={styles.premiumCounterList}>
                 {section.items.map(item => (
-                  <div key={item.key} className={styles.itemRow}>
+                  <div key={item.key} className={styles.counterRow}>
                     <div className={styles.itemMain}>
                       {item.icon && (
                         <div className={styles.itemIcon} style={{ background: item.color + '22', color: item.color }}>
@@ -283,17 +336,17 @@ export default function EnvioMuestras() {
                            <input 
                              type="text" 
                              placeholder="Especifique..." 
-                             className={styles.detailInput} 
+                             className={styles.miniInput} 
                              value={details[item.key] || ""} 
                              onChange={e => handleDetailChange(item.key, e.target.value)}
                            />
                          )}
                       </div>
                     </div>
-                    <div className={styles.controls}>
-                      <button className={styles.cBtn} onClick={() => adjustQty(item.key, -1)}>-</button>
-                      <span className={styles.cVal}>{counts[item.key] || 0}</span>
-                      <button className={styles.cBtn} onClick={() => adjustQty(item.key, 1)}>+</button>
+                    <div className={styles.itemControls}>
+                      <button className={styles.btnMinus} onClick={() => adjustQty(item.key, -1)}>-</button>
+                      <span className={styles.valDisplay}>{counts[item.key] || 0}</span>
+                      <button className={styles.btnPlus} onClick={() => adjustQty(item.key, 1)}>+</button>
                     </div>
                   </div>
                 ))}
@@ -306,22 +359,22 @@ export default function EnvioMuestras() {
            {/* Evidence & Obs Card */}
            <div className={styles.card}>
              <h2 className={styles.sectionTitle}><span className="material-symbols-rounded">photo_camera</span> Evidencia y Reporte</h2>
-             <div className={styles.photoActions}>
-                <label className={styles.pBtn}>
+             <div className={styles.captureGrid}>
+                <label className={styles.captureBtn}>
                   <input type="file" accept="image/*" capture="environment" multiple onChange={handlePhotoChange} hidden />
                   <span className="material-symbols-rounded">camera</span> Cámara
                 </label>
-                <label className={styles.pBtn}>
+                <label className={styles.captureBtn}>
                   <input type="file" accept="image/*" multiple onChange={handlePhotoChange} hidden />
                   <span className="material-symbols-rounded">image</span> Galería
                 </label>
              </div>
              
-             <div className={styles.gallery}>
+             <div className={styles.photoGallery}>
                 {photos.map((f, i) => (
-                  <div key={i} className={styles.thumb}>
+                  <div key={i} className={styles.photoThumb}>
                     <img src={URL.createObjectURL(f)} alt="" />
-                    <button onClick={() => removePhoto(i)}>×</button>
+                    <button className={styles.removeBtn} onClick={() => removePhoto(i)}>×</button>
                   </div>
                 ))}
              </div>
@@ -347,12 +400,30 @@ export default function EnvioMuestras() {
       {sentSuccess && (
         <div className={styles.overlay}>
           <div className={styles.successCard}>
-             <span className="material-symbols-rounded" style={{fontSize: '64px', color: '#10B981'}}>check_circle</span>
+             <div className={styles.successIcon}>
+                <span className="material-symbols-rounded">check_circle</span>
+             </div>
              <h2>¡Envío Exitoso!</h2>
              <p>El material ha sido registrado y el chofer notificado.</p>
-             <div className={styles.sActions}>
-               <button onClick={resetForm} className={styles.mainBtn}>Nuevo Envío</button>
-               <button onClick={() => navigate('/logistica/sede')} className={styles.secBtn}>Ir al Dashboard</button>
+             
+             <div className={styles.folioDisplay}>
+               <span className={styles.folioLabel}>FOLIO DEL PAQUETE:</span>
+               <div className={styles.folioBadge}>
+                 <strong>{lastGeneratedFolio}</strong>
+                 <button 
+                   onClick={() => navigator.clipboard.writeText(lastGeneratedFolio)}
+                   className={styles.copyBtn}
+                   title="Copiar Folio"
+                 >
+                   <span className="material-symbols-rounded">content_copy</span>
+                 </button>
+               </div>
+               <small className={styles.folioHint}>Usa este código para relacionar tus folios de pacientes.</small>
+             </div>
+
+             <div className={styles.successActions}>
+               <button onClick={resetForm} className={styles.successBtn}>Nuevo Envío</button>
+               <button onClick={() => navigate('/logistica/sede')} className={styles.secondaryBtn}>Ir al Dashboard</button>
              </div>
           </div>
         </div>

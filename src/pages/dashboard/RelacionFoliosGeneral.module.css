@@ -1,131 +1,190 @@
 .container {
-  padding: 2rem;
+  padding: 2.5rem;
   max-width: 1600px;
   margin: 0 auto;
+  background: #F8FAFC;
+  min-height: 100vh;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+  align-items: flex-start;
+  margin-bottom: 3rem;
+  gap: 2rem;
 }
 
 .titleBox h1 {
-  font-size: 2.2rem;
-  color: #0f172a;
+  font-size: 2.4rem;
+  color: #0F172A;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   margin: 0;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.titleBox h1 span {
+  font-size: 3rem;
+  color: #3B82F6;
 }
 
 .titleBox p {
-  color: #64748b;
-  margin: 4px 0 0 0;
-  font-size: 1.1rem;
+  color: #64748B;
+  margin: 8px 0 0 0;
+  font-size: 1.2rem;
+  font-weight: 500;
 }
 
-.statItem {
+/* STATS CARDS */
+.statsGrid {
+  display: flex;
+  gap: 20px;
+}
+
+.statCard {
   background: white;
-  padding: 1rem 2rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  padding: 1.5rem 2rem;
+  border-radius: 24px;
+  min-width: 150px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #E2E8F0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  border: 1px solid #e2e8f0;
+  gap: 4px;
+  transition: transform 0.3s;
 }
 
-.statVal {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #3b82f6;
+.statCard:hover {
+  transform: translateY(-5px);
 }
 
-.statLab {
+.statLabel {
   font-size: 0.8rem;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: #94A3B8;
   font-weight: 700;
   letter-spacing: 1px;
 }
 
-.filterBar {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 16px;
+.statValue {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #1E293B;
+}
+
+.parcialCard {
+  border-left: 6px solid #F59E0B;
+}
+
+.parcialCard .statValue {
+  color: #D97706;
+}
+
+.totalCard {
+  border-left: 6px solid #10B981;
+}
+
+.totalCard .statValue {
+  color: #059669;
+}
+
+/* FILTERS SECTION */
+.filterSection {
+  margin-bottom: 2rem;
+}
+
+.filtersGlass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  padding: 1.8rem;
+  border-radius: 24px;
   display: flex;
+  flex-direction: column;
   gap: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.filterRow {
+  display: flex;
+  gap: 24px;
   align-items: flex-end;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  border: 1px solid #e2e8f0;
+  width: 100%;
 }
 
 .inputGroup {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .inputGroup label {
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.8rem;
+  font-weight: 800;
   color: #475569;
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inputGroup label span {
+  font-size: 1.1rem;
+  color: #64748B;
 }
 
 .inputGroup select, 
 .inputGroup input {
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid #cbd5e1;
+  padding: 12px 18px;
+  border-radius: 14px;
+  border: 2px solid #E2E8F0;
   font-family: inherit;
-  font-size: 0.95rem;
+  font-size: 1rem;
   outline: none;
+  background: white;
+  transition: all 0.2s;
+  color: #1E293B;
+  font-weight: 500;
 }
 
-.searchWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
+.inputGroup select:focus, 
+.inputGroup input:focus {
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
-.searchWrapper span {
-  position: absolute;
-  left: 12px;
-  color: #94a3b8;
-}
-
-.searchWrapper input {
-  padding-left: 40px !important;
-  width: 100%;
+.searchGroup {
+  flex: 1;
 }
 
 .refreshBtn {
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  color: #475569;
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
+  background: #1E293B;
+  color: white;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  border: none;
+  transition: all 0.3s;
 }
 
 .refreshBtn:hover {
-  background: #e2e8f0;
+  background: #334155;
+  transform: rotate(180deg);
 }
 
-.tableCard {
+/* TABLE SECTION */
+.tableContainer {
   background: white;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  border: 1px solid #E2E8F0;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
 }
 
 .table {
@@ -134,95 +193,158 @@
 }
 
 .table th {
-  background: #f8fafc;
-  padding: 1rem;
+  background: #F8FAFC;
+  padding: 1.2rem 1rem;
   text-align: left;
-  font-size: 0.8rem;
-  color: #64748b;
+  font-size: 0.85rem;
+  color: #64748B;
   text-transform: uppercase;
-  border-bottom: 1px solid #e2e8f0;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #F1F5F9;
 }
 
 .table td {
-  padding: 1.25rem 1rem;
-  border-bottom: 1px solid #f1f5f9;
-  font-size: 0.95rem;
+  padding: 1.4rem 1rem;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 1rem;
   color: #334155;
+  vertical-align: middle;
+}
+
+.rowParcial {
+  background: #FFFBEB;
 }
 
 .sucursalBadge {
-  background: #eff6ff;
-  color: #1d4ed8;
-  padding: 4px 10px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.85rem;
+  background: #1E293B;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
 }
 
-.studiesText {
-  max-width: 300px;
-  font-weight: 500;
+.folioText {
+  font-weight: 700;
+  color: #0F172A;
+  font-family: 'Roboto Mono', monospace;
 }
 
-.deliveryBox {
+.packageCell {
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 600;
-  color: #0f172a;
+  color: #3B82F6;
+  background: #EFF6FF;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  border: 1px solid #DBEAFE;
 }
 
-.deliveryBox span {
-  color: #3b82f6;
-  font-size: 1.2rem;
+.studiesCell {
+  max-width: 350px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.dateCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.dateCell span {
+  color: #3B82F6;
 }
 
 .badgeTotal {
-  background: #dcfce7;
-  color: #166534;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  background: #D1FAE5;
+  color: #065F46;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 0.8rem;
+  font-weight: 800;
 }
 
 .badgeParcial {
-  background: #fef9c3;
-  color: #854d0e;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  background: #FEF3C7;
+  color: #92400E;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 0.8rem;
+  font-weight: 800;
 }
 
 .obsCell {
-  color: #64748b;
+  color: #64748B;
   font-style: italic;
+  font-size: 0.9rem;
+  max-width: 300px;
 }
 
 .timeCell {
-  color: #94a3b8;
-  font-weight: 600;
-  font-size: 0.85rem;
+  color: #94A3B8;
+  font-weight: 700;
+  font-size: 0.9rem;
 }
 
-.empty {
+/* STATES */
+.loadingContainer {
   text-align: center;
   padding: 6rem;
-  background: white;
-  border-radius: 20px;
-  border: 2px dashed #e2e8f0;
 }
 
-.empty span {
-  font-size: 4rem;
-  color: #94a3b8;
-  margin-bottom: 1rem;
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #F3F4F6;
+  border-top: 5px solid #3B82F6;
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+  animation: spin 1s linear infinite;
 }
 
-.loader {
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.emptyState {
   text-align: center;
-  padding: 4rem;
-  color: #64748b;
-  font-weight: 600;
+  padding: 8rem 2rem;
+  background: white;
+  border-radius: 32px;
+  border: 3px dashed #E2E8F0;
+  color: #94A3B8;
+}
+
+.emptyState span {
+  font-size: 5rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.3;
+}
+
+.emptyState h3 {
+  color: #475569;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.tomaCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  color: #000000 !important;
+  font-size: 0.95rem;
+}
+
+.tomaCell span {
+  font-size: 1.2rem;
+  color: #10B981;
 }
