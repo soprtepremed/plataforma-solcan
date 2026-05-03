@@ -47,6 +47,49 @@
   margin-bottom: 2rem;
 }
 
+.areaTabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  scrollbar-width: thin;
+}
+
+.areaTabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.areaTabs::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.areaTab {
+  padding: 8px 16px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #64748b;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.areaTab:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.areaTabActive {
+  background: #0BCECD;
+  color: white;
+  border-color: #0BCECD;
+  box-shadow: 0 4px 12px rgba(11, 206, 205, 0.2);
+}
+
 .searchInputWrapper {
   position: relative;
   display: flex;

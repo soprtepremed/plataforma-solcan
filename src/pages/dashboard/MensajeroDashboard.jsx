@@ -41,7 +41,7 @@ export default function MensajeroDashboard() {
     const { data, error } = await supabase
       .from("logistica_envios")
       .select("*")
-      .in("status", ["Pendiente", "En Camino"])
+      .in("status", ["Pendiente", "En Camino", "En Tránsito"])
       .order("created_at", { ascending: true });
 
     if (!error) setPendientes(data);
@@ -128,6 +128,24 @@ export default function MensajeroDashboard() {
       .update({
         status: "En Tránsito",
         hora_recoleccion: new Date().toISOString()
+      })
+      .eq("id", envioId);
+
+    if (error) {
+      alert("Error: " + error.message);
+    } else {
+      setShowSuccess(true);
+      fetchPendientes();
+    }
+  };
+
+  // PASO 3: Entregar físicamente en Matriz
+  const handleLlegadaMatriz = async (envioId) => {
+    const { error } = await supabase
+      .from("logistica_envios")
+      .update({
+        status: "En Matriz",
+        hora_llegada_matriz: new Date().toISOString()
       })
       .eq("id", envioId);
 
@@ -259,7 +277,7 @@ export default function MensajeroDashboard() {
                       <span className="material-symbols-rounded">check_circle</span>
                       Aceptar Pedido
                     </button>
-                  ) : (
+                  ) : envio.status === 'En Camino' ? (
                     <button 
                       className={styles.acceptBtn}
                       style={{background: 'var(--co-gradient)'}}
@@ -267,6 +285,14 @@ export default function MensajeroDashboard() {
                     >
                       <span className="material-symbols-rounded">hail</span>
                       Confirmar Recogida
+                    </button>
+                  ) : (
+                    <button 
+                      className={styles.arrivalBtn}
+                      onClick={() => handleLlegadaMatriz(envio.id)}
+                    >
+                      <span className="material-symbols-rounded">location_city</span>
+                      Llegué a Matriz
                     </button>
                   )}
                 </div>

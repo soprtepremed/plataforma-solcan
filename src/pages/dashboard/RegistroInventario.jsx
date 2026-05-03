@@ -32,6 +32,9 @@ export default function RegistroInventario() {
         editar_catalogo: false
     });
 
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successData, setSuccessData] = useState({ total: 0 });
+
     useEffect(() => {
         fetchCatalogo();
     }, []);
@@ -144,13 +147,35 @@ export default function RegistroInventario() {
             const { error } = await supabase.from('materiales_unidades').insert(newUnits);
             if (error) throw error;
 
-            alert(`Éxito: Se han registrado ${totalUnits} unidades y actualizado el catálogo.`);
-            navigate('/almacen/dashboard');
+            setSuccessData({ total: totalUnits });
+            setShowSuccessModal(true);
+            // Ya no navegamos automáticamente, dejamos que el modal lo haga
         } catch (err) {
             alert('Error: ' + err.message);
         } finally {
             setLoading(false);
         }
+    };
+
+    const resetForm = () => {
+        setManualForm({
+            catalogo_id: '',
+            lote: '',
+            caducidad: '',
+            cantidad_cajas: 1,
+            piezas_por_caja: 1,
+            nombre_nuevo: '',
+            prefijo_nuevo: '',
+            marca: '',
+            clase: '',
+            costo_unitario: 0,
+            precio1: 0,
+            area_tecnica: 'HEMATOLOGÍA',
+            unidad: 'Pieza',
+            es_nuevo_material: false,
+            editar_catalogo: false
+        });
+        setShowSuccessModal(false);
     };
 
     const processBulkEntry = async () => {
@@ -198,8 +223,8 @@ export default function RegistroInventario() {
                 if (error) throw error;
             }
 
-            alert(`Carga masiva completada: ${allUnits.length} unidades registradas.`);
-            navigate('/almacen/dashboard');
+            setSuccessData({ total: allUnits.length });
+            setShowSuccessModal(true);
         } catch (err) {
             alert('Error en carga masiva: ' + err.message);
         } finally {
@@ -405,6 +430,14 @@ export default function RegistroInventario() {
                             <h4>3. Detalles del Lote</h4>
                         </div>
 
+                        <div className={styles.helperBox}>
+                            <span className="material-symbols-rounded">info</span>
+                            <div className={styles.helperText}>
+                                <strong>Guía de Cantidades</strong>
+                                <p>Multiplicamos <b>Cajas</b> x <b>Piezas por Caja</b> para generar el total de unidades individuales. Cada unidad tendrá su propio código de barras único.</p>
+                            </div>
+                        </div>
+
                         <div className={styles.row}>
                             <div className={styles.formGroup}>
                                 <label>Lote</label>
@@ -450,12 +483,43 @@ export default function RegistroInventario() {
                             </div>
                         </div>
 
+                        <div className={styles.totalPreview}>
+                            <span className="material-symbols-rounded">barcode_reader</span>
+                            <div className={styles.totalText}>
+                                <strong>Se generarán {manualForm.cantidad_cajas * manualForm.piezas_por_caja} etiquetas únicas</strong>
+                                <p>Trazabilidad individual para este lote.</p>
+                            </div>
+                        </div>
+
                         <button type="submit" className={styles.primaryBtn} disabled={loading || (!manualForm.catalogo_id && !manualForm.es_nuevo_material) || (manualForm.es_nuevo_material && !manualForm.nombre_nuevo)}>
                             {loading ? 'Guardando...' : 'Registrar Stock'}
                         </button>
                     </form>
                 </section>
             </div>
+
+            {showSuccessModal && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modal}>
+                        <div className={styles.modalIcon}>
+                            <span className="material-symbols-rounded">task_alt</span>
+                        </div>
+                        <h2>Registro Exitoso</h2>
+                        <p>Se han registrado <strong>{successData.total} unidades</strong> correctamente en el sistema.</p>
+                        
+                        <div className={styles.modalActions}>
+                            <button className={styles.modalPrimaryBtn} onClick={resetForm}>
+                                <span className="material-symbols-rounded">add_circle</span>
+                                Registrar otro material
+                            </button>
+                            <button className={styles.modalSecondaryBtn} onClick={() => navigate('/almacen/inventario')}>
+                                <span className="material-symbols-rounded">home</span>
+                                Regresar al Menú
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

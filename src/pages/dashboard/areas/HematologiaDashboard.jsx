@@ -60,7 +60,35 @@ const HematologiaDashboard = () => {
   const sections = [
     { title: 'Inventario y Calidad',   desc: 'Control de reactivos, lotes y bitácora de aceptación técnica.', icon: 'fact_check',         path: '/area/hematologia/inventario',  color: '#DC2626' },
     { title: 'Temperaturas del Área',  desc: 'Monitoreo térmico de refrigeradores y equipos analíticos.',     icon: 'device_thermostat',   path: '/area/hematologia/temperaturas', color: '#F43F5E' },
-    { title: 'Bitácora Logística',     desc: 'Seguimiento de muestras recibidas por bio-logística.',          icon: 'assignment_turned_in',path: '/logistica/bitacora',            color: '#3B82F6' }
+    { title: 'Bitácora Logística',     desc: 'Seguimiento de muestras recibidas por bio-logística.',          icon: 'assignment_turned_in',path: '/logistica/bitacora',            color: '#3B82F6' },
+    {
+      title: 'Solicitud de Vale',
+      desc: 'Pedido interno de insumos y reactivos al almacén (FO-RM-004).',
+      icon: 'add_shopping_cart',
+      path: '/almacen/nueva-solicitud',
+      color: '#6366F1'
+    },
+    {
+      title: 'Historial de Vales',
+      desc: 'Consulta de pedidos internos realizados al almacén.',
+      icon: 'history_edu',
+      path: '/area/vales/historial',
+      color: '#475569'
+    },
+    {
+      title: 'Requisición de Compra',
+      desc: 'Solicitud de recursos externos y mobiliario (FO-RM-001).',
+      icon: 'shopping_bag',
+      path: '/area/requisicion',
+      color: '#10B981'
+    },
+    {
+      title: 'Bitácora de Requisiciones',
+      desc: 'Seguimiento de compras externas solicitadas por el área.',
+      icon: 'history',
+      path: '/area/requisiciones/historial',
+      color: '#F59E0B'
+    }
   ];
 
   const now = new Date();

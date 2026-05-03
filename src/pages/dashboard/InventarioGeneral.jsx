@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useDeferredValue, memo } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { useNavigate } from 'react-router-dom';
 import styles from './InventarioGeneral.module.css';
 import Barcode from '../../components/common/Barcode';
 
@@ -169,10 +170,13 @@ const MaterialCard = memo(({ item, isExpanded, toggleRow, stock, isLow, isCritic
                                     <div className={styles.lotMiniInfo}>
                                         <strong>Lote: {lote}</strong>
                                         <span>Caducidad: {info.caducidad ? new Date(info.caducidad).toLocaleDateString() : 'N/A'}</span>
-                                        <span>Cantidad: {info.count}</span>
+                                        <div style={{marginTop: '4px', fontSize: '0.8rem', display: 'flex', gap: '10px'}}>
+                                            <span><b>Piezas:</b> {info.count}</span>
+                                            <span><b>Cajas:</b> {Math.floor(info.count / (item.piezas_por_empaque || 1))}</span>
+                                        </div>
                                     </div>
                                     <button className={styles.barcodeBtn} onClick={() => openBarsModal(item.id, lote)}>
-                                        <span className="material-symbols-rounded">barcode_scanner</span>
+                                        <span className="material-symbols-rounded">print</span>
                                     </button>
                                 </div>
                             ))}
@@ -223,7 +227,7 @@ const MaterialRow = memo(({ item, isExpanded, toggleRow, stock, isLow, isCritica
                         <div className={styles.lotDetailContainer}>
                             <table className={styles.lotTable}>
                                 <thead>
-                                    <tr><th>Lote</th><th>Caducidad</th><th>Existencia</th><th>Estatus</th><th className={styles.textCenter}>Barras</th></tr>
+                                    <tr><th>Lote</th><th>Caducidad</th><th>Piezas</th><th>Cajas</th><th>Estatus</th><th className={styles.textCenter}>Barras</th></tr>
                                 </thead>
                                 <tbody>
                                     {isLoadingDetail ? (
@@ -240,16 +244,20 @@ const MaterialRow = memo(({ item, isExpanded, toggleRow, stock, isLow, isCritica
                                             <tr key={lote}>
                                                 <td><strong>{lote}</strong></td>
                                                 <td>{info.caducidad ? new Date(info.caducidad).toLocaleDateString() : 'N/A'}</td>
-                                                <td>{info.count} {item.unidad}(s)</td>
+                                                <td><strong>{info.count}</strong></td>
+                                                <td>{Math.floor(info.count / (item.piezas_por_empaque || 1))}</td>
                                                 <td>
                                                     {Math.floor((new Date(info.caducidad) - new Date()) / (1000 * 60 * 60 * 24)) < 0 
                                                         ? <span className={styles.expiredLabel}>CADUCADO</span> 
                                                         : <span className={styles.freshLabel}>VIGENTE</span>
                                                     }
                                                 </td>
-                                                <td className={styles.textCenter}>
-                                                    <button className={styles.barcodeBtn} onClick={(e) => { e.stopPropagation(); openBarsModal(item.id, lote); }}>
-                                                        <span className="material-symbols-rounded">barcode_scanner</span>
+                                                <td className={styles.textCenter} style={{display: 'flex', gap: '8px', justifyContent: 'center'}}>
+                                                    <div className={styles.miniBarcodePreview}>
+                                                        <Barcode value={myUnits.find(u => u.lote_numero === lote || (!u.lote_numero && lote === 'SIN LOTE'))?.codigo_barras_unico} height={15} width={1} fontSize={0} displayValue={false} />
+                                                    </div>
+                                                    <button className={styles.barcodeBtn} title="Ver / Imprimir Lote" onClick={(e) => { e.stopPropagation(); openBarsModal(item.id, lote); }}>
+                                                        <span className="material-symbols-rounded">print</span>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -268,6 +276,7 @@ const MaterialRow = memo(({ item, isExpanded, toggleRow, stock, isLow, isCritica
 });
 
 export default function InventarioGeneral() {
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [catalogo, setCatalogo] = useState([]);
     const [unidades, setUnidades] = useState([]);
@@ -286,6 +295,7 @@ export default function InventarioGeneral() {
     const [selectedToPrint, setSelectedToPrint] = useState(new Set());
     const [loadingRows, setLoadingColumns] = useState(new Set()); // Para el spinner de fila
     const [matchingIdsByBarcode, setMatchingIdsByBarcode] = useState(new Set()); // Resultados de búsqueda global
+    const [visibleCount, setVisibleCount] = useState(50);
     
     // Configuración de Filtros y Ordenamiento
     const [sortConfig, setSortConfig] = useState({ key: 'nombre', direction: 'asc' });
@@ -433,14 +443,6 @@ export default function InventarioGeneral() {
         }));
     };
 
-    const clearColumnFilter = (key) => {
-        setColumnFilters(prev => {
-            const next = { ...prev };
-            delete next[key];
-            return next;
-        });
-    };
-
     const filteredMaterials = useMemo(() => {
         const normSearch = normalize(deferredSearch);
         const normCat = normalize(deferredCategory);
@@ -512,12 +514,20 @@ export default function InventarioGeneral() {
         return filtered;
     }, [catalogo, deferredCategory, deferredSearch, unidades, matchingIdsByBarcode, sortConfig, columnFilters]);
 
+    const displayedItems = filteredMaterials.slice(0, visibleCount);
+
     return (
         <div className={styles.container}>
             <header className={styles.header}>
                 <div className={styles.titleArea}>
                     <h1><span className="material-symbols-rounded">inventory</span> Inventario General</h1>
-                    <p>Resumen global de existencias y áreas con control de precios</p>
+                </div>
+
+                <div className={styles.headerRightActions}>
+                    <button className={styles.primaryActionBtn} onClick={() => navigate('/almacen/registro')}>
+                        <span className="material-symbols-rounded">add_box</span>
+                        Ingresar Stock
+                    </button>
                 </div>
                 
                 <FilterSection 
@@ -557,7 +567,6 @@ export default function InventarioGeneral() {
                                                         items={catalogo} 
                                                         activeFilters={columnFilters}
                                                         applyFilter={applyColumnFilter}
-                                                        clearFilter={clearColumnFilter}
                                                         requestSort={requestSort}
                                                         sortConfig={sortConfig}
                                                         onClose={() => setOpenDropdown(null)}
@@ -579,7 +588,6 @@ export default function InventarioGeneral() {
                                                         items={catalogo} 
                                                         activeFilters={columnFilters}
                                                         applyFilter={applyColumnFilter}
-                                                        clearFilter={clearColumnFilter}
                                                         requestSort={requestSort}
                                                         sortConfig={sortConfig}
                                                         onClose={() => setOpenDropdown(null)}
@@ -601,7 +609,6 @@ export default function InventarioGeneral() {
                                                         items={catalogo} 
                                                         activeFilters={columnFilters}
                                                         applyFilter={applyColumnFilter}
-                                                        clearFilter={clearColumnFilter}
                                                         requestSort={requestSort}
                                                         sortConfig={sortConfig}
                                                         onClose={() => setOpenDropdown(null)}
@@ -618,7 +625,7 @@ export default function InventarioGeneral() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filteredMaterials.map(item => (
+                                        {displayedItems.map(item => (
                                             <MaterialRow 
                                                 key={item.id}
                                                 item={item}
@@ -635,6 +642,14 @@ export default function InventarioGeneral() {
                                     </tbody>
                                 </table>
                             </div>
+                            {visibleCount < filteredMaterials.length && (
+                                <div className={styles.loadMoreContainer}>
+                                    <button className={styles.loadMoreBtn} onClick={() => setVisibleCount(prev => prev + 50)}>
+                                        <span className="material-symbols-rounded">expand_more</span>
+                                        Ver más ({filteredMaterials.length - visibleCount} restantes)
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         {/* VISTA MÓVIL - TARJETAS GRÁFICAS */}
@@ -642,7 +657,7 @@ export default function InventarioGeneral() {
                             {filteredMaterials.length === 0 ? (
                                 <div className={styles.emptyMobile}>No se encontraron materiales con estos filtros.</div>
                             ) : (
-                                filteredMaterials.map(item => (
+                                displayedItems.map(item => (
                                     <MaterialCard 
                                         key={item.id}
                                         item={item}
@@ -656,6 +671,14 @@ export default function InventarioGeneral() {
                                         isLoadingDetail={loadingRows.has(item.id)}
                                     />
                                 ))
+                            )}
+                            {visibleCount < filteredMaterials.length && (
+                                <div className={styles.loadMoreContainer}>
+                                    <button className={styles.loadMoreBtn} onClick={() => setVisibleCount(prev => prev + 50)}>
+                                        <span className="material-symbols-rounded">expand_more</span>
+                                        Ver más ({filteredMaterials.length - visibleCount} restantes)
+                                    </button>
+                                </div>
                             )}
                         </div>
                     </div>

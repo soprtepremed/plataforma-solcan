@@ -23,6 +23,9 @@ export default function NuevaRequisicion() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [filteredCatalog, setFilteredCatalog] = useState([]);
+  const [selectedArea, setSelectedArea] = useState('TODOS');
+  
+  const areas = ['TODOS', 'QUÍMICA CLÍNICA', 'HEMATOLOGÍA', 'MICROBIOLOGÍA', 'URIANÁLISIS', 'SEROLOGÍA', 'GENERAL'];
 
   const [currentCatalog, setCurrentCatalog] = useState({
     id: '',
@@ -46,24 +49,32 @@ export default function NuevaRequisicion() {
   }, []);
 
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredCatalog([]);
-      setShowResults(false);
-      return;
+    if (!catalogo) return;
+
+    let filtered = catalogo;
+
+    // Filtro por Área
+    if (selectedArea !== 'TODOS') {
+      filtered = filtered.filter(c => (c.area_tecnica || 'GENERAL').toUpperCase() === selectedArea.toUpperCase());
     }
-    const filtered = catalogo.filter(c => 
-      c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.prefijo.toLowerCase().includes(searchTerm.toLowerCase())
-    ).slice(0, 8);
-    setFilteredCatalog(filtered);
-    setShowResults(true);
-  }, [searchTerm, catalogo]);
+
+    // Filtro por Búsqueda
+    if (searchTerm.trim() !== '') {
+      filtered = filtered.filter(c => 
+        c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.prefijo.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredCatalog(filtered.slice(0, 15));
+    setShowResults(searchTerm.trim() !== '' || selectedArea !== 'TODOS');
+  }, [searchTerm, catalogo, selectedArea]);
 
   const fetchCatalogo = async () => {
     // Cargar Catálogo
     const { data: catData } = await supabase
       .from('materiales_catalogo')
-      .select('id, nombre, prefijo, unidad')
+      .select('id, nombre, prefijo, unidad, area_tecnica')
       .order('nombre');
     if (catData) setCatalogo(catData);
 
@@ -254,11 +265,26 @@ export default function NuevaRequisicion() {
             <h3><span className="material-symbols-rounded">manage_search</span> Buscar en Catálogo</h3>
             
             <div className={styles.autocompleteWrapper}>
+              <div className={styles.areaTabs}>
+                {areas.map(area => (
+                  <button 
+                    key={area} 
+                    className={`${styles.areaTab} ${selectedArea === area ? styles.areaTabActive : ''}`}
+                    onClick={() => {
+                      setSelectedArea(area);
+                      setSearchTerm('');
+                    }}
+                  >
+                    {area}
+                  </button>
+                ))}
+              </div>
+
               <div className={styles.fieldGroup}>
                 <div className={styles.labelRow}>
-                  <label>Escribe el nombre del reactivo...</label>
+                  <label>{selectedArea === 'TODOS' ? 'Buscar en todo el catálogo...' : `Búsqueda en ${selectedArea}`}</label>
                   <button className={styles.explorerBtn} onClick={() => setShowCatalogModal(true)}>
-                    <span className="material-symbols-rounded">list_alt</span> Ver catálogo completo
+                    <span className="material-symbols-rounded">list_alt</span> Ver lista filtrada
                   </button>
                 </div>
                 <div className={styles.searchInputWrapper}>
@@ -268,7 +294,7 @@ export default function NuevaRequisicion() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => setShowResults(true)}
-                    placeholder="Ej: Gasas, Tubos..."
+                    placeholder={selectedArea === 'TODOS' ? "Ej: Gasas, Tubos..." : `Buscar en ${selectedArea}...`}
                   />
                 </div>
               </div>
@@ -367,12 +393,24 @@ export default function NuevaRequisicion() {
             </header>
             <div className={styles.modalBody}>
               <div className={styles.modalList}>
-                {catalogo.map(item => (
+                {filteredCatalog.map(item => (
                   <div key={item.id} className={styles.catalogCard} onClick={() => { selectFromCatalog(item); setShowCatalogModal(false); }}>
-                    <strong>{item.nombre}</strong><span>{item.prefijo}</span>
+                    <div className={styles.catInfo}>
+                       <span className={styles.catPrefix}>{item.prefijo}</span>
+                       <div className={styles.catDetails}>
+                         <strong>{item.nombre}</strong>
+                         <span>{item.area_tecnica || 'GENERAL'}</span>
+                       </div>
+                    </div>
                   </div>
                 ))}
               </div>
+              {filteredCatalog.length === 0 && (
+                <div style={{textAlign: 'center', padding: '2rem', color: '#94a3b8'}}>
+                   <span className="material-symbols-rounded" style={{fontSize: '3rem', opacity: 0.3}}>search_off</span>
+                   <p>No se encontraron materiales para el filtro seleccionado.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

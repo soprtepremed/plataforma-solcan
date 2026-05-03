@@ -1,5 +1,5 @@
 .container {
-  padding: 2rem;
+  padding: 1rem 1.5rem;
   max-width: 1800px;
   margin: 0 auto;
   animation: fadeIn 0.4s ease-out;
@@ -17,30 +17,160 @@
   margin-bottom: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  text-align: center;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+
+.titleArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .titleArea h1 {
-  font-size: 1.8rem;
-  font-weight: 800;
+  font-size: 2rem;
+  font-weight: 900;
   color: var(--co-primary);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 15px;
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
-.titleArea p {
-  color: #64748b;
-  margin: 4px 0 0;
-  font-size: 0.95rem;
+.headerRightActions {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.primaryActionBtn {
+  background: linear-gradient(135deg, var(--co-primary) 0%, #1e40af 100%);
+  color: white;
+  border: none;
+  padding: 14px 40px;
+  border-radius: 16px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 25px rgba(30, 58, 138, 0.2);
+}
+
+.primaryActionBtn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(30, 58, 138, 0.3);
 }
 
 .controlsRow {
+  margin-top: -1rem;
+  margin-bottom: 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
+  background: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+
+.loadMoreContainer {
+  display: flex;
+  justify-content: center;
+  padding: 2.5rem 0;
+}
+
+.loadMoreBtn {
+  background: white;
+  color: var(--co-primary);
+  border: 2px solid #e2e8f0;
+  padding: 14px 40px;
+  border-radius: 18px;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
+.loadMoreBtn:hover {
+  border-color: var(--co-primary);
+  background: #f0f4ff;
+  transform: translateY(-2px);
+}
+
+.filtersWide {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex: 1;
+}
+
+.categoryPills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  padding: 0.35rem 0.8rem;
+  border-radius: 30px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pillActive {
+  background: var(--co-accent);
+  color: var(--co-primary);
+  border-color: var(--co-accent);
+  box-shadow: 0 4px 10px rgba(11, 206, 205, 0.2);
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  padding: 0.35rem 0.8rem;
+  border-radius: 10px;
+  width: 250px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.searchBar:focus-within {
+  border-color: var(--co-accent);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(11, 206, 205, 0.1);
+}
+
+.searchBar input {
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 0.85rem;
+  width: 100%;
 }
 
 .topActions {
@@ -247,12 +377,12 @@
 .denseTable {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.72rem;
 }
 
 .denseTable th {
   background: #f8fafc;
-  padding: 12px 16px;
+  padding: 8px 10px;
   text-align: left;
   font-weight: 700;
   color: #64748b;
@@ -262,7 +392,7 @@
 }
 
 .denseTable td {
-  padding: 10px 16px;
+  padding: 6px 10px;
   border-bottom: 1px solid #f8fafc;
   color: #334155;
 }
@@ -271,7 +401,7 @@
   font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
   font-weight: 700;
   color: #64748b;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
 }
 
 .barcodeColumn {
@@ -284,6 +414,7 @@
   color: var(--co-primary);
   font-weight: 700;
   display: block;
+  font-size: 0.85rem;
 }
 
 .subInfo {
@@ -343,7 +474,7 @@
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
   color: var(--co-primary);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 
@@ -352,14 +483,14 @@
   font-family: 'JetBrains Mono', monospace;
   font-weight: 600;
   color: #64748b;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 
 .classCell {
   font-weight: 600;
   color: #475569;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
 }
 
@@ -484,6 +615,16 @@
   border-color: var(--co-primary);
 }
 
+.miniBarcodePreview {
+  background: white;
+  padding: 4px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .barcodeList {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -508,6 +649,70 @@
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
+}
+
+/* SISTEMA DE IMPRESIÓN - ESTÁNDAR TÉRMICO LABORAL (ZEBRA TLP 2844) */
+.printContainer {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: 50mm 25mm;
+    margin: 0;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: white;
+    height: auto;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+  
+  .printContainer, .printContainer * {
+    visibility: visible;
+  }
+
+  .printContainer {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50mm;
+  }
+
+  .printLabel {
+    width: 50mm;
+    height: 25mm;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    page-break-after: always;
+    overflow: hidden;
+    padding: 1.5mm;
+    box-sizing: border-box;
+    border: none;
+    background: white;
+  }
+
+  .printMeta {
+    font-size: 7.5pt;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    margin-top: 1.5mm;
+    text-align: center;
+    color: #000;
+    font-weight: 800;
+    line-height: 1.1;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .barcodeItem:hover {
@@ -585,65 +790,6 @@
   color: var(--co-primary);
   font-size: 1.3rem;
   font-weight: 800;
-}
-
-/* SISTEMA REGIA DE IMPRESIÓN - ESTÁNDAR TÉRMICO LABORAL */
-.printContainer {
-  display: none;
-}
-
-@media print {
-  @page {
-    size: 50mm 25mm;
-    margin: 0;
-  }
-
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: white;
-  }
-
-  body * {
-    visibility: hidden;
-  }
-  
-  .printContainer, .printContainer * {
-    visibility: visible;
-  }
-
-  .printContainer {
-    display: block !important;
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 50mm;
-  }
-
-  .printLabel {
-    width: 50mm;
-    height: 25mm;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    page-break-after: always;
-    overflow: hidden;
-    padding: 1mm;
-    box-sizing: border-box;
-    /* Eliminamos el borde punteado para la impresión real */
-    border: none;
-  }
-
-  .printMeta {
-    font-size: 7pt;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin-top: 1.5mm;
-    text-align: center;
-    color: #000;
-    font-weight: 600;
-    line-height: 1.1;
-  }
 }
 
 .loader, .emptyCell, .rowLoader {
@@ -754,27 +900,7 @@
   margin-bottom: 12px;
 }
 
-.sortBtn {
-  flex: 1;
-  background: white;
-  border: 1px solid #e2e8f0;
-  padding: 10px;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  color: #475569;
-  transition: all 0.2s;
-}
 
-.sortBtn:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-}
 
 .filterSearchRow {
   background: white;

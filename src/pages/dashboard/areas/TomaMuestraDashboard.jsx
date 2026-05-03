@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabaseClient';
 import { useAuth } from '../../../context/AuthContext';
 import styles from './TomaMuestraDashboard.module.css';
 
 export default function TomaMuestraDashboard() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [folios, setFolios] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -142,6 +144,27 @@ export default function TomaMuestraDashboard() {
             onClick={() => setView('historial')}
           >
             <span className="material-symbols-rounded">history</span> Historial Enviado
+          </button>
+          <button 
+            className={styles.tabBtn}
+            onClick={() => navigate('/almacen/nueva-solicitud')}
+            style={{background: 'rgba(99, 102, 241, 0.1)', color: '#6366F1'}}
+          >
+            <span className="material-symbols-rounded">add_shopping_cart</span> Solicitar Vale
+          </button>
+          <button 
+            className={styles.tabBtn}
+            onClick={() => navigate('/area/vales/historial')}
+            style={{background: 'rgba(71, 85, 105, 0.1)', color: '#475569'}}
+          >
+            <span className="material-symbols-rounded">history_edu</span> Mis Vales
+          </button>
+          <button 
+            className={styles.tabBtn}
+            onClick={() => navigate('/area/requisicion')}
+            style={{background: 'rgba(16, 185, 129, 0.1)', color: '#10B981'}}
+          >
+            <span className="material-symbols-rounded">shopping_bag</span> Requisición Compra
           </button>
         </div>
       </header>

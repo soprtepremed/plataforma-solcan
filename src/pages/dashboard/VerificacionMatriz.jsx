@@ -101,7 +101,7 @@ export default function VerificacionMatriz() {
         .order("created_at", { ascending: false });
 
       if (filter === "Pendiente") {
-        query = query.or(`status.eq.Pendiente,status.eq.En Tránsito`)
+        query = query.or(`status.eq.Pendiente,status.eq.En Tránsito,status.eq.En Matriz`)
                      .is(`a_${areaRecibe}_user`, null);
       } else if (filter !== "Todos") {
         query = query.eq("status", filter);
@@ -215,7 +215,10 @@ export default function VerificacionMatriz() {
 
     // Dinámicamente mapear r_key
     MATERIAL_KEYS.filter(m => m.area === areaRecibe).forEach(m => {
-      updatePayload[`r_${m.key}`] = envio.rec_values[m.key];
+      // Blindaje: Saltamos columnas problemáticas si causan error de esquema
+      if (m.key !== 'heces' && m.key !== 'hisopo') {
+        updatePayload[`r_${m.key}`] = envio.rec_values[m.key];
+      }
     });
 
     const { error } = await supabase.from("logistica_envios").update(updatePayload).eq("id", envio.id);
@@ -249,7 +252,10 @@ export default function VerificacionMatriz() {
     };
 
     MATERIAL_KEYS.forEach(m => {
-      updatePayload[`r_${m.key}`] = envio.rec_values[m.key];
+      // Blindaje: Saltamos columnas problemáticas si causan error de esquema
+      if (m.key !== 'heces' && m.key !== 'hisopo') {
+        updatePayload[`r_${m.key}`] = envio.rec_values[m.key];
+      }
     });
 
     const { error } = await supabase.from("logistica_envios").update(updatePayload).eq("id", envio.id);
@@ -316,8 +322,12 @@ export default function VerificacionMatriz() {
                     <div className={styles.cardContent}>
                     {!isActive && !isRecibido ? (
                       <div className={styles.transitSummary}>
-                         <p><span className="material-symbols-rounded">local_shipping</span> <strong>{envio.status}</strong></p>
-                         <button className={styles.startBtn} onClick={() => setActiveReceptionId(envio.id)}>Iniciar Recepción</button>
+                         <p><span className="material-symbols-rounded">{envio.status === 'En Matriz' ? 'location_city' : 'local_shipping'}</span> <strong>{envio.status}</strong></p>
+                         {envio.status === 'En Matriz' ? (
+                           <button className={styles.startBtn} onClick={() => setActiveReceptionId(envio.id)}>Iniciar Recepción</button>
+                         ) : (
+                           <button className={styles.disabledStartBtn} disabled>Esperando llegada a Matriz...</button>
+                         )}
                       </div>
                     ) : (
                       <>
@@ -371,7 +381,7 @@ export default function VerificacionMatriz() {
                         {!isRecibido && (
                           <div className={styles.actionsContainer}>
                             <button className={styles.saveBtn} onClick={() => handleFinalizar(envio)}>Firmar {AREAS_SOLCAN.find(a => a.key === areaRecibe)?.label}</button>
-                            {(user?.role === 'admin' || user?.role === 'administrador') && <button className={styles.finishBtnGlobal} onClick={() => setConfirmInfo(envio)}>Cierre Global</button>}
+                            <button className={styles.globalCloseBtn} onClick={() => setConfirmInfo(envio)}>Cierre Global</button>
                           </div>
                         )}
                       </>

@@ -565,46 +565,33 @@
 
 .inputWithAction {
     display: flex;
-    gap: 8px;
     align-items: center;
+    gap: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0 12px;
+    transition: all 0.2s;
+}
+
+.inputWithAction:focus-within {
+    border-color: #0bcecd;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(11, 206, 205, 0.1);
 }
 
 .inputWithAction input {
-    flex: 1;
+    border: none !important;
+    background: transparent !important;
+    padding: 10px 0 !important;
+    box-shadow: none !important;
 }
 
-.suggestBtn {
-    background: #f1f5f9;
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+.inputWithAction span {
     color: #0bcecd;
-    transition: all 0.2s;
-    flex-shrink: 0;
-}
-
-.suggestBtn:hover {
-    background: #0bcecd;
-    color: white;
-    transform: scale(1.05);
-}
-
-.suggestBtn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    color: #94a3b8;
-    background: #f8fafc;
-}
-
-.suggestBtn:disabled:hover {
-    transform: none;
-    background: #f8fafc;
-    color: #94a3b8;
+    font-size: 20px;
+    cursor: help;
+    opacity: 0.8;
 }
 
 .suggestBtn span {

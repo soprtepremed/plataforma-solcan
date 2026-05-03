@@ -1,8 +1,15 @@
 .container {
   padding: 2rem;
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
-  animation: fadeIn 0.5s ease-out;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 100%;
+    padding: 2rem 4rem;
+  }
 }
 
 .titleArea {
@@ -340,15 +347,26 @@
   background: var(--co-accent);
   color: white;
   border: none;
-  padding: 1rem;
-  border-radius: 15px;
+  padding: 1.2rem 2rem;
+  border-radius: 16px;
   font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  font-size: 1.1rem;
   cursor: pointer;
-  box-shadow: 0 10px 20px rgba(11, 206, 205, 0.2);
+  width: 100%;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 25px rgba(11, 206, 205, 0.2);
+}
+
+.disabledStartBtn {
+  background: #E2E8F0;
+  color: #94A3B8;
+  border: none;
+  padding: 1.2rem 2rem;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: not-allowed;
+  width: 100%;
 }
 
 /* Temp Box */

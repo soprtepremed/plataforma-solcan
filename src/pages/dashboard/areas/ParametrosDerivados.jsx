@@ -380,6 +380,66 @@ const ParametrosDerivados = () => {
                       </button>
                     </div>
                   </div>
+
+                  {/* Potasio */}
+                  <div className={styles.eqCard} style={{background: '#FFFBEB', borderColor: '#FEF3C7'}}>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                      <label style={{color:'#B45309', fontWeight:'800', fontSize:'0.75rem'}}>POTASIO (mmol/24h)</label>
+                      <span className="material-symbols-rounded" style={{color:'#B45309', fontSize:'1.2rem'}}>electric_bolt</span>
+                    </div>
+                    <input type="number" placeholder="Valor Vitros" className={styles.inputMinimal} onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      const vol = parseFloat(vol24);
+                      if(val && vol) setOrinaValues(prev => ({...prev, k: ((val * vol) / 1000).toFixed(1)}));
+                      else setOrinaValues(prev => ({...prev, k: '--'}));
+                    }} />
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'10px'}}>
+                      <div style={{fontSize:'1.4rem', fontWeight:'900', color:'#1E293B'}}>{orinaValues.k || '--'} <span style={{fontSize:'0.7rem', color:'#64748B'}}>mmol/24h</span></div>
+                      <button className={styles.btnAction} style={{width:'32px', height:'32px', padding:0}} onClick={() => copyToClipboard(`Potasio 24h: ${orinaValues.k} mmol/24h`, 'Potasio')}>
+                        <span className="material-symbols-rounded" style={{fontSize:'1.1rem'}}>content_copy</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Cloro */}
+                  <div className={styles.eqCard} style={{background: '#F8FAFC', borderColor: '#E2E8F0'}}>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                      <label style={{color:'#475569', fontWeight:'800', fontSize:'0.75rem'}}>CLORO (mmol/24h)</label>
+                      <span className="material-symbols-rounded" style={{color:'#475569', fontSize:'1.2rem'}}>science</span>
+                    </div>
+                    <input type="number" placeholder="Valor Vitros" className={styles.inputMinimal} onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      const vol = parseFloat(vol24);
+                      if(val && vol) setOrinaValues(prev => ({...prev, cl: ((val * vol) / 1000).toFixed(1)}));
+                      else setOrinaValues(prev => ({...prev, cl: '--'}));
+                    }} />
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'10px'}}>
+                      <div style={{fontSize:'1.4rem', fontWeight:'900', color:'#1E293B'}}>{orinaValues.cl || '--'} <span style={{fontSize:'0.7rem', color:'#64748B'}}>mmol/24h</span></div>
+                      <button className={styles.btnAction} style={{width:'32px', height:'32px', padding:0}} onClick={() => copyToClipboard(`Cloro 24h: ${orinaValues.cl} mmol/24h`, 'Cloro')}>
+                        <span className="material-symbols-rounded" style={{fontSize:'1.1rem'}}>content_copy</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Fósforo */}
+                  <div className={styles.eqCard} style={{background: '#F0FDFA', borderColor: '#CCFBF1'}}>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                      <label style={{color:'#0D9488', fontWeight:'800', fontSize:'0.75rem'}}>FÓSFORO (mg/24h)</label>
+                      <span className="material-symbols-rounded" style={{color:'#0D9488', fontSize:'1.2rem'}}>blur_on</span>
+                    </div>
+                    <input type="number" placeholder="Valor Vitros" className={styles.inputMinimal} onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      const vol = parseFloat(vol24);
+                      if(val && vol) setOrinaValues(prev => ({...prev, fos: ((val * vol) / 100).toFixed(1)}));
+                      else setOrinaValues(prev => ({...prev, fos: '--'}));
+                    }} />
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'10px'}}>
+                      <div style={{fontSize:'1.4rem', fontWeight:'900', color:'#1E293B'}}>{orinaValues.fos || '--'} <span style={{fontSize:'0.7rem', color:'#64748B'}}>mg/24h</span></div>
+                      <button className={styles.btnAction} style={{width:'32px', height:'32px', padding:0}} onClick={() => copyToClipboard(`Fósforo 24h: ${orinaValues.fos} mg/24h`, 'Fósforo')}>
+                        <span className="material-symbols-rounded" style={{fontSize:'1.1rem'}}>content_copy</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <div className={styles.infoBox} style={{marginTop: '2rem'}}>
@@ -399,7 +459,7 @@ const ParametrosDerivados = () => {
                     <div className={styles.formulaItem}>
                       <label>2. Excreción de Analitos (mg/24h)</label>
                       <code style={{display:'block', marginBottom:'8px'}}>(Resultado del Equipo × Volumen Total) / 100</code>
-                      <p style={{fontSize:'0.7rem', color:'#64748B'}}>Aplica para: Calcio, Proteínas, Creatinina, Ácido Úrico, Magnesio.</p>
+                      <p style={{fontSize:'0.7rem', color:'#64748B'}}>Aplica para: Calcio, Proteínas, Creatinina, Ácido Úrico, Fósforo, Magnesio.</p>
                     </div>
                     <div className={styles.formulaItem}>
                       <label>3. Urea en Orina (g/24h)</label>

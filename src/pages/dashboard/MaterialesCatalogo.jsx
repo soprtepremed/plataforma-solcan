@@ -137,7 +137,8 @@ export default function MaterialesCatalogo() {
         nombre: '', prefijo: '', unidad: 'Pieza', stock_minimo: 10, categoria: 'Reactivos',
         subcategoria: 'General', sub_area: 'General', equipo: '', marca: '', proveedor_id: '', costo_unitario: 0, precio1: 0,
         presentacion: 'Caja', requiere_frio: false, temperatura_almacenamiento: 'Ambiente',
-        temperatura_valor: 20, area_tecnica: 'HEMATOLOGÍA', ean_maestro: '', clase: 'Artículo'
+        temperatura_valor: 20, area_tecnica: 'HEMATOLOGÍA', ean_maestro: '', clase: 'Artículo',
+        piezas_por_empaque: 1
     };
     const [form, setForm] = useState(initialForm);
     const [dialogConfig, setDialogConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
@@ -250,7 +251,13 @@ export default function MaterialesCatalogo() {
             costo_unitario: parseFloat(form.costo_unitario) || 0,
             precio1: parseFloat(form.precio1) || 0,
             stock_minimo: parseInt(form.stock_minimo) || 0
+            // piezas_por_empaque: parseInt(form.piezas_por_empaque) || 1 (No existe en DB aún)
         };
+
+        // Generar EAN automático si está vacío
+        if (!payload.ean_maestro) {
+            payload.ean_maestro = `SOL-${payload.prefijo}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+        }
 
         try {
             if (isEditing) {
@@ -759,7 +766,26 @@ export default function MaterialesCatalogo() {
                                                     <option value="Litro">Litro</option>
                                                 </select>
                                             </div>
-                                            <div className={styles.fieldGroup}><label>Código EAN</label><input value={form.ean_maestro} onChange={e=>setForm({...form, ean_maestro: e.target.value})} placeholder="Código de barras" /></div>
+                                            <div className={styles.fieldGroup}>
+                                                <label>Piezas por Caja/Empaque</label>
+                                                <input 
+                                                    type="number" 
+                                                    value={form.piezas_por_empaque} 
+                                                    onChange={e=>setForm({...form, piezas_por_empaque: parseInt(e.target.value) || 1})} 
+                                                    placeholder="Ej: 10" 
+                                                />
+                                            </div>
+                                            <div className={styles.fieldGroup}>
+                                                <label>Código EAN (Maestro)</label>
+                                                <div className={styles.inputWithAction}>
+                                                    <input 
+                                                        value={form.ean_maestro} 
+                                                        onChange={e=>setForm({...form, ean_maestro: e.target.value})} 
+                                                        placeholder="Auto-generado si queda vacío" 
+                                                    />
+                                                    <span className="material-symbols-rounded" title="Será auto-generado al guardar">magic_button</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </section>
 

@@ -21,11 +21,14 @@ import AdminPromociones from './pages/dashboard/AdminPromociones';
 import Sucursales from './pages/Sucursales';
 import InventarioArea from './pages/dashboard/InventarioArea';
 import ControlCalidadArea from './pages/dashboard/ControlCalidadArea';
+import RegistroInventario from './pages/dashboard/RegistroInventario';
 
 import NuevaRequisicion from './pages/dashboard/NuevaRequisicion';
 import GestionRequisiciones from './pages/dashboard/GestionRequisiciones';
 import HistorialRequisicionesArea from './pages/dashboard/HistorialRequisicionesArea';
+import HistorialValesArea from './pages/dashboard/HistorialValesArea';
 import RelacionFoliosGeneral from './pages/dashboard/RelacionFoliosGeneral';
+import RelacionFoliosQuimicos from './pages/dashboard/RelacionFoliosQuimicos';
 import PortalPacientes from './pages/PortalPacientes';
 import CatalogoPublico from './pages/CatalogoPublico';
 
@@ -156,6 +159,7 @@ function App() {
         <Route path="/logistica/recepcion" element={<PrivateRoute><DashboardLayout><VerificacionMatriz /></DashboardLayout></PrivateRoute>} />
         <Route path="/logistica/bitacora" element={<PrivateRoute><DashboardLayout><LogisticaBitacora /></DashboardLayout></PrivateRoute>} />
         <Route path="/logistica/relacion-folios" element={<PrivateRoute><DashboardLayout><RelacionFoliosGeneral /></DashboardLayout></PrivateRoute>} />
+        <Route path="/logistica/sucursales-envio" element={<PrivateRoute><DashboardLayout><RelacionFoliosQuimicos /></DashboardLayout></PrivateRoute>} />
         <Route path="/logistica/impresion" element={<PrivateRoute><DashboardLayout><ImpresionEtiquetas /></DashboardLayout></PrivateRoute>} />
         
         <Route path="/pacientes" element={<PrivateRoute><DashboardLayout><h2 style={{padding: '3rem', textAlign: 'center', color:'var(--co-primary)'}}>Módulo de Recepción y Pacientes</h2></DashboardLayout></PrivateRoute>} />
@@ -169,6 +173,7 @@ function App() {
         <Route path="/almacen/nueva-solicitud" element={<PrivateRoute><DashboardLayout><SolicitudMaterial /></DashboardLayout></PrivateRoute>} />
         <Route path="/almacen/proveedores" element={<WarehouseRoute><DashboardLayout><Proveedores /></DashboardLayout></WarehouseRoute>} />
         <Route path="/almacen/recepcion" element={<WarehouseRoute><DashboardLayout><RecepcionPedido /></DashboardLayout></WarehouseRoute>} />
+        <Route path="/almacen/registro" element={<WarehouseRoute><DashboardLayout><RegistroInventario /></DashboardLayout></WarehouseRoute>} />
         <Route path="/admin/promociones" element={
           <PrivateRoute>
             {user?.role?.toLowerCase().includes('admin') ? <DashboardLayout><AdminPromociones /></DashboardLayout> : <Navigate to="/" replace />}
@@ -179,6 +184,7 @@ function App() {
         <Route path="/area/hematologia" element={<AreaRoute requiredRole="hematologia"><DashboardLayout><HematologiaDashboard /></DashboardLayout></AreaRoute>} />
 
         <Route path="/area/requisiciones/historial" element={<PrivateRoute><DashboardLayout><HistorialRequisicionesArea /></DashboardLayout></PrivateRoute>} />
+        <Route path="/area/vales/historial" element={<PrivateRoute><DashboardLayout><HistorialValesArea /></DashboardLayout></PrivateRoute>} />
         <Route path="/area/requisicion" element={<PrivateRoute><DashboardLayout><NuevaRequisicion /></DashboardLayout></PrivateRoute>} />
         
         {/* Inventario Universal por Área */}

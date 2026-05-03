@@ -68,12 +68,14 @@ const ValeAlmacen = React.forwardRef(({ vale, items, solicitante, sucursalStock 
             <tr key={item.id || idx}>
               <td>{item.empty ? '' : (item.cantidad_solicitada || item.cantidad)}</td>
               <td className={styles.codeCell}>{item.empty ? '' : (item.material?.prefijo || item.prefijo)}</td>
-              <td>{item.empty ? '' : (item.lote_solicitado || item.lote || renderDiagonal())}</td>
+              <td>{item.empty ? '' : (
+                (item.lote_solicitado === 'SIN LOTE' || item.lote === 'SIN LOTE') ? 'S.L' : 
+                (item.lote_solicitado || item.lote || renderDiagonal())
+              )}</td>
               <td>{item.empty ? '' : (item.caducidad ? new Date(item.caducidad).toLocaleDateString() : renderDiagonal())}</td>
               <td>{item.empty ? '' : (sucursalStock[item.material_catalogo_id || item.material_id] ?? renderDiagonal())}</td>
               <td className={styles.conceptCell}>
                 {item.empty ? '' : (item.material?.nombre || item.nombre)}
-                {!item.empty && (item.material?.marca || item.marca) && <span style={{fontSize: '0.65rem', color: '#666', display: 'block'}}>{item.material?.marca || item.marca}</span>}
               </td>
               <td>{renderDiagonal()}</td>
             </tr>
@@ -100,9 +102,14 @@ const ValeAlmacen = React.forwardRef(({ vale, items, solicitante, sucursalStock 
         <div>
           <div className={styles.signLabel}>RECIBE</div>
           <div className={styles.signLine}>
-            {solicitante?.name || vale?.solicitante?.name || ''}
+            {(vale?.firma_solicitante || vale?.firma) && (
+              <img src={vale?.firma_solicitante || vale?.firma} alt="Firma" className={styles.signatureImg} />
+            )}
           </div>
-          <div className={styles.signerName}>Nombre y firma de la Sucursal</div>
+          <div className={styles.signerName}>
+            <strong>{solicitante?.name || vale?.solicitante?.name || vale?.solicitante_nombre || ''}</strong>
+            <div style={{marginTop: '2px', fontSize: '0.65rem', opacity: 0.8}}>Nombre y firma de la Sucursal</div>
+          </div>
         </div>
       </div>
 

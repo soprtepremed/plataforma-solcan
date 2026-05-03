@@ -329,6 +329,27 @@
   transform: scale(1.03) translateY(-3px);
   box-shadow: 0 20px 40px rgba(11, 206, 205, 0.4);
 }
+.arrivalBtn {
+  width: 100%;
+  padding: 1.25rem 2rem;
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+}
+
+.arrivalBtn:hover {
+  transform: scale(1.03) translateY(-3px);
+  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.4);
+}
 
 .empty {
   text-align: center;

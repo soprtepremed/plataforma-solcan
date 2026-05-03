@@ -58,6 +58,34 @@ const EspecialesDashboard = () => {
       icon: 'receipt_long',
       path: '/especiales/costos',
       color: '#10B981'
+    },
+    {
+      title: 'Solicitud de Vale',
+      desc: 'Pedido interno de insumos y reactivos al almacén (FO-RM-004).',
+      icon: 'add_shopping_cart',
+      path: '/almacen/nueva-solicitud',
+      color: '#6366F1'
+    },
+    {
+      title: 'Historial de Vales',
+      desc: 'Consulta de pedidos internos realizados al almacén.',
+      icon: 'history_edu',
+      path: '/area/vales/historial',
+      color: '#475569'
+    },
+    {
+      title: 'Requisición de Compra',
+      desc: 'Solicitud de recursos externos y mobiliario (FO-RM-001).',
+      icon: 'shopping_bag',
+      path: '/area/requisicion',
+      color: '#10B981'
+    },
+    {
+      title: 'Bitácora de Requisiciones',
+      desc: 'Seguimiento de compras externas solicitadas por el área.',
+      icon: 'history',
+      path: '/area/requisiciones/historial',
+      color: '#F59E0B'
     }
   ];
 
