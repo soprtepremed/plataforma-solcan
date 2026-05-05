@@ -85,6 +85,9 @@ export default function InventarioArea() {
   const [catalogo, setCatalogo] = useState([]); 
   const [loteStatus, setLoteStatus] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ show: false, message: "", onConfirm: null });
+  const [expandedGroups, setExpandedGroups] = useState(new Set());
+  const [expandedLots, setExpandedLots] = useState(new Set());
+  const [viewMode, setViewMode] = useState('detailed'); // 'detailed' or 'summary'
 
   const areaKey = areaId?.toLowerCase() || 'area';
   const displayTitle = AREA_NAMES[areaKey] || areaKey.toUpperCase();
@@ -248,14 +251,55 @@ export default function InventarioArea() {
     return matchesSearch && matchesSubArea;
   });
 
+  const toggleGroup = (name) => {
+    const next = new Set(expandedGroups);
+    if (next.has(name)) next.delete(name);
+    else next.add(name);
+    setExpandedGroups(next);
+  };
+
+  const toggleLot = (lotKey) => {
+    const next = new Set(expandedLots);
+    if (next.has(lotKey)) next.delete(lotKey);
+    else next.add(lotKey);
+    setExpandedLots(next);
+  };
+
   // Obtener lista de sub-áreas únicas para los tabs
   const subAreas = ["TODAS", ...new Set(items.map(i => i.sub_area).filter(Boolean))];
 
-  // Lógica de Agrupación
+  // Lógica de Agrupación Consolidada por Lote
   const groupedItems = filteredItems.reduce((acc, item) => {
-    const key = item.descripcion;
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(item);
+    const materialKey = item.descripcion;
+    if (!acc[materialKey]) acc[materialKey] = {};
+    
+    const lotKey = item.lote || 'SIN_LOTE';
+    
+    if (!acc[materialKey][lotKey]) {
+      acc[materialKey][lotKey] = {
+        ...item,
+        consolidatedKey: `${materialKey}-${lotKey}`,
+        entries: [item],
+        stock_total: item.stock_actual || 0,
+        fechas_solicitud: [item.fecha_solicitud_almacen].filter(Boolean),
+        esta_en_uso: item.fecha_inicio_uso && !item.fecha_termino_uso,
+        esta_terminado: !!item.fecha_termino_uso && (item.stock_actual === 0)
+      };
+    } else {
+      const group = acc[materialKey][lotKey];
+      group.entries.push(item);
+      group.stock_total += (item.stock_actual || 0);
+      if (item.fecha_solicitud_almacen) group.fechas_solicitud.push(item.fecha_solicitud_almacen);
+      if (item.fecha_inicio_uso && !item.fecha_termino_uso) group.esta_en_uso = true;
+      group.esta_terminado = group.esta_terminado && (!!item.fecha_termino_uso && item.stock_actual === 0);
+    }
+    
+    return acc;
+  }, {});
+
+  // Convertir el objeto anidado en una estructura plana para el renderizado
+  const finalGrouped = Object.entries(groupedItems).reduce((acc, [name, lotsObj]) => {
+    acc[name] = Object.values(lotsObj);
     return acc;
   }, {});
 
@@ -273,14 +317,25 @@ export default function InventarioArea() {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.title}><span className="material-symbols-rounded" style={{color: '#0EA5E9', fontSize: '2.5rem'}}>{displayIcon}</span> {displayTitle}</div>
-        <button className={styles.btnPrimary} onClick={() => { 
-          setForm({...initialForm, area_id: areaKey, sub_area: displayTitle.toUpperCase()}); 
-          setModalMode('add'); 
-          setEditingId(null); 
-          setShowModal(true); 
-        }}>
-          <span className="material-symbols-rounded">add_box</span> Registrar Material
-        </button>
+        <div style={{display:'flex', gap:'12px'}}>
+          <button 
+            className={styles.viewToggleBtn}
+            onClick={() => setViewMode(viewMode === 'detailed' ? 'summary' : 'detailed')}
+          >
+            <span className="material-symbols-rounded">
+              {viewMode === 'detailed' ? 'list_alt' : 'inventory_2'}
+            </span>
+            {viewMode === 'detailed' ? 'Resumen Stock' : 'Ver Detalles'}
+          </button>
+          <button className={styles.btnPrimary} onClick={() => { 
+            setForm({...initialForm, area_id: areaKey, sub_area: displayTitle.toUpperCase()}); 
+            setModalMode('add'); 
+            setEditingId(null); 
+            setShowModal(true); 
+          }}>
+            <span className="material-symbols-rounded">add_box</span> Registrar Material
+          </button>
+        </div>
       </header>
 
       <div className={styles.statsGrid}>
@@ -377,83 +432,192 @@ export default function InventarioArea() {
         <div className={styles.tableContainer}>
           {loading ? (
             <div style={{textAlign:'center', padding:'5rem'}}><div className={styles.loader}></div><p>Cargando inventario técnico...</p></div>
-          ) : Object.keys(groupedItems).length === 0 ? (
+          ) : Object.keys(finalGrouped).length === 0 ? (
             <div style={{textAlign:'center', padding:'5rem', color: '#64748B'}}>
               <span className="material-symbols-rounded" style={{fontSize:'4rem'}}>inventory_2</span>
               <p>No se encontraron materiales registrados.</p>
             </div>
+          ) : viewMode === 'summary' ? (
+            <div className={styles.summaryContainer}>
+              <table className={styles.summaryTable}>
+                <thead>
+                  <tr>
+                    <th>Reactivo / Material</th>
+                    <th style={{textAlign:'center'}}>Lotes Activos</th>
+                    <th style={{textAlign:'center'}}>Stock Total</th>
+                    <th style={{textAlign:'center'}}>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(finalGrouped).sort(([a],[b]) => a.localeCompare(b)).map(([name, lots]) => {
+                    const totalStock = lots.reduce((sum, lot) => sum + lot.stock_total, 0);
+                    const activeLots = lots.filter(l => l.esta_en_uso).length;
+                    const isLow = totalStock < 3;
+                    return (
+                      <tr key={name} className={isLow ? styles.rowLowStock : ''}>
+                        <td className={styles.materialNameCell}>
+                          <span className="material-symbols-rounded">biotech</span>
+                          {name}
+                        </td>
+                        <td style={{textAlign:'center', fontWeight:700}}>{activeLots} de {lots.length}</td>
+                        <td style={{textAlign:'center'}}>
+                          <span className={`${styles.stockBadge} ${totalStock === 0 ? styles.stockEmpty : totalStock < 5 ? styles.stockLow : styles.stockOk}`}>
+                            {totalStock} unidades
+                          </span>
+                        </td>
+                        <td style={{textAlign:'center'}}>
+                          {totalStock === 0 ? (
+                            <span className={styles.statusTagOut}>AGOTADO</span>
+                          ) : isLow ? (
+                            <span className={styles.statusTagCritical}>CRÍTICO</span>
+                          ) : (
+                            <span className={styles.statusTagOk}>DISPONIBLE</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <div className={styles.groupedList}>
-              {Object.entries(groupedItems).map(([name, lots]) => (
-                <div key={name} className={styles.materialGroup}>
-                  <div className={styles.groupHeader}>
-                    <div className={styles.groupInfo}>
-                      <span className="material-symbols-rounded">label</span>
-                      <h3>{name}</h3>
-                      <span className={styles.lotCount}>{lots.length} {lots.length === 1 ? 'lote' : 'lotes'}</span>
+              {Object.entries(finalGrouped).map(([name, lots]) => {
+                const isExpanded = expandedGroups.has(name);
+                return (
+                  <div key={name} className={`${styles.materialGroup} ${isExpanded ? styles.groupExpanded : ''}`}>
+                    <div className={styles.groupHeader} onClick={() => toggleGroup(name)}>
+                      <div className={styles.groupInfo}>
+                        <span className="material-symbols-rounded">label</span>
+                        <h3>{name}</h3>
+                        <span className={styles.lotCount}>{lots.length} {lots.length === 1 ? 'lote' : 'lotes'}</span>
+                      </div>
+                      <span className={`material-symbols-rounded ${styles.expandIcon}`}>
+                        {isExpanded ? 'expand_less' : 'expand_more'}
+                      </span>
                     </div>
-                  </div>
-                  <div className={styles.lotsGrid}>
-                    {lots.sort((a,b) => {
-                      // Priorizar el que está en uso
-                      if (a.fecha_inicio_uso && !a.fecha_termino_uso) return -1;
-                      if (b.fecha_inicio_uso && !b.fecha_termino_uso) return 1;
-                      return 0;
-                    }).map(item => {
-                      const isActive = item.fecha_inicio_uso && !item.fecha_termino_uso;
-                      const isPending = !item.fecha_inicio_uso;
-                      const isFinished = item.fecha_termino_uso;
+                    {isExpanded && (
+                      <div className={styles.lotsGrid}>
+                        {lots.sort((a,b) => {
+                          if (a.esta_en_uso) return -1;
+                          if (b.esta_en_uso) return 1;
+                          return 0;
+                        }).map(item => {
+                          const isLotExpanded = expandedLots.has(item.consolidatedKey);
+                          const isActive = item.esta_en_uso;
+                          const isFinished = item.esta_terminado && item.stock_total === 0;
+                          
+                          // Mostrar la fecha más reciente de solicitud
+                          const latestReq = item.fechas_solicitud.length > 0 
+                            ? new Date(Math.max(...item.fechas_solicitud.map(d => new Date(d))))
+                            : null;
 
-                      return (
-                        <div key={item.id} className={`${styles.lotRow} ${isActive ? styles.lotActive : ''} ${isFinished ? styles.lotFinished : ''}`}>
-                          <div className={styles.lotMain}>
-                            <div className={styles.lotTag}>
-                              <label>LOTE</label>
-                              <span>{item.lote || 'N/A'}</span>
+                          return (
+                            <div key={item.consolidatedKey} className={`${styles.lotRow} ${isActive ? styles.lotActive : ''} ${isFinished ? styles.lotFinished : ''}`}>
+                              <div className={styles.lotRowMain}>
+                                <div className={styles.lotMain}>
+                                  <div className={styles.lotTag}>
+                                    <label>LOTE</label>
+                                    <span>{item.lote || 'N/A'}</span>
+                                  </div>
+                                  <div className={styles.lotDetails}>
+                                    <div className={styles.detailItem}>
+                                      <label>Caducidad</label>
+                                      <span style={{
+                                        color: item.caducidad && new Date(item.caducidad) < now ? '#EF4444'
+                                             : item.caducidad && new Date(item.caducidad) <= in7 ? '#F97316'
+                                             : item.caducidad && new Date(item.caducidad) <= in30 ? '#F59E0B'
+                                             : 'inherit',
+                                        fontWeight: item.caducidad && new Date(item.caducidad) <= in30 ? 700 : 'inherit'
+                                      }}>
+                                        {item.caducidad ? new Date(item.caducidad).toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'}) : '---'}
+                                      </span>
+                                    </div>
+                                    <div className={styles.detailItem}><label>Stock Total</label><span className={item.stock_total < 5 ? styles.textDanger : ''}>{item.stock_total}</span></div>
+                                    <div className={styles.detailItem}>
+                                      <label>F. Pedido</label>
+                                      <span>{item.fecha_solicitud_almacen ? new Date(item.fecha_solicitud_almacen).toLocaleDateString() : '---'}</span>
+                                    </div>
+                                    <div className={styles.detailItem}>
+                                      <label>Observaciones</label>
+                                      <span style={{fontSize: '0.75rem', color: '#64748B'}}>{item.observaciones || 'N/A'}</span>
+                                    </div>
+                                    <div className={styles.detailItem}>
+                                      <label>Estado</label>
+                                      <span className={isActive ? styles.textSuccess : isFinished ? styles.textMuted : styles.textInfo}>
+                                        {isActive ? 'EN USO' : isFinished ? 'TERMINADO' : 'EN RESERVA'}
+                                      </span>
+                                    </div>
+                                    {item.entries.length > 1 && (
+                                      <div className={styles.detailItem}>
+                                        <label>Ver detalles</label>
+                                        <button 
+                                          onClick={(e) => { e.stopPropagation(); toggleLot(item.consolidatedKey); }}
+                                          className={styles.historyBtn}
+                                        >
+                                          {item.entries.length} reg. <span className="material-symbols-rounded">{isLotExpanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}</span>
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className={styles.lotActions}>
+                                  {!isActive && !isFinished && <button onClick={()=>handleQuickStart(item.entries[0].id)} className={styles.miniActionBtn} title="Iniciar Uso (FIFO)"><span className="material-symbols-rounded">play_arrow</span></button>}
+                                  {isActive && <button onClick={()=>handleQuickEnd(item.entries.find(e => e.fecha_inicio_uso && !e.fecha_termino_uso)?.id || item.entries[0].id)} className={styles.miniActionBtn} style={{color:'#EF4444'}} title="Terminar Uso"><span className="material-symbols-rounded">stop</span></button>}
+                                  <button onClick={()=>handleEdit(item)} className={styles.miniActionBtn} style={{color:'#64748B'}} title="Editar"><span className="material-symbols-rounded">edit</span></button>
+                                </div>
+                              </div>
+
+                              {isLotExpanded && (
+                                <div className={styles.lotBreakdown}>
+                                  <div className={styles.breakdownHeader}>Historial de Entradas (Individuales):</div>
+                                  {item.entries.sort((a,b) => new Date(b.fecha_solicitud_almacen) - new Date(a.fecha_solicitud_almacen)).map((entry) => {
+                                    const entryActive = entry.fecha_inicio_uso && !entry.fecha_termino_uso;
+                                    const entryFinished = !!entry.fecha_termino_uso;
+                                    
+                                    return (
+                                      <div key={entry.id} className={`${styles.lotRow} ${styles.subLot} ${entryActive ? styles.lotActive : ''} ${entryFinished ? styles.lotFinished : ''}`}>
+                                        <div className={styles.lotRowMain}>
+                                          <div className={styles.lotMain}>
+                                            <div className={styles.lotTag}>
+                                              <label>LOTE</label>
+                                              <span style={{fontSize: '0.9rem'}}>{entry.lote || 'N/A'}</span>
+                                            </div>
+                                            <div className={styles.lotTag} style={{minWidth: '120px'}}>
+                                              <label>Surtido el:</label>
+                                              <span style={{fontSize: '0.8rem'}}>{entry.fecha_solicitud_almacen ? new Date(entry.fecha_solicitud_almacen).toLocaleDateString() : '---'}</span>
+                                            </div>
+                                            <div className={styles.lotDetails}>
+                                              <div className={styles.detailItem}><label>Stock</label><span>{entry.stock_actual}</span></div>
+                                              <div className={styles.detailItem}>
+                                                <label>Estado</label>
+                                                <span className={entryActive ? styles.textSuccess : entryFinished ? styles.textMuted : styles.textInfo}>
+                                                  {entryActive ? 'EN USO' : entryFinished ? 'TERMINADO' : 'EN RESERVA'}
+                                                </span>
+                                              </div>
+                                              <div className={styles.detailItem}><label>F. Pedido</label><span style={{fontSize: '0.75rem'}}>{entry.fecha_solicitud_almacen ? new Date(entry.fecha_solicitud_almacen).toLocaleDateString() : '---'}</span></div>
+                                              <div className={styles.detailItem}><label>Obs.</label><span style={{fontSize: '0.7rem', color: '#64748B'}}>{entry.observaciones || 'N/A'}</span></div>
+                                            </div>
+                                          </div>
+                                          <div className={styles.lotActions}>
+                                            {!entry.fecha_inicio_uso && <button onClick={()=>handleQuickStart(entry.id)} className={styles.miniActionBtn} title="Iniciar"><span className="material-symbols-rounded">play_arrow</span></button>}
+                                            {entry.fecha_inicio_uso && !entry.fecha_termino_uso && <button onClick={()=>handleQuickEnd(entry.id)} className={styles.miniActionBtn} style={{color:'#EF4444'}} title="Terminar"><span className="material-symbols-rounded">stop</span></button>}
+                                            <button onClick={()=>handleEdit(entry)} className={styles.miniActionBtn} style={{color:'#64748B'}} title="Editar"><span className="material-symbols-rounded">edit</span></button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
-                            <div className={styles.lotDetails}>
-                              <div className={styles.detailItem}>
-                                <label>Caducidad</label>
-                                <span style={{
-                                  color: item.caducidad && new Date(item.caducidad) < now ? '#EF4444'
-                                       : item.caducidad && new Date(item.caducidad) <= in7 ? '#F97316'
-                                       : item.caducidad && new Date(item.caducidad) <= in30 ? '#F59E0B'
-                                       : 'inherit',
-                                  fontWeight: item.caducidad && new Date(item.caducidad) <= in30 ? 700 : 'inherit'
-                                }}>
-                                  {item.caducidad ? new Date(item.caducidad).toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'}) : '---'}
-                                  {item.caducidad && new Date(item.caducidad) < now && <span style={{fontSize:'0.65rem', marginLeft:'4px', background:'#EF4444', color:'white', borderRadius:'4px', padding:'1px 4px'}}>VENCIDO</span>}
-                                  {item.caducidad && new Date(item.caducidad) >= now && new Date(item.caducidad) <= in7 && <span style={{fontSize:'0.65rem', marginLeft:'4px', background:'#F97316', color:'white', borderRadius:'4px', padding:'1px 4px'}}>CRÍTICO</span>}
-                                </span>
-                              </div>
-                              <div className={styles.detailItem}><label>Stock</label><span className={item.stock_actual < 5 ? styles.textDanger : ''}>{item.stock_actual}</span></div>
-                              <div className={styles.detailItem}>
-                                <label>Estado</label>
-                                <span className={isActive ? styles.textSuccess : isFinished ? styles.textMuted : styles.textInfo}>
-                                  {isActive ? 'EN USO' : isFinished ? 'TERMINADO' : 'EN RESERVA'}
-                                </span>
-                              </div>
-                              <div className={styles.detailItem}>
-                                <label>Sol. Almacén</label>
-                                <span style={{fontSize:'0.78rem', color:'#64748B'}}>
-                                  {item.fecha_solicitud_almacen
-                                    ? new Date(item.fecha_solicitud_almacen).toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'})
-                                    : '---'}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className={styles.lotActions}>
-                            {!item.fecha_inicio_uso && <button onClick={()=>handleQuickStart(item.id)} className={styles.miniActionBtn} title="Iniciar Uso"><span className="material-symbols-rounded">play_arrow</span></button>}
-                            {item.fecha_inicio_uso && !item.fecha_termino_uso && <button onClick={()=>handleQuickEnd(item.id)} className={styles.miniActionBtn} style={{color:'#EF4444'}} title="Terminar Uso"><span className="material-symbols-rounded">stop</span></button>}
-                            <button onClick={()=>handleEdit(item)} className={styles.miniActionBtn} style={{color:'#64748B'}} title="Editar"><span className="material-symbols-rounded">edit</span></button>
-                          </div>
-                        </div>
-                      );
-                    })}
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

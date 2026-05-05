@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
 import styles from './SolicitudMaterial.module.css';
@@ -8,6 +9,7 @@ import html2pdf from 'html2pdf.js';
 
 export default function SolicitudMaterial() {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const printAreaRef = useRef(null);
     const [catalogo, setCatalogo] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -26,6 +28,7 @@ export default function SolicitudMaterial() {
     const [selectedArea, setSelectedArea] = useState('TODOS');
     const [centralStock, setCentralStock] = useState({});
     const [showDropdown, setShowDropdown] = useState(false);
+    const [cantidadAñadir, setCantidadAñadir] = useState(1);
 
     const resetForm = () => {
         setCarrito([]);
@@ -167,15 +170,17 @@ export default function SolicitudMaterial() {
 
     const handleSelectMaterial = (item) => {
         setSelectedItem(item);
+        setCantidadAñadir(1); // Reset cantidad al cambiar de material
         fetchLotes(item.id);
     };
 
     const agregarAlCarrito = (loteObj) => {
         const idUnico = `${selectedItem.id}-${loteObj.lote}`;
         const existe = carrito.find(c => c.idUnico === idUnico);
+        const qty = parseInt(cantidadAñadir) || 1;
 
         if (existe) {
-            setCarrito(carrito.map(c => c.idUnico === idUnico ? { ...c, cantidad: c.cantidad + 1 } : c));
+            setCarrito(carrito.map(c => c.idUnico === idUnico ? { ...c, cantidad: c.cantidad + qty } : c));
         } else {
             setCarrito([...carrito, { 
                 idUnico,
@@ -186,11 +191,12 @@ export default function SolicitudMaterial() {
                 unidad: selectedItem.unidad,
                 lote: loteObj.lote,
                 caducidad: loteObj.caducidad,
-                cantidad: 1,
+                cantidad: qty,
                 observaciones: ''
             }]);
         }
         setSelectedItem(null);
+        setCantidadAñadir(1);
     };
 
     const actualizarCantidad = (idUnico, delta) => {
@@ -385,20 +391,37 @@ export default function SolicitudMaterial() {
                                             </button>
                                         </div>
                                     ) : (
-                                        <div className={styles.loteGrid}>
-                                            {lotesDisponibles.map(l => (
-                                                <div key={l.lote} className={styles.loteCard} onClick={() => agregarAlCarrito(l)}>
-                                                    <div className={styles.loteMain}>
-                                                        <strong>LOTE: {l.lote}</strong>
-                                                        <span>Caducidad: {l.caducidad ? new Date(l.caducidad).toLocaleDateString() : 'N/A'}</span>
-                                                    </div>
-                                                    <div className={styles.loteStock}>
-                                                        {l.stock} <small>Pzs</small>
-                                                    </div>
-                                                    <span className="material-symbols-rounded">add_circle</span>
+                                        <>
+                                            <div className={styles.qtySelectorGlobal}>
+                                                <label>Cantidad a pedir:</label>
+                                                <div className={styles.stepper}>
+                                                    <button onClick={() => setCantidadAñadir(Math.max(1, cantidadAñadir - 1))}>-</button>
+                                                    <input 
+                                                        type="number" 
+                                                        value={cantidadAñadir} 
+                                                        onChange={(e) => setCantidadAñadir(Math.max(1, parseInt(e.target.value) || 1))}
+                                                    />
+                                                    <button onClick={() => setCantidadAñadir(cantidadAñadir + 1)}>+</button>
                                                 </div>
-                                            ))}
-                                        </div>
+                                            </div>
+                                            <div className={styles.loteGrid}>
+                                                {lotesDisponibles.map(l => (
+                                                    <div key={l.lote} className={styles.loteCard} onClick={() => agregarAlCarrito(l)}>
+                                                        <div className={styles.loteMain}>
+                                                            <strong>LOTE: {l.lote}</strong>
+                                                            <span>Caducidad: {l.caducidad ? new Date(l.caducidad).toLocaleDateString() : 'N/A'}</span>
+                                                        </div>
+                                                        <div className={styles.loteStock}>
+                                                            {l.stock} <small>Pzs</small>
+                                                        </div>
+                                                        <div className={styles.addIndicator}>
+                                                            <span className={styles.addQty}>+{cantidadAñadir}</span>
+                                                            <span className="material-symbols-rounded">add_circle</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </>
                                     )}
                                 </div>
                             </div>
