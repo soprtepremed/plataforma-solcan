@@ -58,15 +58,17 @@
 .loginCard {
   position: relative;
   z-index: 10;
-  /* Gloop Glassmorphism Core */
-  background: rgba(255, 255, 255, 0.45); 
-  backdrop-filter: blur(40px) saturate(200%);
-  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  /* Ultra Transparent Clean Glass */
+  background: rgba(255, 255, 255, 0.05); 
+  backdrop-filter: blur(8px) saturate(150%);
+  -webkit-backdrop-filter: blur(8px) saturate(150%);
   
   padding: 3.5rem 3rem;
   border-radius: 45px;
-  border: 1.5px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 25px 60px rgba(5, 0, 78, 0.25);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    0 25px 60px rgba(0, 0, 0, 0.4),
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.1);
   width: 100%;
   max-width: 480px;
   text-align: center;
@@ -75,18 +77,20 @@
 
 .loginCard:hover {
   transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .title {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: var(--co-primary);
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #FFFFFF; /* Blanco para máxima elegancia sobre cristal */
   margin-bottom: 0.5rem;
+  letter-spacing: -1px;
 }
 
 .subtitle {
-  color: #1e293b; /* Azul muy oscuro para contraste */
+  color: rgba(255, 255, 255, 0.9); /* Blanco para mejor contraste en fondo oscuro */
   font-size: 0.95rem;
   margin-bottom: 2rem;
   line-height: 1.4;
@@ -97,21 +101,26 @@
 .branchSelect {
   width: 100%;
   padding: 1.1rem 1.2rem;
-  border: 2px solid rgba(5, 0, 78, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 20px;
   font-family: inherit;
   font-size: 1rem;
   font-weight: 600;
   outline: none;
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.05); /* Minimal Opacity */
+  backdrop-filter: blur(4px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: var(--co-primary);
+  color: #FFFFFF;
+}
+
+.branchSelect::placeholder {
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .branchSelect:focus {
-  border-color: var(--co-accent);
-  background-color: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 0 0 5px rgba(11, 206, 205, 0.15);
+  border-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.1);
   transform: scale(1.02);
 }
 
@@ -124,10 +133,10 @@
   display: block;
   font-size: 0.75rem; 
   font-weight: 800; 
-  color: #000000; /* Negro para labels */
+  color: rgba(255, 255, 255, 0.8); /* Blanco translúcido para labels */
   margin-left: 4px;
   margin-bottom: 6px;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   text-transform: uppercase;
 }
 
@@ -156,7 +165,7 @@
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #000000;
+  color: #FFFFFF;
   user-select: none;
 }
 
@@ -243,7 +252,7 @@
   display: block;
   margin-top: 2rem;
   font-size: 0.75rem;
-  color: #1e293b;
+  color: rgba(255, 255, 255, 0.5);
   letter-spacing: 1px;
   font-weight: 600;
 }
