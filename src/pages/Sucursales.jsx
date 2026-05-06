@@ -197,6 +197,15 @@ const Sucursales = () => {
             });
         }
 
+        if (user.role === 'recursos_humanos' || user.role === 'admin') {
+            actions.push({
+                title: 'Evaluaciones de Calidad',
+                desc: 'Gestión de evaluaciones de desempeño, calidad técnica y psicométrica del personal.',
+                icon: 'fact_check',
+                path: '/area/recursos-humanos/evaluaciones'
+            });
+        }
+
         return actions;
     };
 

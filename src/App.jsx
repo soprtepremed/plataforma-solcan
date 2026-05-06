@@ -40,6 +40,9 @@ import TomaMuestraDashboard from './pages/dashboard/areas/TomaMuestraDashboard';
 import RecepcionDashboard from './pages/dashboard/areas/RecepcionDashboard';
 import DireccionOperativaDashboard from './pages/dashboard/areas/DireccionOperativaDashboard';
 import RRHHDashboard from './pages/dashboard/areas/RRHHDashboard';
+import EvaluacionesCalidad from './pages/dashboard/areas/EvaluacionesCalidad';
+import NOM035Questionnaire from './pages/dashboard/areas/NOM035Questionnaire';
+import NOM035Dashboard from './pages/dashboard/areas/NOM035Dashboard';
 import ContabilidadDashboard from './pages/dashboard/areas/ContabilidadDashboard';
 import QuimicaClinicaDashboard from './pages/dashboard/areas/QuimicaClinicaDashboard';
 import ParametrosDerivados from './pages/dashboard/areas/ParametrosDerivados';
@@ -197,6 +200,9 @@ function App() {
         <Route path="/area/recepcion" element={<AreaRoute requiredRole="recepcion_area"><DashboardLayout><RecepcionDashboard /></DashboardLayout></AreaRoute>} />
         <Route path="/area/direccion-operativa" element={<AreaRoute requiredRole="direccion_operativa"><DashboardLayout><DireccionOperativaDashboard /></DashboardLayout></AreaRoute>} />
         <Route path="/area/recursos-humanos" element={<AreaRoute requiredRole="recursos_humanos"><DashboardLayout><RRHHDashboard /></DashboardLayout></AreaRoute>} />
+        <Route path="/area/recursos-humanos/evaluaciones" element={<AreaRoute requiredRole="recursos_humanos"><DashboardLayout><EvaluacionesCalidad /></DashboardLayout></AreaRoute>} />
+        <Route path="/area/recursos-humanos/evaluaciones/nom035" element={<AreaRoute requiredRole="recursos_humanos"><DashboardLayout><NOM035Dashboard /></DashboardLayout></AreaRoute>} />
+        <Route path="/nom035/evaluacion" element={<NOM035Questionnaire />} />
         <Route path="/area/contabilidad" element={<AreaRoute requiredRole="contabilidad"><DashboardLayout><ContabilidadDashboard /></DashboardLayout></AreaRoute>} />
         <Route path="/area/quimica-clinica" element={<AreaRoute requiredRole="quimica_clinica"><DashboardLayout><QuimicaClinicaDashboard /></DashboardLayout></AreaRoute>} />
         <Route path="/area/quimica-clinica/derivados" element={<AreaRoute requiredRole="quimica_clinica"><DashboardLayout><ParametrosDerivados /></DashboardLayout></AreaRoute>} />

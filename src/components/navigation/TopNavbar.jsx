@@ -248,7 +248,19 @@ export default function TopNavbar() {
     };
 
     if (areasConfig[r]) options.push(areasConfig[r]);
-    
+    if (r === 'recursos_humanos') {
+      options.push({
+        label: 'Recursos Humanos',
+        path: '/area/recursos-humanos',
+        icon: 'group',
+        children: [
+          { label: 'Portal RRHH', path: '/area/recursos-humanos', icon: 'dashboard' },
+          { label: 'Calidad del Personal', path: '/area/recursos-humanos/evaluaciones', icon: 'fact_check' },
+          { label: 'Dashboard NOM-035', path: '/area/recursos-humanos/evaluaciones/nom035', icon: 'analytics' },
+          { label: 'Responder Auto-Evaluación', path: '/nom035/evaluacion', icon: 'assignment' }
+        ]
+      });
+    }
     // Acceso administrativo a Áreas
     if (r === 'admin') {
       options.push({ 
