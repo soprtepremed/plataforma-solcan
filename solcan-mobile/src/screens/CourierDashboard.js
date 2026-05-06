@@ -142,7 +142,7 @@ export default function CourierDashboard({ onOpenMenu, onNavigate }) {
         .eq('id', id);
 
       if (error) throw error;
-      addNotification("Chofer en camino", `Vas hacia ${sucursalName}.`, 'transit');
+      addNotification("Chofer en camino", `Vas hacia ${sucursalName}.`, 'transit', true);
       
       // Notificar a la sucursal (Web lo hace así)
       await supabase.from("notificaciones").insert([{
@@ -150,6 +150,7 @@ export default function CourierDashboard({ onOpenMenu, onNavigate }) {
         title: "Recolector en Camino",
         message: `${user.name || 'El recolector'} ha aceptado tu pedido y se dirige a tu sucursal.`,
         type: "info",
+        role: "sucursal",
         metadata: { sucursal: sucursalName }
       }]);
 
@@ -170,7 +171,7 @@ export default function CourierDashboard({ onOpenMenu, onNavigate }) {
         .eq('id', id);
 
       if (error) throw error;
-       addNotification("Muestras Recolectadas", `${sucursalName} en camino a Matriz.`, 'success');
+       addNotification("Muestras Recolectadas", `${sucursalName} en camino a Matriz.`, 'success', true);
        
        // Notificar a la sucursal
        await supabase.from("notificaciones").insert([{
@@ -178,13 +179,39 @@ export default function CourierDashboard({ onOpenMenu, onNavigate }) {
          title: "Paquete Recolectado",
          message: `Recolección exitosa, el recolector va hacia Matriz.`,
          type: "success",
+         role: "sucursal",
          metadata: { sucursal: sucursalName }
        }]);
 
-       Alert.alert("Éxito", "Muestras recolectadas correctamente. El estado ahora es 'En Tránsito'.");
+        Alert.alert(
+          "Éxito", 
+          "Muestras recolectadas correctamente. El estado ahora es 'En Tránsito'.",
+          [{ text: "OK", onPress: () => fetchShipments() }]
+        );
     } catch (error) {
       console.error(error);
       Alert.alert("Error", "No se pudo confirmar la recogida");
+    }
+  };
+
+  const handleArriveAtMatriz = async (id, sucursalName) => {
+    try {
+      const { error } = await supabase
+        .from('logistica_envios')
+        .update({ 
+          status: 'En Matriz', 
+          hora_llegada_matriz: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+       addNotification("Llegada a Matriz", `${sucursalName} entregado físicamente.`, 'success', true);
+       
+       Alert.alert("¡Llegaste!", "El paquete ha sido marcado como 'En Matriz'. Los químicos ya pueden iniciar la recepción.");
+       fetchShipments();
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "No se pudo confirmar la llegada");
     }
   };
 
@@ -197,10 +224,11 @@ export default function CourierDashboard({ onOpenMenu, onNavigate }) {
 
       // Traer envíos pendientes (sin hora de recolección aún)
       // Eliminamos el filtro de fecha estricto para no perder solicitudes de días anteriores aún pendientes
+      // Traer envíos pendientes o en tránsito para el chofer
       const { data: envios, error: e1 } = await supabase
         .from('logistica_envios')
         .select('*')
-        .is('hora_recoleccion', null)
+        .in('status', ['Pendiente', 'En camino', 'En Camino', 'En Tránsito', 'En tránsito', 'En Matriz'])
         .order('created_at', { ascending: false });
 
       if (e1) throw e1;
@@ -273,15 +301,10 @@ export default function CourierDashboard({ onOpenMenu, onNavigate }) {
           fetchShipments();
         }
       )
-      .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notificaciones', filter: 'role=eq.mensajero' },
-        (payload) => {
-          const { user_id } = payload.new;
-          // Solo agregar a la campanita si es para mí o es general (null)
-          if (!user_id || user_id === user.id) {
-            // skipSystem=true porque App.js ya dispara la notificación nativa para la tabla 'notificaciones'
-            addNotification(payload.new.title, payload.new.message, payload.new.type || 'info', true);
-          }
+      .on('postgres_changes', 
+        { event: 'DELETE', schema: 'public', table: 'logistica_envios' }, 
+        () => {
+          fetchShipments();
         }
       )
       .subscribe();
@@ -297,7 +320,7 @@ export default function CourierDashboard({ onOpenMenu, onNavigate }) {
   };
 
   const renderItem = ({ item }) => {
-    const isTakenByMe = item.mensajero_id === (user.name || user.id);
+    const isTakenByMe = item.mensajero_id?.toLowerCase() === (user.name?.toLowerCase() || user.id?.toLowerCase());
     const isTakenByOther = item.mensajero_id && !isTakenByMe;
     const isAvailable = !item.mensajero_id;
     const fifteenMinsAgo = new Date(Date.now() - 15 * 60000);
@@ -336,19 +359,19 @@ export default function CourierDashboard({ onOpenMenu, onNavigate }) {
           </View>
           <View style={[
             styles.badge, 
-            item.status === 'En camino' && styles.badgeWarning,
-            item.status === 'En Tránsito' && styles.badgeTransit,
-            item.hora_recoleccion && styles.badgeSuccess,
+            (item.status?.toLowerCase() === 'en camino') && styles.badgeWarning,
+            (item.status?.toLowerCase() === 'en tránsito') && styles.badgeTransit,
+            (item.status?.toLowerCase() === 'en matriz' || item.status?.toLowerCase() === 'recibido') && styles.badgeSuccess,
             isUrgent && styles.badgeUrgent
           ]}>
             <Text style={[
               styles.badgeText,
-              item.status === 'En camino' && styles.badgeTextWarning,
-              item.status === 'En Tránsito' && styles.badgeTextTransit,
-              item.hora_recoleccion && styles.badgeTextSuccess,
+              (item.status?.toLowerCase() === 'en camino') && styles.badgeTextWarning,
+              (item.status?.toLowerCase() === 'en tránsito') && styles.badgeTextTransit,
+              (item.status?.toLowerCase() === 'en matriz' || item.status?.toLowerCase() === 'recibido') && styles.badgeTextSuccess,
               isUrgent && styles.badgeTextUrgent
             ]}>
-              {isUrgent ? 'CRÍTICO' : (isTakenByMe ? (item.status === 'En camino' ? 'VAS TÚ' : 'EN TRÁNSITO') : (item.status?.toUpperCase() || 'PENDIENTE'))}
+              {isUrgent ? 'CRÍTICO' : (isTakenByMe ? (item.status?.toLowerCase() === 'en camino' ? 'VAS TÚ' : 'EN TRÁNSITO') : (item.status?.toUpperCase() || 'PENDIENTE'))}
             </Text>
             {isUrgent && <AlertTriangle size={12} color="#EF4444" style={{marginLeft: 4}} strokeWidth={3} />}
           </View>
@@ -356,9 +379,14 @@ export default function CourierDashboard({ onOpenMenu, onNavigate }) {
         
         <View style={styles.destinationBox}>
           <View style={styles.sucursalHeaderRow}>
-            <View style={{ flex: 1 }}>
+            <View style={styles.cardHeaderInfo}>
               <Text style={styles.sucursalLabel}>ORIGEN</Text>
-              <Text style={styles.sucursalValue}>{item.sucursal || 'Sin sucursal'}</Text>
+              <Text style={styles.sucursalName}>{item.sucursal}</Text>
+              {item.folio_envio && (
+                <View style={styles.folioBadge}>
+                  <Text style={styles.folioText}>{item.folio_envio}</Text>
+                </View>
+              )}
             </View>
             
             {/* ACCIONES DE CONTACTO */}
@@ -399,7 +427,7 @@ export default function CourierDashboard({ onOpenMenu, onNavigate }) {
               label="Aceptar Viaje →"
               color="#3B82F6"
             />
-          ) : isTakenByMe && item.status === 'En camino' ? (
+          ) : isTakenByMe && item.status?.toLowerCase() === 'en camino' ? (
             <SwipeToAccept 
               key={`confirm-${item.id}`}
               onAccept={() => handleConfirmPickup(item.id, item.sucursal)} 
@@ -407,14 +435,19 @@ export default function CourierDashboard({ onOpenMenu, onNavigate }) {
               activeLabel="¡RECOLECTADO!"
               color="#F59E0B"
             />
-          ) : isTakenByMe && item.status === 'En Tránsito' ? (
-            <TouchableOpacity 
-              style={styles.actionBtn}
-              onPress={() => onNavigate && onNavigate('bitacora')} 
-            >
-              <Text style={styles.actionBtnText}>Bitácora FO-DO-017</Text>
-              <ChevronRight size={18} color="#FFF" />
-            </TouchableOpacity>
+          ) : isTakenByMe && item.status?.toLowerCase() === 'en tránsito' ? (
+            <SwipeToAccept 
+              key={`arrive-${item.id}`}
+              onAccept={() => handleArriveAtMatriz(item.id, item.sucursal)} 
+              label="Desliza al llegar a Matriz →"
+              activeLabel="¡EN MATRIZ!"
+              color="#6366F1"
+            />
+          ) : isTakenByMe && item.status?.toLowerCase() === 'en matriz' ? (
+            <View style={[styles.actionBtn, { backgroundColor: '#10B981', opacity: 0.8 }]}>
+              <Text style={styles.actionBtnText}>¡Entregado en Matriz!</Text>
+              <Package size={18} color="#FFF" />
+            </View>
           ) : null}
         </View>
       </Animated.View>
@@ -1050,6 +1083,25 @@ const styles = StyleSheet.create({
     color: '#64748B',
     textAlign: 'center',
     lineHeight: 22,
+  },
+  folioBadge: {
+    backgroundColor: '#0EA5E9',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginTop: 6,
+    alignSelf: 'flex-start',
+    shadowColor: '#0EA5E9',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  folioText: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 1,
   },
 });
 

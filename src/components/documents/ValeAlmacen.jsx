@@ -11,6 +11,10 @@ const ValeAlmacen = React.forwardRef(({ vale, items, solicitante, sucursalStock 
     displayItems.push({ id: `empty-${displayItems.length}`, empty: true });
   }
 
+  // Extraer nombre del receptor de observaciones si existe
+  const receiverName = vale?.nombre_receptor || solicitante?.name || vale?.solicitante?.name || vale?.solicitante_nombre || '';
+  const observaciones = vale?.observaciones || '';
+
   const renderDiagonal = () => (
     <div className={styles.diagonalWrapper}>
       <div className={styles.diagonalLine}></div>
@@ -54,37 +58,43 @@ const ValeAlmacen = React.forwardRef(({ vale, items, solicitante, sucursalStock 
       <table className={styles.voucherTable}>
         <thead>
           <tr>
-            <th style={{width: '60px'}}>CANTIDAD</th>
+            <th style={{width: '50px'}}>CANT. PEDIDA</th>
+            <th style={{width: '50px'}}>CANT. SURTIDA</th>
             <th style={{width: '80px'}}>CÓDIGO</th>
             <th style={{width: '100px'}}>LOTE</th>
             <th style={{width: '100px'}}>CADUCIDAD</th>
-            <th style={{width: '80px'}}>EXISTENCIA<br/><span style={{fontSize: '0.5rem'}}>(SOLO SUCURSALES)</span></th>
             <th>CONCEPTO</th>
-            <th style={{width: '80px'}}>PENDIENTES</th>
+            <th style={{width: '60px'}}>PENDIENTES</th>
           </tr>
         </thead>
         <tbody>
           {displayItems.map((item, idx) => (
             <tr key={item.id || idx}>
               <td>{item.empty ? '' : (item.cantidad_solicitada || item.cantidad)}</td>
+              <td style={{fontWeight: 700, color: '#0369A1'}}>{item.empty ? '' : (item.cantidad_surtida ?? '')}</td>
               <td className={styles.codeCell}>{item.empty ? '' : (item.material?.prefijo || item.prefijo)}</td>
               <td>{item.empty ? '' : (
                 (item.lote_solicitado === 'SIN LOTE' || item.lote === 'SIN LOTE') ? 'S.L' : 
                 (item.lote_solicitado || item.lote || renderDiagonal())
               )}</td>
               <td>{item.empty ? '' : (item.caducidad ? new Date(item.caducidad).toLocaleDateString() : renderDiagonal())}</td>
-              <td>{item.empty ? '' : (sucursalStock[item.material_catalogo_id || item.material_id] ?? renderDiagonal())}</td>
               <td className={styles.conceptCell}>
                 {item.empty ? '' : (item.material?.nombre || item.nombre)}
               </td>
-              <td>{renderDiagonal()}</td>
+              <td>
+                {item.empty ? '' : (
+                  (item.cantidad_solicitada && item.cantidad_surtida !== undefined) 
+                  ? (item.cantidad_solicitada - item.cantidad_surtida > 0 ? (item.cantidad_solicitada - item.cantidad_surtida) : renderDiagonal())
+                  : renderDiagonal()
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
 
       <div className={styles.obsBox}>
-        <strong>OBSERVACIONES:</strong> {vale?.observaciones || ''}
+        <strong>OBSERVACIONES:</strong> {observaciones}
       </div>
 
       <div className={styles.bottomInfo}>
@@ -94,21 +104,25 @@ const ValeAlmacen = React.forwardRef(({ vale, items, solicitante, sucursalStock 
       </div>
 
       <div className={styles.signatureArea}>
-        <div>
+        <div className={styles.signBox}>
           <div className={styles.signLabel}>ENTREGA</div>
           <div className={styles.signLine}></div>
-          <div className={styles.signerName}>Nombre y firma de Almacén</div>
+          <div className={styles.signerName}>
+            <strong>Almacén Central</strong>
+            <div style={{marginTop: '2px', fontSize: '0.65rem', opacity: 0.8}}>Nombre y firma de Almacén</div>
+          </div>
         </div>
-        <div>
+
+        <div className={styles.signBox}>
           <div className={styles.signLabel}>RECIBE</div>
           <div className={styles.signLine}>
-            {(vale?.firma_solicitante || vale?.firma) && (
-              <img src={vale?.firma_solicitante || vale?.firma} alt="Firma" className={styles.signatureImg} />
+            {(vale?.firma_receptor || vale?.firma_solicitante || vale?.firma) && (
+              <img src={vale?.firma_receptor || vale?.firma_solicitante || vale?.firma} alt="Firma" className={styles.signatureImg} />
             )}
           </div>
           <div className={styles.signerName}>
-            <strong>{solicitante?.name || vale?.solicitante?.name || vale?.solicitante_nombre || ''}</strong>
-            <div style={{marginTop: '2px', fontSize: '0.65rem', opacity: 0.8}}>Nombre y firma de la Sucursal</div>
+            <strong>{receiverName}</strong>
+            <div style={{marginTop: '2px', fontSize: '0.65rem', opacity: 0.8}}>Nombre y firma del Receptor</div>
           </div>
         </div>
       </div>

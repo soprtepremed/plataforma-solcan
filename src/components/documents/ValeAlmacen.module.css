@@ -173,6 +173,12 @@
   text-align: center;
 }
 
+.signBox {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
 .signLine {
   border-top: 1.5px solid #000;
   padding-top: 5px;

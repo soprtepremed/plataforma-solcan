@@ -40,22 +40,23 @@ function NavigationWrapper() {
           {
             event: 'INSERT',
             schema: 'public',
-            table: 'notificaciones',
-            filter: `role=eq.mensajero`, // Escuchamos solo lo de mensajeros
+            table: 'notificaciones'
           },
           (payload) => {
             const { role: notifRole, user_id, title, message, metadata } = payload.new;
-            console.log('🔔 Nueva notificación detectada:', payload.new);
             
-            // FILTRO DE IDENTIDAD:
-            // 1. Si la notificación tiene un user_id y NO es el mío, la ignoramos.
-            if (user_id && user_id !== user.id) {
-              console.log('🤫 Ignorando notificación para otro usuario:', user_id);
+            // 1. SILENCIADOR: Si la notificación es para sucursales, fuera.
+            if (notifRole === 'sucursal') return;
+
+            // 2. SILENCIADOR: Si el mensaje contiene mi nombre (yo lo provoqué), fuera.
+            if (message && user?.name && message.includes(user.name)) {
+              console.log('🤫 Ignorando eco propio:', message);
               return;
             }
 
-            // 2. Si es para el rol mensajero o para mi ID específico, la mostramos.
+            // 3. FILTRO DE IDENTIDAD: Solo mensajeros o yo específicamente.
             if (notifRole === 'mensajero' || user_id === user.id) {
+              console.log('🔔 Notificación válida para mensajero:', title);
               // VIBRACIÓN FÍSICA INMEDIATA (Nativo)
               Vibration.vibrate([0, 500, 200, 500]);
               
