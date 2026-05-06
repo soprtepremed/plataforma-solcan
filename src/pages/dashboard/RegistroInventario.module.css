@@ -186,7 +186,7 @@
 
 .subgrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -212,6 +212,8 @@
   font-size: 1rem;
   background: white;
   transition: all 0.2s;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .manualForm select:focus, 
@@ -223,7 +225,7 @@
 
 .row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 

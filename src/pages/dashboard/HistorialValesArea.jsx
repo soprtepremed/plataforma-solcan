@@ -75,7 +75,7 @@ export default function HistorialValesArea() {
     const handleViewDetail = async (vale) => {
         const { data: items, error } = await supabase
             .from('solicitudes_items')
-            .select('*, material:materiales_catalogo(nombre, unidad, ubicacion, marca, presentacion)')
+            .select('*, material:materiales_catalogo(nombre, prefijo, unidad, ubicacion, marca, presentacion)')
             .eq('vale_id', vale.id);
         
         if (error) {

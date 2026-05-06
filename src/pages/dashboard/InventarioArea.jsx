@@ -4,6 +4,20 @@ import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
 import styles from './InventarioHemato.module.css'; 
 
+const formatLocalDate = (dateStr) => {
+  if (!dateStr) return '---';
+  try {
+    const cleanDate = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+    const parts = cleanDate.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return new Date(dateStr).toLocaleDateString();
+  } catch (e) {
+    return dateStr;
+  }
+};
+
 const SUCURSALES = ["Matriz", "CRAE", "Tapachula", "San Cristobal", "Comitan", "Arriaga", "Pijijiapan", "Palenque"];
 
 const AREA_ICONS = {
@@ -47,14 +61,14 @@ const InventoryCard = ({ item, onEdit, onQuickStart, onQuickEnd }) => {
                 </div>
             </div>
             <div className={styles.cardQuickInfo}>
-                <div className={styles.quickItem}><label>Caducidad</label><span style={{ color: new Date(item.caducidad) < new Date() ? '#EF4444' : 'inherit', fontWeight: 700 }}>{item.caducidad ? new Date(item.caducidad).toLocaleDateString() : '---'}</span></div>
+                <div className={styles.quickItem}><label>Caducidad</label><span style={{ color: new Date(item.caducidad) < new Date() ? '#EF4444' : 'inherit', fontWeight: 700 }}>{formatLocalDate(item.caducidad)}</span></div>
                 <div className={styles.quickItem}><label>Cód. Calidad</label><span className={item.aceptado ? styles.textSuccess : styles.textDanger}>{item.aceptado ? 'ACEPTADO' : 'RECHAZADO'}</span></div>
             </div>
             {isExpanded && (
                 <div className={styles.cardExpandedContent}>
                     <div className={styles.detailsGrid}>
-                        <div className={styles.detailRow}><label>Inicio Uso:</label><span>{item.fecha_inicio_uso ? new Date(item.fecha_inicio_uso).toLocaleDateString() : 'PENDIENTE'}</span></div>
-                        <div className={styles.detailRow}><label>Término Uso:</label><span>{item.fecha_termino_uso ? new Date(item.fecha_termino_uso).toLocaleDateString() : '---'}</span></div>
+                        <div className={styles.detailRow}><label>Inicio Uso:</label><span>{item.fecha_inicio_uso ? formatLocalDate(item.fecha_inicio_uso) : 'PENDIENTE'}</span></div>
+                        <div className={styles.detailRow}><label>Término Uso:</label><span>{item.fecha_termino_uso ? formatLocalDate(item.fecha_termino_uso) : '---'}</span></div>
                         <div className={styles.detailRow}><label>Temperatura:</label><span>{item.temp_almacenamiento}</span></div>
                     </div>
                 </div>
@@ -536,7 +550,7 @@ export default function InventarioArea() {
                                     <div className={styles.detailItem}><label>Stock Total</label><span className={item.stock_total < 5 ? styles.textDanger : ''}>{item.stock_total}</span></div>
                                     <div className={styles.detailItem}>
                                       <label>F. Pedido</label>
-                                      <span>{item.fecha_solicitud_almacen ? new Date(item.fecha_solicitud_almacen).toLocaleDateString() : '---'}</span>
+                                      <span>{formatLocalDate(item.fecha_solicitud_almacen)}</span>
                                     </div>
                                     <div className={styles.detailItem}>
                                       <label>Observaciones</label>
@@ -585,7 +599,7 @@ export default function InventarioArea() {
                                             </div>
                                             <div className={styles.lotTag} style={{minWidth: '120px'}}>
                                               <label>Surtido el:</label>
-                                              <span style={{fontSize: '0.8rem'}}>{entry.fecha_solicitud_almacen ? new Date(entry.fecha_solicitud_almacen).toLocaleDateString() : '---'}</span>
+                                              <span style={{fontSize: '0.8rem'}}>{formatLocalDate(entry.fecha_solicitud_almacen)}</span>
                                             </div>
                                             <div className={styles.lotDetails}>
                                               <div className={styles.detailItem}><label>Stock</label><span>{entry.stock_actual}</span></div>
@@ -595,7 +609,7 @@ export default function InventarioArea() {
                                                   {entryActive ? 'EN USO' : entryFinished ? 'TERMINADO' : 'EN RESERVA'}
                                                 </span>
                                               </div>
-                                              <div className={styles.detailItem}><label>F. Pedido</label><span style={{fontSize: '0.75rem'}}>{entry.fecha_solicitud_almacen ? new Date(entry.fecha_solicitud_almacen).toLocaleDateString() : '---'}</span></div>
+                                              <div className={styles.detailItem}><label>F. Pedido</label><span style={{fontSize: '0.75rem'}}>{formatLocalDate(entry.fecha_solicitud_almacen)}</span></div>
                                               <div className={styles.detailItem}><label>Obs.</label><span style={{fontSize: '0.7rem', color: '#64748B'}}>{entry.observaciones || 'N/A'}</span></div>
                                             </div>
                                           </div>
