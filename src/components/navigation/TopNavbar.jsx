@@ -257,6 +257,7 @@ export default function TopNavbar() {
           { label: 'Portal RRHH', path: '/area/recursos-humanos', icon: 'dashboard' },
           { label: 'Calidad del Personal', path: '/area/recursos-humanos/evaluaciones', icon: 'fact_check' },
           { label: 'Dashboard NOM-035', path: '/area/recursos-humanos/evaluaciones/nom035', icon: 'analytics' },
+          { label: 'Vídeo Certificados (Remotion)', path: '/area/recursos-humanos/certificados', icon: 'video_file' },
           { label: 'Responder Auto-Evaluación', path: '/nom035/evaluacion', icon: 'assignment' }
         ]
       });

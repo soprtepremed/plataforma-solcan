@@ -110,6 +110,26 @@ export default function EvaluacionesCalidad() {
                 <span className="material-symbols-rounded" style={{ fontSize: '1.15rem' }}>assignment</span>
                 Realizar Auto-Evaluación
               </button>
+              <button 
+                onClick={() => window.location.href = '/area/recursos-humanos/certificados'}
+                style={{
+                  background: 'rgba(5, 0, 78, 0.05)',
+                  border: '1px solid rgba(5, 0, 78, 0.15)',
+                  color: '#05004e',
+                  padding: '10px 18px',
+                  borderRadius: '12px',
+                  fontWeight: '700',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <span className="material-symbols-rounded" style={{ fontSize: '1.15rem' }}>video_file</span>
+                Vídeo Certificados (Remotion)
+              </button>
             </div>
           </div>
           <div className={styles.devBadge}>

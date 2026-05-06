@@ -1,0 +1,385 @@
+/* NOM035Certificados.module.css - Estilos premium para Video Certificados Remotion */
+
+.container {
+  padding: 2rem;
+  background: radial-gradient(135deg, rgba(5, 0, 78, 0.05) 0%, rgba(161, 20, 214, 0.02) 100%);
+  min-height: calc(100vh - 100px);
+  font-family: 'Outfit', 'Inter', sans-serif;
+}
+
+.headerCard {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 1.5rem 2rem;
+  border-radius: 20px;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+.headerText h2 {
+  color: var(--co-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.headerText p {
+  color: #64748b;
+  margin: 5px 0 0 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.workspaceGrid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* PANEL IZQUIERDO: REPRODUCTOR REMOTION */
+.playerContainer {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 24px;
+  padding: 1.5rem;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04);
+}
+
+.playerWrapper {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(5, 0, 78, 0.15);
+  border: 2px solid rgba(161, 20, 214, 0.2);
+  background: #000;
+}
+
+.playerMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.2rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.techBadge {
+  background: linear-gradient(135deg, #05004e 0%, #1e1b4b 100%);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(5, 0, 78, 0.2);
+}
+
+/* PANEL DERECHO: CONTROLES DE EDICIÓN */
+.controlsCard {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04);
+}
+
+.controlsCard h3 {
+  margin: 0 0 1.5rem 0;
+  color: #1e293b;
+  font-weight: 800;
+  font-size: 1.2rem;
+  border-bottom: 2px solid rgba(161, 20, 214, 0.1);
+  padding-bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1.2rem;
+}
+
+.formGroup label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #475569;
+}
+
+.formGroup input,
+.formGroup select {
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  font-size: 0.9rem;
+  outline: none;
+  background: white;
+  color: #1e293b;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.formGroup input:focus,
+.formGroup select:focus {
+  border-color: var(--co-secondary);
+  box-shadow: 0 0 0 3px rgba(161, 20, 214, 0.1);
+}
+
+.actionGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.primaryBtn {
+  background: linear-gradient(135deg, var(--co-secondary) 0%, #8b10b5 100%);
+  color: white;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 0.92rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 6px 15px rgba(161, 20, 214, 0.35);
+  transition: all 0.2s ease;
+}
+
+.primaryBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(161, 20, 214, 0.45);
+}
+
+/* ==================================================================== */
+/* COMPOSICIÓN DE VIDEO REAL (DISEÑO DENTRO DEL CERTIFICADO - EN PLAYER) */
+/* ==================================================================== */
+
+.certVideoBody {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #05002b 0%, #0c001f 50%, #150033 100%);
+  color: white;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+/* Líneas de Borde de Oro Animadas */
+.certFrame {
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  border: 4px solid transparent;
+  border-image: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #aa771c 100%) 1;
+  box-shadow: inset 0 0 30px rgba(212, 175, 55, 0.1);
+  pointer-events: none;
+}
+
+.certCorners {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  pointer-events: none;
+}
+
+/* Fondo de partículas / brillo */
+.glowAmbient {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(161, 20, 214, 0.25) 0%, rgba(0, 0, 0, 0) 70%);
+  pointer-events: none;
+}
+
+.contentBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  z-index: 10;
+  width: 100%;
+  max-width: 900px;
+}
+
+.brandLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.2rem;
+  letter-spacing: 4px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.goldLine {
+  width: 120px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #d4af37, transparent);
+  margin-top: 5px;
+}
+
+.titleText {
+  font-size: 2.8rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #fff 0%, #f3e5ab 50%, #d4af37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0 0 1rem 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.presentedText {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  margin: 0 0 1.2rem 0;
+  font-weight: 500;
+}
+
+.nameText {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #fff;
+  margin: 0 0 1.2rem 0;
+  text-shadow: 0 4px 20px rgba(161, 20, 214, 0.4);
+}
+
+.badgeAndDescription {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 1rem;
+  text-align: left;
+  max-width: 750px;
+}
+
+.medalWrapper {
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.medalCircle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f3e5ab 0%, #d4af37 60%, #aa771c 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 10px 25px rgba(212, 175, 55, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.medalRibbon {
+  position: absolute;
+  top: 5px;
+  width: 25px;
+  height: 50px;
+  background: #a114d6;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  z-index: -1;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.detailsCol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.awardTitle {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #d4af37;
+  margin: 0;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.awardDesc {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.certFooter {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 750px;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.metaCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.metaLabel {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.metaValue {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 700;
+}
+
+/* Animaciones sutiles incorporadas en el reproductor */
+@keyframes rotarMedalla {
+  0% { transform: rotateY(0deg); }
+  50% { transform: rotateY(180deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+@keyframes brillarBorde {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.25); }
+}
+
+@media (max-width: 1024px) {
+  .workspaceGrid {
+    grid-template-columns: 1fr;
+  }
+}
