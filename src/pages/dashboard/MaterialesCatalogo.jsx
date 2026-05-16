@@ -138,7 +138,7 @@ export default function MaterialesCatalogo() {
         subcategoria: 'General', sub_area: 'General', equipo: '', marca: '', proveedor_id: '', costo_unitario: 0, precio1: 0,
         presentacion: 'Caja', requiere_frio: false, temperatura_almacenamiento: 'Ambiente',
         temperatura_valor: 20, area_tecnica: 'HEMATOLOGÍA', ean_maestro: '', clase: 'Artículo',
-        piezas_por_empaque: 1
+        piezas_por_empaque: 1, estatus: 'Activo'
     };
     const [form, setForm] = useState(initialForm);
     const [dialogConfig, setDialogConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
@@ -283,7 +283,7 @@ export default function MaterialesCatalogo() {
             type: 'confirm',
             message: `¿Estás seguro de inactivar "${nombre}"?`,
             onConfirm: async () => {
-                await supabase.from('materiales_catalogo').update({ activo: false }).eq('id', id);
+                await supabase.from('materiales_catalogo').update({ estatus: 'Inactivo' }).eq('id', id);
                 fetchCatalogo();
             }
         });
@@ -295,7 +295,7 @@ export default function MaterialesCatalogo() {
             type: 'confirm',
             message: `¿Reactivar "${nombre}"?`,
             onConfirm: async () => {
-                await supabase.from('materiales_catalogo').update({ activo: true }).eq('id', id);
+                await supabase.from('materiales_catalogo').update({ estatus: 'Activo' }).eq('id', id);
                 fetchCatalogo();
             }
         });
@@ -450,7 +450,7 @@ export default function MaterialesCatalogo() {
                              (filterEquipo === 'Sin Equipo (N/A)' ? !c.equipo : c.equipo === filterEquipo);
         const matchesSubcat = filterSubcat === 'Todas' || c.subcategoria === filterSubcat;
         
-        const matchesViewMode = viewMode === 'Activos' ? c.activo !== false : c.activo === false;
+        const matchesViewMode = viewMode === 'Activos' ? c.estatus !== 'Inactivo' : c.estatus === 'Inactivo';
         
         return matchesViewMode && matchesSearch && matchesClase && matchesArea && matchesSubArea && matchesEquipo && matchesSubcat;
     });
@@ -515,10 +515,10 @@ export default function MaterialesCatalogo() {
                         </div>
                         <div className={styles.viewToggle}>
                             <button className={viewMode === 'Activos' ? styles.activeTab : ''} onClick={() => setViewMode('Activos')}>
-                                Activos <span>{catalogo.filter(c => c.activo !== false).length}</span>
+                                Activos <span>{catalogo.filter(c => c.estatus !== 'Inactivo').length}</span>
                             </button>
                             <button className={viewMode === 'Inactivos' ? styles.activeTab : ''} onClick={() => setViewMode('Inactivos')}>
-                                Inactivos <span>{catalogo.filter(c => c.activo === false).length}</span>
+                                Inactivos <span>{catalogo.filter(c => c.estatus === 'Inactivo').length}</span>
                             </button>
                         </div>
                     </div>
