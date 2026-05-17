@@ -102,6 +102,16 @@ export default function InventarioArea() {
   const [expandedGroups, setExpandedGroups] = useState(new Set());
   const [expandedLots, setExpandedLots] = useState(new Set());
   const [viewMode, setViewMode] = useState('detailed'); // 'detailed' or 'summary'
+  const [minStocks, setMinStocks] = useState(() => {
+    const saved = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('min_stock_')) {
+        saved[key.replace('min_stock_', '')] = parseInt(localStorage.getItem(key));
+      }
+    }
+    return saved;
+  });
 
   const areaKey = areaId?.toLowerCase() || 'area';
   const displayTitle = AREA_NAMES[areaKey] || areaKey.toUpperCase();
@@ -459,6 +469,7 @@ export default function InventarioArea() {
                     <th>Reactivo / Material</th>
                     <th style={{textAlign:'center'}}>Lotes Activos</th>
                     <th style={{textAlign:'center'}}>Stock Total</th>
+                    <th style={{textAlign:'center'}}>Mínimo</th>
                     <th style={{textAlign:'center'}}>Estado</th>
                   </tr>
                 </thead>
@@ -466,18 +477,55 @@ export default function InventarioArea() {
                   {Object.entries(finalGrouped).sort(([a],[b]) => a.localeCompare(b)).map(([name, lots]) => {
                     const totalStock = lots.reduce((sum, lot) => sum + lot.stock_total, 0);
                     const activeLots = lots.filter(l => l.esta_en_uso).length;
-                    const isLow = totalStock < 3;
+                    const minStock = minStocks[name] !== undefined ? minStocks[name] : 3;
+                    const isLow = totalStock < minStock;
                     return (
                       <tr key={name} className={isLow ? styles.rowLowStock : ''}>
                         <td className={styles.materialNameCell}>
-                          <span className="material-symbols-rounded">biotech</span>
-                          {name}
+                          <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                              <span className="material-symbols-rounded" style={{color: '#0EA5E9'}}>science</span>
+                              <span style={{fontWeight: 700, color: '#1E293B'}}>{name}</span>
+                            </div>
+                            <div style={{marginLeft: '32px', border: '1px solid #E2E8F0', borderRadius: '6px', overflow: 'hidden', maxWidth: '300px'}}>
+                              <table style={{width: '100%', fontSize: '0.8rem', borderCollapse: 'collapse'}}>
+                                <thead style={{background: '#F8FAFC'}}>
+                                  <tr>
+                                    <th style={{textAlign: 'left', padding: '4px 8px', color: '#64748B', fontWeight: 600}}>No. Lote</th>
+                                    <th style={{textAlign: 'right', padding: '4px 8px', color: '#64748B', fontWeight: 600}}>Cantidad</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {lots.map(lot => (
+                                    <tr key={lot.consolidatedKey} style={{borderTop: '1px solid #E2E8F0'}}>
+                                      <td style={{padding: '4px 8px', color: '#475569'}}>{lot.entries[0].lote || 'S/L'}</td>
+                                      <td style={{padding: '4px 8px', textAlign: 'right', fontWeight: 600, color: '#1E293B'}}>{lot.stock_total} unidades</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
                         </td>
                         <td style={{textAlign:'center', fontWeight:700}}>{activeLots} de {lots.length}</td>
                         <td style={{textAlign:'center'}}>
-                          <span className={`${styles.stockBadge} ${totalStock === 0 ? styles.stockEmpty : totalStock < 5 ? styles.stockLow : styles.stockOk}`}>
+                          <span className={`${styles.stockBadge} ${totalStock === 0 ? styles.stockEmpty : totalStock < minStock ? styles.stockLow : styles.stockOk}`}>
                             {totalStock} unidades
                           </span>
+                        </td>
+                        <td style={{textAlign:'center'}}>
+                          <input 
+                            type="number" 
+                            min="0" 
+                            value={minStock} 
+                            onChange={e => {
+                              const val = parseInt(e.target.value) || 0;
+                              const key = `min_stock_${name}`;
+                              localStorage.setItem(key, val);
+                              setMinStocks(prev => ({...prev, [name]: val}));
+                            }} 
+                            style={{width: '60px', textAlign: 'center', borderRadius: '8px', border: '1px solid #CBD5E1', padding: '6px', fontSize: '0.9rem'}}
+                          />
                         </td>
                         <td style={{textAlign:'center'}}>
                           {totalStock === 0 ? (
