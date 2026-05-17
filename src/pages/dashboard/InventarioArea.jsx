@@ -219,7 +219,7 @@ export default function InventarioArea() {
     setConfirmDialog({ show: true, message: "¿Confirmas el registro técnico auditado?", onConfirm: async () => {
         setSaving(true);
         try {
-          const { id, consolidatedKey, entries, stock_total, fechas_solicitud, esta_en_uso, esta_terminado, ...payload } = form;
+          const { id, consolidatedKey, consolidatekey, entries, stock_total, fechas_solicitud, esta_en_uso, esta_terminado, ...payload } = form;
           
           // Limpiar el payload: Convertir strings vacíos de fechas a null real
           const cleanPayload = { 
