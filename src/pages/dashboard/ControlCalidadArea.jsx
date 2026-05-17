@@ -40,6 +40,30 @@ export default function ControlCalidadArea() {
   useEffect(() => {
     fetchHistory();
     fetchPersonal();
+    
+    // Cargar plantilla de controles guardada
+    const saved = localStorage.getItem(`qc_controls_${areaId}`);
+    if (saved) {
+      const names = JSON.parse(saved);
+      setRows(names.map((name, index) => ({
+        id: index + 1,
+        nombre_control: name,
+        lote: '',
+        caducidad: '',
+        desviacion: '0',
+        aceptacion: true,
+        rechazo: false,
+        actividad_seguir: '',
+        accion_control: ''
+      })));
+    } else {
+      // Filas por defecto si no hay plantilla
+      setRows([
+        { id: 1, nombre_control: '', lote: '', caducidad: '', desviacion: '0', aceptacion: true, rechazo: false, actividad_seguir: '', accion_control: '' },
+        { id: 2, nombre_control: '', lote: '', caducidad: '', desviacion: '0', aceptacion: true, rechazo: false, actividad_seguir: '', accion_control: '' },
+        { id: 3, nombre_control: '', lote: '', caducidad: '', desviacion: '0', aceptacion: true, rechazo: false, actividad_seguir: '', accion_control: '' }
+      ]);
+    }
   }, [areaId]);
 
   const fetchPersonal = async () => {
@@ -170,6 +194,16 @@ export default function ControlCalidadArea() {
     setViewMode('form');
   };
 
+  const saveTemplate = () => {
+    const names = rows.map(r => r.nombre_control).filter(Boolean);
+    if (names.length === 0) {
+      alert("Escribe al menos un nombre de control para guardar como plantilla.");
+      return;
+    }
+    localStorage.setItem(`qc_controls_${areaId}`, JSON.stringify(names));
+    alert("Plantilla guardada correctamente. Se cargará automáticamente la próxima vez.");
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.controls}>
@@ -180,6 +214,9 @@ export default function ControlCalidadArea() {
           <>
             <button className={styles.addRowBtn} onClick={addRow}>
               <span className="material-symbols-rounded">add</span> Agregar Fila
+            </button>
+            <button className={styles.historyBtn} onClick={saveTemplate} style={{background: '#0EA5E9', color: 'white'}}>
+              <span className="material-symbols-rounded">save</span> Guardar Plantilla
             </button>
             <button className={styles.saveBtn} onClick={saveAndExport} disabled={loading}>
               <span className="material-symbols-rounded">picture_as_pdf</span> 
