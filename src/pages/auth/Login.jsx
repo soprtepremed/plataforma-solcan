@@ -61,7 +61,7 @@ export default function Login() {
 
       <div className={styles.loginCard}>
         <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-          <Logo size="lg" />
+          <Logo size="lg" variant="white" />
         </div>
         <h1 className={styles.title}>Plataforma Solcan</h1>
         <p className={styles.subtitle}>
@@ -138,7 +138,7 @@ export default function Login() {
           </button>
         </form>
 
-        <span className={styles.versionText} style={{ marginTop: '20px', display: 'block' }}>Solcan Lab v2.1 • Bioseguridad Digital</span>
+        <span className={styles.versionText} style={{ marginTop: '20px', display: 'block' }}>Solcan Lab v2.1</span>
       </div>
     </div>
   );
