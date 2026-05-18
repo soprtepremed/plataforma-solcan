@@ -53,19 +53,11 @@ export default function ChatWidget() {
 
   const playBell = () => {
     try {
-      let ctx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      if (!audioCtx) setAudioCtx(ctx);
-      if (ctx.state === 'suspended') ctx.resume();
-      const playNote = (f, s, d) => {
-        const o = ctx.createOscillator(); const g = ctx.createGain();
-        o.type = 'sine'; o.frequency.setValueAtTime(f, ctx.currentTime+s);
-        g.gain.setValueAtTime(0, ctx.currentTime+s);
-        g.gain.linearRampToValueAtTime(0.3, ctx.currentTime+s+0.01);
-        g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime+s+d);
-        o.connect(g); g.connect(ctx.destination); o.start(ctx.currentTime+s); o.stop(ctx.currentTime+s+d);
-      };
-      playNote(880, 0, 0.1); playNote(1174.66, 0.08, 0.2);
-    } catch(e){}
+      const audio = new Audio('/notification.mp3');
+      audio.play();
+    } catch(e){
+      console.error("Error playing audio", e);
+    }
   };
 
   useEffect(() => {
@@ -155,6 +147,35 @@ export default function ChatWidget() {
       }).subscribe();
     return () => supabase.removeChannel(sub);
   }, [user, isAuthorized]);
+
+  useEffect(() => {
+    const handleOpenChat = (e) => {
+      const { sucursal, canal } = e.detail;
+      setIsOpen(true);
+      
+      const r = (user?.role || '').toLowerCase().trim();
+      
+      if (sucursal.startsWith('INTER:')) {
+        setChatType('area-area');
+        setActiveTab('areas');
+        const parts = sucursal.replace('INTER:', '').split('-');
+        const otherArea = parts.find(p => p !== r) || 'admin';
+        setSelectedSucursal(otherArea);
+        const areaObj = AREAS.find(a => a.id === otherArea);
+        setSelectedArea(areaObj);
+      } else {
+        setChatType('sucursal-area');
+        setActiveTab('sucursales');
+        setSelectedSucursal(sucursal);
+        if (canal && canal !== 'INTER') {
+          const areaObj = AREAS.find(a => a.id === canal);
+          setSelectedArea(areaObj);
+        }
+      }
+    };
+    window.addEventListener('open_chat_conversation', handleOpenChat);
+    return () => window.removeEventListener('open_chat_conversation', handleOpenChat);
+  }, [user]);
 
   const fetchMessages = async () => {
     const cS = cleanSuc(selectedSucursal);

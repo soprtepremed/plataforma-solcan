@@ -212,6 +212,19 @@ export default function InventarioArea() {
     }});
   };
 
+  const handleDelete = async (item) => {
+    setConfirmDialog({ show: true, message: `¿Seguro que deseas ELIMINAR el lote ${item.lote || 'N/A'}? Se eliminarán todos los registros asociados y se descontará del stock.`, onConfirm: async () => {
+      const ids = item.entries.map(e => e.id);
+      const { error } = await supabase.from("inventario_areas").delete().in("id", ids);
+      if (error) {
+        alert("Error al eliminar: " + error.message);
+      } else {
+        fetchInventory();
+      }
+      setConfirmDialog({ show: false });
+    }});
+  };
+
   const handleSave = async (e) => {
     e.preventDefault(); if (saving) return;
     
@@ -627,6 +640,7 @@ export default function InventarioArea() {
                                   {!isActive && !isFinished && <button onClick={()=>handleQuickStart(item.entries[0].id)} className={styles.miniActionBtn} title="Iniciar Uso (FIFO)"><span className="material-symbols-rounded">play_arrow</span></button>}
                                   {isActive && <button onClick={()=>handleQuickEnd(item.entries.find(e => e.fecha_inicio_uso && !e.fecha_termino_uso)?.id || item.entries[0].id)} className={styles.miniActionBtn} style={{color:'#EF4444'}} title="Terminar Uso"><span className="material-symbols-rounded">stop</span></button>}
                                   <button onClick={()=>handleEdit(item)} className={styles.miniActionBtn} style={{color:'#64748B'}} title="Editar"><span className="material-symbols-rounded">edit</span></button>
+                                  <button onClick={()=>handleDelete(item)} className={styles.miniActionBtn} style={{color:'#EF4444'}} title="Eliminar Lote"><span className="material-symbols-rounded">delete</span></button>
                                 </div>
                               </div>
 
@@ -665,6 +679,7 @@ export default function InventarioArea() {
                                             {!entry.fecha_inicio_uso && <button onClick={()=>handleQuickStart(entry.id)} className={styles.miniActionBtn} title="Iniciar"><span className="material-symbols-rounded">play_arrow</span></button>}
                                             {entry.fecha_inicio_uso && !entry.fecha_termino_uso && <button onClick={()=>handleQuickEnd(entry.id)} className={styles.miniActionBtn} style={{color:'#EF4444'}} title="Terminar"><span className="material-symbols-rounded">stop</span></button>}
                                             <button onClick={()=>handleEdit(entry)} className={styles.miniActionBtn} style={{color:'#64748B'}} title="Editar"><span className="material-symbols-rounded">edit</span></button>
+                                            <button onClick={()=>handleDelete({ lote: entry.lote, entries: [entry] })} className={styles.miniActionBtn} style={{color:'#EF4444'}} title="Eliminar Unidad"><span className="material-symbols-rounded">delete</span></button>
                                           </div>
                                         </div>
                                       </div>

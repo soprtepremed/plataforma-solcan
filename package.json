@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "video": "node_modules\\.bin\\remotion.cmd preview src/RemotionRoot.jsx",
+    "render": "node_modules\\.bin\\remotion.cmd render src/RemotionRoot.jsx PromotionalVideo out.mp4",
+    "render-cinematic": "node_modules\\.bin\\remotion.cmd render src/RemotionRoot.jsx CinematicVideo cinematic.mp4"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.0",
@@ -33,6 +36,7 @@
   "devDependencies": {
     "@capacitor/cli": "^8.3.0",
     "@eslint/js": "^9.39.4",
+    "@remotion/cli": "^4.0.462",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-basic-ssl": "^2.3.0",

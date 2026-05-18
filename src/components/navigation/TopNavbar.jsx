@@ -11,6 +11,7 @@ export default function TopNavbar() {
   const location = useLocation();
   const { user, logout, updateUser } = useAuth();
   const [notifications, setNotifications] = useState([]);
+  const [chatNotifications, setChatNotifications] = useState([]);
   const [showNotifMenu, setShowNotifMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const dropdownRef = useRef(null);
@@ -56,11 +57,67 @@ export default function TopNavbar() {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  useEffect(() => {
+    if (!user) return;
+    
+    const r = (user?.role || '').toLowerCase().trim();
+    const isQuimico = r.includes('quimico') || r.includes('químico');
+    const isAdmin = r === 'admin' || r === 'administrador' || r === 'administración' || r.includes('logistica');
+    const areaIds = ['hematologia', 'quimica_clinica', 'urianalisis', 'microbiologia', 'serologia', 'almacen', 'admin'];
+    const isAreaStaff = areaIds.includes(r);
+    const isBranch = !!(user?.branch || user?.sucursal) && !isAdmin && !isAreaStaff;
+    const isAuthorized = (isAdmin || isBranch || isAreaStaff) && !isQuimico;
+
+    if (!isAuthorized) return;
+
+    const fetchUnreadChatMessages = async () => {
+      let q = supabase.from('chat_messages').select('*').eq('leido', false).neq('emisor_id', user.id);
+      if (isBranch) q = q.eq('sucursal', user.branch || user.sucursal);
+      else if (!isAdmin) q = q.or(`canal.eq.${r},sucursal.ilike.%${r}%`);
+      
+      const { data } = await q;
+      if (data) {
+        const formatted = data.map(msg => ({
+          id: msg.id,
+          title: `Tienes un mensaje de ${msg.emisor_nombre}`,
+          message: msg.contenido,
+          read: false,
+          created_at: msg.created_at,
+          isChat: true,
+          sucursal: msg.sucursal,
+          canal: msg.canal
+        }));
+        setChatNotifications(formatted);
+      }
+    };
+
+    fetchUnreadChatMessages();
+
+    const channel = supabase.channel('chat_messages_navbar')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages' }, payload => {
+        fetchUnreadChatMessages();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
+  const unreadCount = notifications.filter(n => !n.read).length + chatNotifications.length;
+  const allNotifications = [...notifications, ...chatNotifications].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   const markAllAsRead = async () => {
     if (unreadCount === 0) return;
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     await supabase.from('notificaciones').update({ read: true }).or(`role.eq.${user.role},user_id.eq.${user.id}`).eq('read', false);
+  };
+
+  const markSingleAsRead = async (id, isChat) => {
+    if (isChat) {
+      await supabase.from('chat_messages').update({ leido: true }).eq('id', id);
+      setChatNotifications(prev => prev.filter(n => n.id !== id));
+    } else {
+      await supabase.from('notificaciones').update({ read: true }).eq('id', id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    }
   };
 
   const deleteNotification = async (id) => {
@@ -293,7 +350,7 @@ export default function TopNavbar() {
             </div>
             <span className={styles.brandName}>Solcan <span>Lab</span></span>
           </div>
-          <button className={styles.iconBtn} onClick={() => { setShowNotifMenu(!showNotifMenu); markAllAsRead(); }}>
+          <button className={styles.iconBtn} onClick={() => { setShowNotifMenu(!showNotifMenu); }}>
             <span className="material-symbols-rounded">notifications</span>
             {unreadCount > 0 && <span className={styles.notifCircle}>{unreadCount}</span>}
           </button>
@@ -368,16 +425,36 @@ export default function TopNavbar() {
       </div>
 
       {showNotifMenu && (
-        <div className={styles.notifDropdown}>
+        <div className={styles.notifDropdown} style={{ width: '450px', maxWidth: '90vw' }}>
           <div className={styles.notifHeader}><h4>Notificaciones</h4></div>
           <div className={styles.notifList}>
-            {notifications.map(n => (
-              <div key={n.id} className={`${styles.notifItem} ${swipedNotifId === n.id ? styles.isSwiped : ''}`}>
-                <div className={styles.notifDot}></div>
+            {allNotifications.map(n => (
+              <div key={n.id} className={`${styles.notifItem} ${swipedNotifId === n.id ? styles.isSwiped : ''}`}
+                onClick={() => {
+                  if (n.isChat) {
+                    window.dispatchEvent(new CustomEvent('open_chat_conversation', { detail: { sucursal: n.sucursal, canal: n.canal } }));
+                    setShowNotifMenu(false);
+                  }
+                }}
+                style={{ cursor: n.isChat ? 'pointer' : 'default' }}
+              >
+                <div 
+                  className={styles.notifDot} 
+                  style={{ 
+                    backgroundColor: n.read ? '#94a3b8' : '#22c55e',
+                    opacity: n.read ? 0.5 : 1,
+                    cursor: 'pointer'
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    markSingleAsRead(n.id, n.isChat);
+                  }}
+                  title={n.read ? "Leída" : "Marcar como leída"}
+                ></div>
                 <div><h4>{n.title}</h4><p>{n.message}</p></div>
               </div>
             ))}
-            {notifications.length === 0 && <p className={styles.emptyNotif}>Sin avisos para hoy</p>}
+            {allNotifications.length === 0 && <p className={styles.emptyNotif}>Sin avisos para hoy</p>}
           </div>
         </div>
       )}
