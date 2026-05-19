@@ -51,6 +51,7 @@ import AreaTemperaturas from './pages/dashboard/areas/AreaTemperaturas';
 import BitacoraResultadosQuimica from './pages/dashboard/areas/BitacoraResultadosQuimica';
 import EspecialesDashboard from './pages/dashboard/areas/EspecialesDashboard';
 import BitacoraMaquilas from './pages/dashboard/BitacoraMaquilas';
+import BitacoraInterturnos from './pages/dashboard/BitacoraInterturnos';
 import CatalogoEspeciales from './pages/dashboard/areas/CatalogoEspeciales';
 import AdminSidebar from './components/navigation/AdminSidebar';
 import ChatWidget from './components/shared/ChatWidget';
@@ -194,6 +195,7 @@ function App() {
         {/* Inventario Universal por Área */}
         <Route path="/area/:areaId/inventario" element={<DashboardLayout><InventarioArea /></DashboardLayout>} />
         <Route path="/area/:areaId/control-calidad" element={<DashboardLayout><ControlCalidadArea /></DashboardLayout>} />
+        <Route path="/area/:areaId/bitacora-interturnos" element={<PrivateRoute><DashboardLayout><BitacoraInterturnos /></DashboardLayout></PrivateRoute>} />
 
         <Route path="/area/urianalisis" element={<AreaRoute requiredRole="urianalisis"><DashboardLayout><UrianalisisDashboard /></DashboardLayout></AreaRoute>} />
         <Route path="/area/microbiologia" element={<AreaRoute requiredRole="microbiologia"><DashboardLayout><MicrobiologiaDashboard /></DashboardLayout></AreaRoute>} />

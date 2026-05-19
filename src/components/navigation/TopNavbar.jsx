@@ -233,7 +233,8 @@ export default function TopNavbar() {
           { label: 'Solicitud de Material', path: '/almacen/nueva-solicitud', icon: 'add_shopping_cart' },
           { label: 'Histórico de Vales de Material', path: '/area/vales/historial', icon: 'history_edu' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_bag' },
-          { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }
+          { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' },
+          { label: 'Bitácora Interturnos', path: '/area/hematologia/bitacora-interturnos', icon: 'assignment' }
         ]
       },
       'microbiologia': { 
@@ -246,7 +247,8 @@ export default function TopNavbar() {
           { label: 'Solicitud de Material', path: '/almacen/nueva-solicitud', icon: 'add_shopping_cart' },
           { label: 'Histórico de Vales de Material', path: '/area/vales/historial', icon: 'history_edu' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_bag' },
-          { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }
+          { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' },
+          { label: 'Bitácora Interturnos', path: '/area/microbiologia/bitacora-interturnos', icon: 'assignment' }
         ]
       },
       'urianalisis': { 
@@ -259,7 +261,8 @@ export default function TopNavbar() {
           { label: 'Solicitud de Material', path: '/almacen/nueva-solicitud', icon: 'add_shopping_cart' },
           { label: 'Histórico de Vales de Material', path: '/area/vales/historial', icon: 'history_edu' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_bag' },
-          { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }
+          { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' },
+          { label: 'Bitácora Interturnos', path: '/area/urianalisis/bitacora-interturnos', icon: 'assignment' }
         ]
       },
       'quimica_clinica': { 
@@ -274,7 +277,8 @@ export default function TopNavbar() {
           { label: 'Solicitud de Material', path: '/almacen/nueva-solicitud', icon: 'add_shopping_cart' },
           { label: 'Histórico de Vales de Material', path: '/area/vales/historial', icon: 'history_edu' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_bag' },
-          { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }
+          { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' },
+          { label: 'Bitácora Interturnos', path: '/area/quimica-clinica/bitacora-interturnos', icon: 'assignment' }
         ]
       },
       'serologia': { 
@@ -287,7 +291,8 @@ export default function TopNavbar() {
           { label: 'Solicitud de Material', path: '/almacen/nueva-solicitud', icon: 'add_shopping_cart' },
           { label: 'Histórico de Vales de Material', path: '/area/vales/historial', icon: 'history_edu' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_bag' },
-          { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' }
+          { label: 'Historial de Requisiciones', path: '/area/requisiciones/historial', icon: 'history' },
+          { label: 'Bitácora Interturnos', path: '/area/serologia/bitacora-interturnos', icon: 'assignment' }
         ]
       },
       'toma_de_muestra': { label: 'Toma de Muestra', path: '/area/toma-muestra', icon: 'note_add' },
