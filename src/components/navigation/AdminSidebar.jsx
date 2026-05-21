@@ -43,6 +43,7 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
             { label: 'Inventario Gral.', path: '/almacen/inventario' },
             { label: 'Materiales', path: '/almacen/materiales' },
             { label: 'Solicitudes', path: '/almacen/solicitudes' },
+            { label: 'Prog. Mantenimiento', path: '/almacen/mantenimiento' },
           ]
         },
         { 

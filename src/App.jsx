@@ -22,6 +22,7 @@ import Sucursales from './pages/Sucursales';
 import InventarioArea from './pages/dashboard/InventarioArea';
 import ControlCalidadArea from './pages/dashboard/ControlCalidadArea';
 import RegistroInventario from './pages/dashboard/RegistroInventario';
+import ProgramaMantenimiento from './pages/dashboard/ProgramaMantenimiento';
 
 import NuevaRequisicion from './pages/dashboard/NuevaRequisicion';
 import GestionRequisiciones from './pages/dashboard/GestionRequisiciones';
@@ -179,6 +180,7 @@ function App() {
         <Route path="/almacen/proveedores" element={<WarehouseRoute><DashboardLayout><Proveedores /></DashboardLayout></WarehouseRoute>} />
         <Route path="/almacen/recepcion" element={<WarehouseRoute><DashboardLayout><RecepcionPedido /></DashboardLayout></WarehouseRoute>} />
         <Route path="/almacen/registro" element={<WarehouseRoute><DashboardLayout><RegistroInventario /></DashboardLayout></WarehouseRoute>} />
+        <Route path="/almacen/mantenimiento" element={<WarehouseRoute><DashboardLayout><ProgramaMantenimiento /></DashboardLayout></WarehouseRoute>} />
         <Route path="/admin/promociones" element={
           <PrivateRoute>
             {user?.role?.toLowerCase().includes('admin') ? <DashboardLayout><AdminPromociones /></DashboardLayout> : <Navigate to="/" replace />}

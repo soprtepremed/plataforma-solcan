@@ -62,3 +62,8 @@ scratch/
 # Credenciales de Firebase y Móvil
 solcan-mobile/*.json
 solcan-mobile/notificaciones-solcan-firebase-adminsdk-fbsvc-db803b403f.json
+
+# Archivos de video y pruebas temporales
+out.mp4
+*.mp4
+verify_mantenimiento.json

@@ -205,7 +205,8 @@ export default function TopNavbar() {
           { label: 'Historial de Vales', path: '/almacen/solicitudes', icon: 'assignment_turned_in' },
           { label: 'Historial de Requisiciones', path: '/almacen/requisiciones', icon: 'shopping_cart' },
           { label: 'Ingresar Stock', path: '/almacen/registro', icon: 'add_box' },
-          { label: 'Recepción de Pedido', path: '/almacen/recepcion', icon: 'input' }
+          { label: 'Recepción de Pedido', path: '/almacen/recepcion', icon: 'input' },
+          { label: 'Prog. de Mantenimiento', path: '/almacen/mantenimiento', icon: 'build' }
         ]
       });
       options.push({
