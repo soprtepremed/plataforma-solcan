@@ -105,15 +105,29 @@ const getAreaColor = (area) => {
 export default function ProgramaMantenimiento() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  
-  // Scoped Branch State: Defaults to null to force selection (Admins/Almacen)
-  // But if the logged-in user belongs to a specific branch and is not admin, default to their branch
+  const isAreaUser = !['admin', 'almacen'].includes(user?.role?.toLowerCase());
+
+  const ROLE_TO_AREA = {
+    'hematologia':   'hematología',
+    'quimica_clinica': 'química clínica',
+    'urianalisis':   'uroanálisis',
+    'microbiologia': 'microbiología'
+  };
+  const userArea = isAreaUser ? (ROLE_TO_AREA[user?.role?.toLowerCase()] || null) : null;
+
+
+  // Roles de área que siempre pertenecen a Matriz (laboratorio central)
+  const ROLES_MATRIZ = ['hematologia', 'microbiologia', 'urianalisis', 'quimica_clinica', 'serologia', 'especiales'];
+
+  // Scoped Branch State
   const [selectedSucursal, setSelectedSucursal] = useState(() => {
-    const isAlmacenOrAdmin = user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'almacen';
-    if (!isAlmacenOrAdmin && (user?.branch || user?.sucursal)) {
-      return user.branch || user.sucursal;
-    }
-    return null;
+    const r = user?.role?.toLowerCase();
+    const isAlmacenOrAdmin = r === 'admin' || r === 'almacen';
+    if (isAlmacenOrAdmin) return null;
+    // Las áreas de laboratorio siempre están en Matriz
+    if (ROLES_MATRIZ.includes(r)) return 'Matriz';
+    // Usuarios de sucursal usan su rama asignada
+    return user?.branch || user?.sucursal || null;
   });
 
   // Tab control state
@@ -396,17 +410,21 @@ export default function ProgramaMantenimiento() {
   }, [equipments, tickets, todayStr]);
 
   // Scoped Data filters based on the selected branch!
+  const sucursalNorm = selectedSucursal?.toLowerCase().trim() ?? '';
+
   const scopedEquipments = useMemo(() => {
-    return equipments.filter(e => e.sucursal === selectedSucursal);
-  }, [equipments, selectedSucursal]);
+    let filtered = equipments.filter(e => e.sucursal?.toLowerCase().trim() === sucursalNorm);
+    if (userArea) filtered = filtered.filter(e => e.area?.toLowerCase().trim() === userArea);
+    return filtered;
+  }, [equipments, sucursalNorm, userArea]);
 
   const scopedTickets = useMemo(() => {
-    return tickets.filter(t => t.sucursal === selectedSucursal);
-  }, [tickets, selectedSucursal]);
+    return tickets.filter(t => t.sucursal?.toLowerCase().trim() === sucursalNorm);
+  }, [tickets, sucursalNorm]);
 
   const scopedHistory = useMemo(() => {
-    return history.filter(h => h.sucursal === selectedSucursal);
-  }, [history, selectedSucursal]);
+    return history.filter(h => h.sucursal?.toLowerCase().trim() === sucursalNorm);
+  }, [history, sucursalNorm]);
 
   // Dynamic calculations / KPIs for the Scoped Branch
   const kpis = useMemo(() => {
@@ -1002,6 +1020,18 @@ export default function ProgramaMantenimiento() {
 
   // ==================== RENDER 1: BRANCH SELECTOR ====================
   if (!selectedSucursal) {
+    // Usuarios de área no pueden seleccionar sucursal
+    if (isAreaUser) {
+      return (
+        <div className={styles.container} style={{display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',minHeight:'60vh',gap:'1rem'}}>
+          <span className="material-symbols-rounded" style={{fontSize:'4rem',color:'#f59e0b'}}>warning</span>
+          <h3 style={{color:'#1e293b',margin:0}}>Sin sucursal asignada</h3>
+          <p style={{color:'#64748b',margin:0,textAlign:'center',maxWidth:'360px'}}>
+            Tu usuario no tiene una sucursal configurada. Contacta al administrador para que la asigne en tu perfil.
+          </p>
+        </div>
+      );
+    }
     return (
       <div className={styles.container}>
         <div className={styles.branchSelectorContainer}>
@@ -1062,9 +1092,11 @@ export default function ProgramaMantenimiento() {
   // ==================== RENDER 2: MAIN SCOPED CONTENT ====================
   return (
     <div className={styles.container}>
-      <button className={styles.mobileBackBtn} onClick={() => setSelectedSucursal(null)}>
-        <span className="material-symbols-rounded">arrow_back</span> Cambiar Sucursal
-      </button>
+      {!isAreaUser && (
+        <button className={styles.mobileBackBtn} onClick={() => setSelectedSucursal(null)}>
+          <span className="material-symbols-rounded">arrow_back</span> Cambiar Sucursal
+        </button>
+      )}
 
       {/* Header section with selected branch badge and action to change */}
       <header className={styles.header}>
@@ -1079,21 +1111,23 @@ export default function ProgramaMantenimiento() {
                 <span className="material-symbols-rounded" style={{fontSize: '18px'}}>location_on</span>
                 Sucursal: {selectedSucursal}
               </span>
-              <button className={styles.changeBranchBtn} onClick={() => setSelectedSucursal(null)} title="Cambiar de Sucursal">
-                <span className="material-symbols-rounded" style={{fontSize: '16px'}}>swap_horiz</span> Cambiar
-              </button>
+              {!isAreaUser && (
+                <button className={styles.changeBranchBtn} onClick={() => setSelectedSucursal(null)} title="Cambiar de Sucursal">
+                  <span className="material-symbols-rounded" style={{fontSize: '16px'}}>swap_horiz</span> Cambiar
+                </button>
+              )}
             </div>
             <p>Control de equipos, calibraciones preventivas y reparaciones de {selectedSucursal}</p>
           </div>
         </div>
         <div className={styles.headerActions}>
-          {activeTab === 'equipos' && (
+          {activeTab === 'equipos' && !isAreaUser && (
             <button className={styles.primaryBtn} onClick={() => handleOpenEquipModal()}>
               <span className="material-symbols-rounded">add</span> Registrar Nuevo Equipo
             </button>
           )}
           {activeTab === 'correctivos' && (
-            <button className={styles.primaryBtn} style={{background: '#ef4444'}} onClick={handleOpenTicketModal} disabled={scopedEquipments.length === 0}>
+            <button className={styles.primaryBtn} style={{background: '#ef4444'}} onClick={handleOpenTicketModal} disabled={!isAreaUser && scopedEquipments.length === 0}>
               <span className="material-symbols-rounded">report_problem</span> Reportar Falla Técnica
             </button>
           )}
@@ -1169,10 +1203,18 @@ export default function ProgramaMantenimiento() {
         <button className={`${styles.tabBtn} ${activeTab === 'correctivos' ? styles.tabBtnActive : ''}`} onClick={() => { setActiveTab('correctivos'); setSearchQuery(''); }}>
           <span className="material-symbols-rounded">warning</span> Tickets Correctivos
         </button>
-        <button className={`${styles.tabBtn} ${activeTab === 'historial' ? styles.tabBtnActive : ''}`} onClick={() => { setActiveTab('historial'); setSearchQuery(''); }}>
-          <span className="material-symbols-rounded">event_note</span> Bitácora Anual
-        </button>
+        {!isAreaUser && (
+          <button className={`${styles.tabBtn} ${activeTab === 'historial' ? styles.tabBtnActive : ''}`} onClick={() => { setActiveTab('historial'); setSearchQuery(''); }}>
+            <span className="material-symbols-rounded">event_note</span> Bitácora Anual
+          </button>
+        )}
       </nav>
+      {isAreaUser && (
+        <div style={{background:'rgba(37,99,235,0.06)', border:'1px solid #bfdbfe', borderRadius:'12px', padding:'0.75rem 1rem', marginBottom:'0.5rem', display:'flex', alignItems:'center', gap:'0.6rem', fontSize:'0.875rem', color:'#1d4ed8'}}>
+          <span className="material-symbols-rounded" style={{fontSize:'1.2rem'}}>info</span>
+          Puedes ver los equipos de tu área y reportar fallas técnicas. El equipo de mantenimiento atenderá tu reporte.
+        </div>
+      )}
 
       {/* Filters Area */}
       <div className={styles.filterRow}>
@@ -1225,10 +1267,21 @@ export default function ProgramaMantenimiento() {
         <div style={{textAlign: 'center', padding: '4rem 2rem', background: '#ffffff', borderRadius: '20px', border: '1px dashed #cbd5e1', color: '#64748b', marginBottom: '2rem'}}>
           <span className="material-symbols-rounded" style={{fontSize: '4rem', color: '#94a3b8', marginBottom: '1rem'}}>devices_other</span>
           <h3 style={{fontSize: '1.25rem', color: '#1e293b', margin: '0 0 0.5rem 0', fontWeight: '700'}}>Sin Equipos Registrados</h3>
-          <p style={{margin: '0 0 1.5rem 0', fontSize: '0.95rem'}}>Esta sucursal aún no cuenta con equipos asignados en su programa de mantenimiento.</p>
-          <button className={styles.primaryBtn} onClick={() => handleOpenEquipModal()}>
-            <span className="material-symbols-rounded">add</span> Agregar Primer Equipo
-          </button>
+          {isAreaUser ? (
+            <>
+              <p style={{margin: '0 0 1.5rem 0', fontSize: '0.95rem'}}>No se encontraron equipos para tu área en esta sucursal. Puedes reportar una falla de todas formas.</p>
+              <button className={styles.primaryBtn} style={{background: '#ef4444'}} onClick={handleOpenTicketModal}>
+                <span className="material-symbols-rounded">report_problem</span> Reportar Falla Técnica
+              </button>
+            </>
+          ) : (
+            <>
+              <p style={{margin: '0 0 1.5rem 0', fontSize: '0.95rem'}}>Esta sucursal aún no cuenta con equipos asignados en su programa de mantenimiento.</p>
+              <button className={styles.primaryBtn} onClick={() => handleOpenEquipModal()}>
+                <span className="material-symbols-rounded">add</span> Agregar Primer Equipo
+              </button>
+            </>
+          )}
         </div>
       )}
 
@@ -1246,7 +1299,7 @@ export default function ProgramaMantenimiento() {
                   <th>Último Manto.</th>
                   <th>Próximo Manto.</th>
                   <th className={styles.textCenter}>Estado</th>
-                  <th className={styles.textCenter}>Acciones</th>
+                  {!isAreaUser && <th className={styles.textCenter}>Acciones</th>}
                 </tr>
               </thead>
               <tbody>
@@ -1270,11 +1323,13 @@ export default function ProgramaMantenimiento() {
                         {item.estadoManto === 'Próximo' && <span className={`${styles.badge} ${styles.badgeWarning}`}>Próximo</span>}
                         {item.estadoManto === 'Vencido' && <span className={`${styles.badge} ${styles.badgeDanger}`}>Vencido</span>}
                       </td>
-                      <td className={styles.textCenter}>
-                        <button className={`${styles.primaryBtn}`} style={{padding: '0.4rem 0.8rem', fontSize: '0.8rem'}} onClick={() => handleOpenLogMantoModal(item)}>
-                          <span className="material-symbols-rounded" style={{fontSize: '1rem'}}>edit_calendar</span> Registrar Manto.
-                        </button>
-                      </td>
+                      {!isAreaUser && (
+                        <td className={styles.textCenter}>
+                          <button className={`${styles.primaryBtn}`} style={{padding: '0.4rem 0.8rem', fontSize: '0.8rem'}} onClick={() => handleOpenLogMantoModal(item)}>
+                            <span className="material-symbols-rounded" style={{fontSize: '1rem'}}>edit_calendar</span> Registrar Manto.
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
               </tbody>
@@ -1300,11 +1355,13 @@ export default function ProgramaMantenimiento() {
                     <div><strong>Último:</strong> {item.ultimoManto || '---'}</div>
                     <div><strong>Próximo:</strong> <span style={{fontWeight: '700'}}>{item.proximoManto}</span></div>
                   </div>
-                  <div className={styles.mobileCardActions}>
-                    <button className={styles.primaryBtn} style={{width: '100%', justifyContent: 'center'}} onClick={() => handleOpenLogMantoModal(item)}>
-                      <span className="material-symbols-rounded">edit_calendar</span> Registrar Mantenimiento
-                    </button>
-                  </div>
+                  {!isAreaUser && (
+                    <div className={styles.mobileCardActions}>
+                      <button className={styles.primaryBtn} style={{width: '100%', justifyContent: 'center'}} onClick={() => handleOpenLogMantoModal(item)}>
+                        <span className="material-symbols-rounded">edit_calendar</span> Registrar Mantenimiento
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
           </div>
@@ -1326,7 +1383,7 @@ export default function ProgramaMantenimiento() {
                   <th>Último Manto.</th>
                   <th>Próximo Manto.</th>
                   <th className={styles.textCenter}>Estatus</th>
-                  <th className={styles.textCenter}>Acciones</th>
+                  {!isAreaUser && <th className={styles.textCenter}>Acciones</th>}
                 </tr>
               </thead>
               <tbody>
@@ -1351,22 +1408,24 @@ export default function ProgramaMantenimiento() {
                         <span className={`${styles.badge} ${styles.badgeDanger}`} style={{background: '#f1f5f9', color: '#94a3b8'}}>Inactivo</span>
                       )}
                     </td>
-                    <td className={styles.textCenter}>
-                      <div style={{display: 'flex', gap: '0.4rem', justifyContent: 'center'}}>
-                        <button className={styles.actionBtn} title="Editar Equipo" onClick={() => handleOpenEquipModal(item)}>
-                          <span className="material-symbols-rounded">edit</span>
-                        </button>
-                        {item.estatus === 'Activo' ? (
-                          <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`} title="Inactivar Equipo" onClick={() => handleInactivateEquip(item.id, item.nombre)}>
-                            <span className="material-symbols-rounded">block</span>
+                    {!isAreaUser && (
+                      <td className={styles.textCenter}>
+                        <div style={{display: 'flex', gap: '0.4rem', justifyContent: 'center'}}>
+                          <button className={styles.actionBtn} title="Editar Equipo" onClick={() => handleOpenEquipModal(item)}>
+                            <span className="material-symbols-rounded">edit</span>
                           </button>
-                        ) : (
-                          <button className={`${styles.actionBtn} ${styles.actionBtnSuccess}`} title="Reactivar Equipo" onClick={() => handleReactivateEquip(item.id, item.nombre)}>
-                            <span className="material-symbols-rounded">settings_backup_restore</span>
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                          {item.estatus === 'Activo' ? (
+                            <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`} title="Inactivar Equipo" onClick={() => handleInactivateEquip(item.id, item.nombre)}>
+                              <span className="material-symbols-rounded">block</span>
+                            </button>
+                          ) : (
+                            <button className={`${styles.actionBtn} ${styles.actionBtnSuccess}`} title="Reactivar Equipo" onClick={() => handleReactivateEquip(item.id, item.nombre)}>
+                              <span className="material-symbols-rounded">settings_backup_restore</span>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -1394,20 +1453,22 @@ export default function ProgramaMantenimiento() {
                   <div><strong>Último:</strong> {item.ultimoManto || '---'}</div>
                   <div><strong>Próximo:</strong> {item.proximoManto || '---'}</div>
                 </div>
-                <div className={styles.mobileCardActions}>
-                  <button className={styles.actionBtn} style={{flex: 1, padding: '0.5rem'}} onClick={() => handleOpenEquipModal(item)}>
-                    <span className="material-symbols-rounded">edit</span> Editar
-                  </button>
-                  {item.estatus === 'Activo' ? (
-                    <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`} style={{flex: 1, padding: '0.5rem'}} onClick={() => handleInactivateEquip(item.id, item.nombre)}>
-                      <span className="material-symbols-rounded">block</span> Inactivar
+                {!isAreaUser && (
+                  <div className={styles.mobileCardActions}>
+                    <button className={styles.actionBtn} style={{flex: 1, padding: '0.5rem'}} onClick={() => handleOpenEquipModal(item)}>
+                      <span className="material-symbols-rounded">edit</span> Editar
                     </button>
-                  ) : (
-                    <button className={`${styles.actionBtn} ${styles.actionBtnSuccess}`} style={{flex: 1, padding: '0.5rem'}} onClick={() => handleReactivateEquip(item.id, item.nombre)}>
-                      <span className="material-symbols-rounded">settings_backup_restore</span> Reactivar
-                    </button>
-                  )}
-                </div>
+                    {item.estatus === 'Activo' ? (
+                      <button className={`${styles.actionBtn} ${styles.actionBtnDanger}`} style={{flex: 1, padding: '0.5rem'}} onClick={() => handleInactivateEquip(item.id, item.nombre)}>
+                        <span className="material-symbols-rounded">block</span> Inactivar
+                      </button>
+                    ) : (
+                      <button className={`${styles.actionBtn} ${styles.actionBtnSuccess}`} style={{flex: 1, padding: '0.5rem'}} onClick={() => handleReactivateEquip(item.id, item.nombre)}>
+                        <span className="material-symbols-rounded">settings_backup_restore</span> Reactivar
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>

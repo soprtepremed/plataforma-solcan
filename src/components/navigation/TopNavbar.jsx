@@ -224,13 +224,14 @@ export default function TopNavbar() {
 
     // Configuración detallada de Áreas Técnicas
     const areasConfig = {
-      'hematologia': { 
+      'hematologia': {
         label: 'Hematología', path: '/area/hematologia', icon: 'bloodtype',
         children: [
           { label: 'Tablero de Control de Área', path: '/area/hematologia', icon: 'dashboard_customize' },
           { label: 'Temperaturas', path: '/area/hematologia/temperaturas', icon: 'device_thermostat' },
           { label: 'Inventario y Control de Calidad', path: '/area/hematologia/inventario', icon: 'inventory_2' },
           { label: 'Acciones QC (FO-DO-012)', path: '/area/hematologia/control-calidad', icon: 'fact_check' },
+          { label: 'Prog. de Mantenimiento', path: '/almacen/mantenimiento', icon: 'build' },
           { label: 'Solicitud de Material', path: '/almacen/nueva-solicitud', icon: 'add_shopping_cart' },
           { label: 'Histórico de Vales de Material', path: '/area/vales/historial', icon: 'history_edu' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_bag' },
@@ -238,13 +239,14 @@ export default function TopNavbar() {
           { label: 'Bitácora Interturnos', path: '/area/hematologia/bitacora-interturnos', icon: 'assignment' }
         ]
       },
-      'microbiologia': { 
+      'microbiologia': {
         label: 'Microbiología', path: '/area/microbiologia', icon: 'biotech',
         children: [
           { label: 'Tablero de Control de Área', path: '/area/microbiologia', icon: 'dashboard_customize' },
           { label: 'Temperaturas', path: '/area/microbiologia/temperaturas', icon: 'device_thermostat' },
           { label: 'Inventario y Control de Calidad', path: '/area/microbiologia/inventario', icon: 'inventory_2' },
           { label: 'Acciones QC (FO-DO-012)', path: '/area/microbiologia/control-calidad', icon: 'fact_check' },
+          { label: 'Prog. de Mantenimiento', path: '/almacen/mantenimiento', icon: 'build' },
           { label: 'Solicitud de Material', path: '/almacen/nueva-solicitud', icon: 'add_shopping_cart' },
           { label: 'Histórico de Vales de Material', path: '/area/vales/historial', icon: 'history_edu' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_bag' },
@@ -252,13 +254,14 @@ export default function TopNavbar() {
           { label: 'Bitácora Interturnos', path: '/area/microbiologia/bitacora-interturnos', icon: 'assignment' }
         ]
       },
-      'urianalisis': { 
+      'urianalisis': {
         label: 'Urianálisis', path: '/area/urianalisis', icon: 'science',
         children: [
           { label: 'Tablero de Control de Área', path: '/area/urianalisis', icon: 'dashboard_customize' },
           { label: 'Temperaturas', path: '/area/urianalisis/temperaturas', icon: 'device_thermostat' },
           { label: 'Inventario y Control de Calidad', path: '/area/urianalisis/inventario', icon: 'inventory_2' },
           { label: 'Acciones QC (FO-DO-012)', path: '/area/urianalisis/control-calidad', icon: 'fact_check' },
+          { label: 'Prog. de Mantenimiento', path: '/almacen/mantenimiento', icon: 'build' },
           { label: 'Solicitud de Material', path: '/almacen/nueva-solicitud', icon: 'add_shopping_cart' },
           { label: 'Histórico de Vales de Material', path: '/area/vales/historial', icon: 'history_edu' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_bag' },
@@ -266,7 +269,7 @@ export default function TopNavbar() {
           { label: 'Bitácora Interturnos', path: '/area/urianalisis/bitacora-interturnos', icon: 'assignment' }
         ]
       },
-      'quimica_clinica': { 
+      'quimica_clinica': {
         label: 'Química Clínica', path: '/area/quimica-clinica', icon: 'science',
         children: [
           { label: 'Tablero de Control de Área', path: '/area/quimica-clinica', icon: 'dashboard_customize' },
@@ -275,6 +278,7 @@ export default function TopNavbar() {
           { label: 'Parámetros Derivados', path: '/area/quimica-clinica/derivados', icon: 'calculate' },
           { label: 'Bitácora de Maquilas', path: '/area/quimica-clinica/bitacora', icon: 'list_alt' },
           { label: 'Acciones QC (FO-DO-012)', path: '/area/quimica-clinica/control-calidad', icon: 'fact_check' },
+          { label: 'Prog. de Mantenimiento', path: '/almacen/mantenimiento', icon: 'build' },
           { label: 'Solicitud de Material', path: '/almacen/nueva-solicitud', icon: 'add_shopping_cart' },
           { label: 'Histórico de Vales de Material', path: '/area/vales/historial', icon: 'history_edu' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_bag' },
@@ -282,13 +286,14 @@ export default function TopNavbar() {
           { label: 'Bitácora Interturnos', path: '/area/quimica-clinica/bitacora-interturnos', icon: 'assignment' }
         ]
       },
-      'serologia': { 
+      'serologia': {
         label: 'Serología', path: '/area/serologia', icon: 'bloodtype',
         children: [
           { label: 'Tablero de Control de Área', path: '/area/serologia', icon: 'dashboard_customize' },
           { label: 'Temperaturas', path: '/area/serologia/temperaturas', icon: 'device_thermostat' },
           { label: 'Inventario y Control de Calidad', path: '/area/serologia/inventario', icon: 'inventory_2' },
           { label: 'Acciones QC (FO-DO-012)', path: '/area/serologia/control-calidad', icon: 'fact_check' },
+          { label: 'Prog. de Mantenimiento', path: '/almacen/mantenimiento', icon: 'build' },
           { label: 'Solicitud de Material', path: '/almacen/nueva-solicitud', icon: 'add_shopping_cart' },
           { label: 'Histórico de Vales de Material', path: '/area/vales/historial', icon: 'history_edu' },
           { label: 'Nueva Requisición', path: '/area/requisicion', icon: 'shopping_bag' },

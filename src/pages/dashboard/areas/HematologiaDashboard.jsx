@@ -88,6 +88,13 @@ const HematologiaDashboard = () => {
       icon: 'history',
       path: '/area/requisiciones/historial',
       color: '#F59E0B'
+    },
+    {
+      title: 'Reportar Falla de Equipo',
+      desc: 'Levanta un ticket correctivo para reportar fallas en equipos analíticos del área.',
+      icon: 'report_problem',
+      path: '/almacen/mantenimiento',
+      color: '#EF4444'
     }
   ];
 

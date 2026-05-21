@@ -180,7 +180,7 @@ function App() {
         <Route path="/almacen/proveedores" element={<WarehouseRoute><DashboardLayout><Proveedores /></DashboardLayout></WarehouseRoute>} />
         <Route path="/almacen/recepcion" element={<WarehouseRoute><DashboardLayout><RecepcionPedido /></DashboardLayout></WarehouseRoute>} />
         <Route path="/almacen/registro" element={<WarehouseRoute><DashboardLayout><RegistroInventario /></DashboardLayout></WarehouseRoute>} />
-        <Route path="/almacen/mantenimiento" element={<WarehouseRoute><DashboardLayout><ProgramaMantenimiento /></DashboardLayout></WarehouseRoute>} />
+        <Route path="/almacen/mantenimiento" element={<PrivateRoute><DashboardLayout><ProgramaMantenimiento /></DashboardLayout></PrivateRoute>} />
         <Route path="/admin/promociones" element={
           <PrivateRoute>
             {user?.role?.toLowerCase().includes('admin') ? <DashboardLayout><AdminPromociones /></DashboardLayout> : <Navigate to="/" replace />}
